@@ -1,0 +1,117 @@
+#!/usr/bin/env python3
+
+# This script translates the output data in the given file to a text format
+# usable by the NCAR Command Language (NCL). For more information about NCL, see
+# https://www.ncl.ucar.edu.
+
+import os.path, sys
+
+def usage():
+    print('%s: Translates a Skywalker Python output module to NCL.'%sys.argv[0])
+    print('Usage: %s <skywalker_output.py>'%sys.argv[0])
+
+def write_ncl_var(ncl, name, var):
+    if isinstance(var, float):
+        ncl.write('%s = %e\n'%(name, var))
+    elif isinstance(var, list):
+        ncl.write('%s = \\\n(/ \\\n'%name)
+        for i in range(len(var)):
+            if i == len(var)-1:
+                ncl.write('    %e \\\n'%var[i])
+            else:
+                ncl.write('    %e,\\\n'%var[i])
+        ncl.write('/)\n')
+    else: # object?
+        for f in [x for x in dir(var) if x[0] != '_']:
+            v = getattr(var, f)
+            write_ncl_var(ncl, '%s_%s'%(name, f), v)
+
+def translate_atmosphere_input(atmosphere, ncl):
+    for item_name in [x for x in dir(atmosphere) if x[0] != '_']:
+        var_name = 'in_atm_%s'%item_name
+        var = getattr(atmosphere, item_name)
+        write_ncl_var(ncl, var_name, var)
+
+def translate_aerosols_input(aerosols, ncl):
+    for item_name in [x for x in dir(aerosols) if x[0] != '_']:
+        var_name = 'in_aero_%s'%item_name
+        var = getattr(aerosols, item_name)
+        write_ncl_var(ncl, var_name, var)
+
+def translate_gases_input(gases, ncl):
+    for item_name in [x for x in dir(gases) if x[0] != '_']:
+        var_name = 'in_gas_%s'%item_name
+        var = getattr(gases, item_name)
+        write_ncl_var(ncl, var_name, var)
+
+def translate_user_input(user, ncl):
+    for item_name in [x for x in dir(user) if x[0] != '_']:
+        var_name = 'in_user_%s'%item_name
+        var = getattr(user, item_name)
+        write_ncl_var(ncl, var_name, var)
+
+def translate_aerosols_output(aerosols, ncl):
+    for item_name in [x for x in dir(aerosols) if x[0] != '_']:
+        var_name = 'out_aero_%s'%item_name
+        var = getattr(aerosols, item_name)
+        write_ncl_var(ncl, var_name, var)
+
+def translate_gases_output(gases, ncl):
+    for item_name in [x for x in dir(gases) if x[0] != 'x_']:
+        var_name = 'out_gas_%s'%item_name
+        var = getattr(gases, item_name)
+        write_ncl_var(ncl, var_name, var)
+
+def translate_metrics_output(metrics, ncl):
+    for item_name in [x for x in dir(metrics) if x[0] != '_']:
+        var_name = 'out_metric_%s'%item_name
+        var = getattr(metrics, item_name)
+        write_ncl_var(ncl, var_name, var)
+
+def translate_module(mod, ncl):
+    symbols = dir(mod)
+    if 'input' in symbols:
+        inp = mod.input
+        if 'atmosphere' in dir(inp):
+            translate_atmosphere_input(inp.atmosphere, ncl)
+        if 'aerosols' in dir(inp):
+            translate_aerosols_input(inp.aerosols, ncl)
+        if 'gases' in dir(inp):
+            translate_gases_input(inp.gases, ncl)
+        if 'user' in dir(inp):
+            translate_user_input(inp.user, ncl)
+
+    if 'output' in symbols:
+        outp = mod.output
+        if 'aerosols' in dir(outp):
+            translate_aerosols_output(outp.aerosols, ncl)
+        if 'gases' in dir(outp):
+            translate_gases_output(outp.gases, ncl)
+        if 'metrics' in dir(outp):
+            translate_metrics_output(outp.metrics, ncl)
+
+if __name__ == "__main__":
+    if len(sys.argv) == 1:
+        usage()
+    else:
+        py_path = sys.argv[1]
+        if not os.path.exists(py_path):
+            print("%s: nonexistent file: %s\n", sys.argv[0], py_path)
+            exit(1)
+        sys.path.append(os.path.dirname(py_path))
+        py_file = os.path.basename(py_path)
+        suffix = py_file.find('.py')
+        if suffix == -1: # Not a Python module!
+            print("%s: invalid Python module: %s\n"%(sys.argv[0], py_path))
+            exit(1)
+        mod_name = py_file[:suffix]
+        ncl_file = mod_name + ".ncl"
+        ncl = open(ncl_file, 'w')
+
+        # Import the output module.
+        import importlib
+        mod = importlib.import_module(mod_name)
+
+        # Translate!
+        print("py2ncl: Converting %s to %s."%(py_file, ncl_file))
+        translate_module(mod, ncl)
