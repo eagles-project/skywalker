@@ -6,28 +6,12 @@ set(SKYWALKER_PREFIX "@CMAKE_INSTALL_PREFIX@")
 
 # Library targets
 add_library(skywalker STATIC IMPORTED GLOBAL)
-set_target_properties(skywalker PROPERTIES IMPORTED_LOCATION "${SKYWALKER_PREFIX}/lib/libskywalker_@HAERO_PRECISION@.a")
+set_target_properties(skywalker PROPERTIES IMPORTED_LOCATION "${SKYWALKER_PREFIX}/lib/libskywalker_@SKYWALKER_PRECISION@.a")
 
-if ("@YAMLCPP_LIBRARY@" MATCHES ".a")
-  add_library(yaml_cpp STATIC IMPORTED GLOBAL)
-else()
-  add_library(yaml_cpp SHARED IMPORTED GLOBAL)
-endif()
-set_target_properties(yaml_cpp PROPERTIES IMPORTED_LOCATION "@YAMLCPP_LIBRARY@")
-
-add_library(haero STATIC IMPORTED GLOBAL)
-set_target_properties(haero PROPERTIES IMPORTED_LOCATION "${SKYWALKER_PREFIX}/lib/libhaero.a")
-
-if ("@EKAT_LIBRARY@" MATCHES ".a")
-  add_library(ekat STATIC IMPORTED GLOBAL)
-  add_library(kokkoscore STATIC IMPORTED GLOBAL)
-else()
-  add_library(ekat SHARED IMPORTED GLOBAL)
-  add_library(kokkoscore SHARED IMPORTED GLOBAL)
-endif()
-set_target_properties(ekat PROPERTIES IMPORTED_LOCATION "@EKAT_LIBRARY@")
-set_target_properties(kokkoscore PROPERTIES IMPORTED_LOCATION @EKAT_LIBRARY_DIR@/libkokkoscore.a)
+add_library(skywalker_f90 STATIC IMPORTED GLOBAL)
+set_target_properties(skywalker_f90 PROPERTIES IMPORTED_LOCATION "${SKYWALKER_PREFIX}/lib/libskywalker_f90_@SKYWALKER_PRECISION@.a")
 
 set(SKYWALKER_INCLUDE_DIR ${SKYWALKER_PREFIX}/include/skywalker)
-set(SKYWALKER_LIBRARIES skywalker;haero;yaml_cpp;ekat;kokkoscore)
+set(SKYWALKER_LIBRARY skywalker)
+set(SKYWALKER_F90_LIBRARY skywalker_f90)
 set(SKYWALKER_PY2NCL ${SKYWALKER_PREFIX}/bin/py2ncl)

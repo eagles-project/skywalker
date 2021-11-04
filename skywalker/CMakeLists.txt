@@ -1,7 +1,7 @@
 include_directories(${CMAKE_CURRENT_BINARY_DIR} ${HAERO_INCDIRS} ${HAERO_DRIVER_INCDIRS})
 include_directories(${PROJECT_BINARY_DIR}/skywalker)
 
-# Generate skywalker.h with the correct floating point precision type.
+# Generate skywalker.h and skywalker.cmake with the correct settings.
 configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/skywalker.h.in
   ${CMAKE_CURRENT_BINARY_DIR}/skywalker.h
@@ -48,6 +48,6 @@ configure_file(
   @ONLY
 )
 install(FILES ${PROJECT_BINARY_DIR}/cmake/skywalker.cmake
-        DESTINATION cmake)
+        DESTINATION share)
 
 add_subdirectory(tests)
