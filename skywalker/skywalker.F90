@@ -3,7 +3,6 @@
 module skywalker
 
   use iso_c_binding
-  use haero_precision, only: wp
 
   implicit none
 

@@ -26,7 +26,7 @@ if (SKYWALKER_PRECISION STREQUAL "single")
   set(SKYWALKER_REAL_TYPE "float")
   set(SKYWALKER_REAL_KIND "sp")
   set(SKYWALKER_DOUBLE_PRECISION 0)
-else(SKYWALKER_PRECISION STREQUAL "double" OR NOT SKYWALKER_PRECISION)
+elseif(SKYWALKER_PRECISION STREQUAL "double" OR NOT SKYWALKER_PRECISION)
   set(SKYWALKER_REAL_TYPE "double")
   set(SKYWALKER_REAL_KIND "dp")
   set(SKYWALKER_DOUBLE_PRECISION 1)
@@ -100,29 +100,9 @@ endif()
 # Report the installation prefix.
 message(STATUS "Installation prefix is ${CMAKE_INSTALL_PREFIX}")
 
-# Basic libraries to be linked in.
-set(SKYWALKER_LIBRARIES m)
-
-# Third-party libraries.
-add_subdirectory(ext)
-
-# Record the libraries we've gathered so far as the "base" libraries that
-# our box model needs. We use this for efficiently linking unit tests.
-set(SKYWALKER_BASE_LIBRARIES ${SKYWALKER_LIBRARIES})
-
-# Include the binary directory in the header file search path,
-# since it's where we place the third-party libraries.
-include_directories("${PROJECT_BINARY_DIR}")
-include_directories("${PROJECT_BINARY_DIR}/include")
-
-include(GNUInstallDirs)
-link_directories("${PROJECT_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR}")
-include_directories(${SKYWALKER_INCDIRS})
-
 # Unit testing.
 include(CTest)
 enable_testing()
 
 # Source directories.
-include_directories("${PROJECT_SOURCE_DIR}")
 add_subdirectory(skywalker)
