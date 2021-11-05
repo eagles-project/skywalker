@@ -2,20 +2,29 @@
 
 #include <khash.h>
 #include <klist.h>
+#include <kvec.h>
 
 #include <assert.h>
+#include <math.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <strings.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // Some basic data structures.
 
 // A list of C strings.
-#define free_string(x) free(x->data)
+#define free_string(x) free((char*)x->data)
 KLIST_INIT(string_list, const char*, free_string)
 
+// A hash table whose keys are C strings and whose values are also C strings.
+KHASH_MAP_INIT_STR(string_map, const char*)
+
 // A hash table whose keys are C strings and whose values are real numbers.
-KHASH_MAP_INIT_STR(param_hash, sw_real_t)
+KHASH_MAP_INIT_STR(param_map, sw_real_t)
 
 // A list of strings to be deallocated by skywalker.
 static klist_t(string_list)* sw_strings_ = NULL;
@@ -23,16 +32,6 @@ static klist_t(string_list)* sw_strings_ = NULL;
 // This function cleans up all maintained strings at the end of a process.
 static void free_strings() {
   kl_destroy(string_list, sw_strings_);
-}
-
-// This function constructs a string in the manner of sprintf, but allocates
-// and returns a string of sufficient size.
-static const char* new_string(const char *fmt, ...) {
-  char *s;
-  va_list ap;
-  va_start(ap, fmt);
-  vasprintf(&s, fmt, ap);
-  va_end(ap);
 }
 
 // This function appends a string to the list of maintained strings, setting
@@ -46,144 +45,164 @@ static void append_string(const char *s) {
   *s_p = s;
 }
 
+// Here we implement a portable version of the non-standard vasprintf
+// function (see https://stackoverflow.com/questions/40159892/using-asprintf-on-windows).
+static int vscprintf(const char *format, va_list ap) {
+  va_list ap_copy;
+  va_copy(ap_copy, ap);
+  int retval = vsnprintf(NULL, 0, format, ap_copy);
+  va_end(ap_copy);
+  return retval;
+}
+
+static int vasprintf(char **strp, const char *format, va_list ap) {
+  int len = vscprintf(format, ap);
+  if (len == -1)
+    return -1;
+  char *str = (char*)malloc((size_t) len + 1);
+  if (!str)
+    return -1;
+  int retval = vsnprintf(str, len + 1, format, ap);
+  if (retval == -1) {
+    free(str);
+    return -1;
+  }
+  *strp = str;
+  return retval;
+}
+
+// This function constructs a string in the manner of sprintf, but allocates
+// and returns a string of sufficient size. Strings created this way are freed
+// when the program exits,
+static const char* new_string(const char *fmt, ...) {
+  char *s;
+  va_list ap;
+  va_start(ap, fmt);
+  vasprintf(&s, fmt, ap);
+  va_end(ap);
+  append_string(s);
+  return s;
+}
+
 struct sw_settings_t {
-  khash_t(param_hash) *params;
-} sw_settings_t;
+  khash_t(string_map) *params;
+};
 
 // Creates a settings instance.
 static sw_settings_t *sw_settings_new() {
   sw_settings_t *settings = malloc(sizeof(sw_settings_t));
-  settings->params = kh_init(param_hash);
+  settings->params = kh_init(string_map);
   return settings;
 }
 
 // Destroys a settings instance, freeing all allocated resources.
 static void sw_settings_free(sw_settings_t *settings) {
-  kh_destroy(param_map, settings->params);
+  kh_destroy(string_map, settings->params);
 }
 
-sw_store_result_t sw_set_setting(sw_settings_t *settings,
-                                 const char *name,
-                                 sw_real_t value) {
-  sw_store_result_t result = {.error_code = SW_SUCCESS};
+static sw_output_result_t sw_settings_set(sw_settings_t *settings,
+                                          const char *name,
+                                          const char *value) {
+  sw_output_result_t result = {.error_code = SW_SUCCESS};
   int ret;
   const char* n = strdup(name);
-  khiter_t iter = kh_put(param_map, settings->param, n, &ret);
-  kh_value(settings->param, iter) = value;
+  const char* v = strdup(value);
+  khiter_t iter = kh_put(string_map, settings->params, n, &ret);
+  kh_value(settings->params, iter) = v;
   append_string(n);
+  append_string(v);
   return result;
 }
 
-sw_fetch_result_t sw_get_setting(sw_settings_t *settings,
-                                 const char* setting_name) {
-  khiter_t iter = kh_get(param_hash, settings->params, setting_name);
-  sw_fetch_result_t result = {.error_code = SW_SUCCESS};
+sw_setting_result_t sw_settings_get(sw_settings_t *settings,
+                                    const char* name) {
+  khiter_t iter = kh_get(string_map, settings->params, name);
+  sw_setting_result_t result = {.error_code = SW_SUCCESS};
   if (iter != kh_end(settings->params)) {
     result.value = kh_val(settings->params, iter);
   } else {
-    result.error_code = SW_VALUE_NOT_FOUND;
-    const char *s = new_string("The setting '%s' was not found.", setting_name);
-    result.error_string = s;
-    append_string(s);
+    result.error_code = SW_PARAM_NOT_FOUND;
+    const char *s = new_string("The setting '%s' was not found.", name);
+    result.error_message = s;
   }
   return result;
 }
 
 struct sw_input_t {
-  khash_t(param_hash) *params;
-} sw_input_t;
+  khash_t(param_map) *params;
+};
 
-// Creates an input instance.
-static sw_input_new *sw_input_new() {
-  sw_input_t *input = malloc(sizeof(sw_input_new));
-  input->params = kh_init(param_hash);
-  return input;
-}
-
-// Destroys an input instance, freeing all allocated resources.
-static void sw_input_free(sw_input_t *input) {
-  kh_destroy(param_map, input->params);
-  free(input);
-}
-
-sw_store_result_t sw_set_input_param(sw_input_t *input,
-                                     const char *name,
-                                     sw_real_t value) {
-  sw_store_result_t result = {.error_code = SW_SUCCESS};
+static sw_output_result_t sw_input_set(sw_input_t *input,
+                                       const char *name,
+                                       sw_real_t value) {
+  sw_output_result_t result = {.error_code = SW_SUCCESS};
   int ret;
   const char* n = strdup(name);
-  khiter_t iter = kh_put(param_map, input->param, n, &ret);
-  kh_value(input->param, iter) = value;
+  khiter_t iter = kh_put(param_map, input->params, n, &ret);
+  kh_value(input->params, iter) = value;
   append_string(n);
   return result;
 }
 
-sw_param_result_t sw_get_input_param(sw_input_t *input,
-                                     const char *param_name) {
-  khiter_t iter = kh_get(param_hash, input->params, param_name);
-  sw_param_result_t result = {.error_code = SW_SUCCESS};
+sw_input_result_t sw_input_get(sw_input_t *input,
+                               const char *name) {
+  khiter_t iter = kh_get(param_map, input->params, name);
+  sw_input_result_t result = {.error_code = SW_SUCCESS};
   if (iter != kh_end(input->params)) {
     result.value = kh_val(input->params, iter);
   } else {
-    result.error_code = SW_VALUE_NOT_FOUND;
-    const char *s = new_string("The input parameter '%s' was not found.", param_name);
-    result.error_string = s;
-    append_string(s);
+    result.error_code = SW_PARAM_NOT_FOUND;
+    const char *s = new_string("The input parameter '%s' was not found.", name);
+    result.error_message = s;
   }
   return result;
 }
 
 struct sw_output_t {
-  khash_t(param_hash) *metrics;
+  khash_t(param_map) *metrics;
 };
 
-// Destroys an output instance, freeing all allocated resources.
-static void sw_output_free(sw_output_t *output) {
-  kh_destroy(param_map, output->metrics);
-  free(output);
-}
-
-sw_store_result_t sw_add_output_metric(sw_output_t *output,
-                                       const char *name,
-                                       sw_real_t metric_value) {
-  sw_store_result_t result = {.error_code = SW_SUCCESS};
+sw_output_result_t sw_output_set(sw_output_t *output,
+                                 const char *name,
+                                 sw_real_t value) {
+  sw_output_result_t result = {.error_code = SW_SUCCESS};
   int ret;
   const char* n = strdup(name);
   khiter_t iter = kh_put(param_map, output->metrics, n, &ret);
-  kh_value(output->metrics, iter) = metric_value;
+  kh_value(output->metrics, iter) = value;
   append_string(n);
   return result;
 }
 
 // ensemble type
 struct sw_ensemble_t {
-  sw_settings_t settings;
-  sw_ens_type_t type;
-  size_t size;
+  size_t size, position;
   sw_input_t *inputs;
   sw_output_t *outputs;
-  const char *error_message;
 };
 
 // Destroys an ensemble, freeing all allocated resources.
 static void sw_ensemble_free(sw_ensemble_t *ensemble) {
   if (ensemble->inputs) {
     for (size_t i = 0; i < ensemble->size; ++i) {
-      sw_input_free(&(ensemble->inputs[i]));
-      sw_output_free(&(ensemble->outputs[i]));
+      kh_destroy(param_map, ensemble->inputs[i].params);
+      kh_destroy(param_map, ensemble->outputs[i].metrics);
     }
     free(ensemble->inputs);
     free(ensemble->outputs);
   }
-  if (ensemble->error_message)
-    free(ensemble->error_message);
   free(ensemble);
 }
+
+// A hash table whose keys are C strings and whose values are arrays of numbers.
+typedef kvec_t(sw_real_t) sw_real_vec_t;
+KHASH_MAP_INIT_STR(yaml_param_map, sw_real_vec_t)
 
 // This type stores data parsed from YAML.
 typedef struct sw_yaml_data_t {
   sw_ens_type_t ensemble_type;
-  sw_settings_t settings;
+  sw_settings_t *settings;
+  khash_t(yaml_param_map) *params;
   int error_code;
   const char* error_message;
 } sw_yaml_data_t;
@@ -197,6 +216,7 @@ static sw_yaml_data_t parse_yaml(const char* yaml_file,
 
 // This type contains results from building an ensemble.
 typedef struct sw_build_result_t {
+  const char *yaml_file;
   size_t num_inputs;
   sw_input_t *inputs;
   int error_code;
@@ -205,104 +225,156 @@ typedef struct sw_build_result_t {
 
 // Generates an array of inputs for a lattice ensemble.
 static sw_build_result_t build_lattice_ensemble(sw_yaml_data_t yaml_data) {
-  // Count up the number of inputs defined by the parameter walk thingy,
-  // excluding those parameters specified.
-  size_t num_inputs = 1, num_params = 0;
-  for (auto param : ensemble) {
-    if (excluded_params.find(param.first) ==
-        excluded_params.end()) {          // not excluded
-      num_inputs *= param.second.size();  // set of parameter values
+  sw_build_result_t result = {.error_code = SW_SUCCESS};
+  // Count up the number of inputs.
+  size_t num_params = 0;
+  {
+    sw_real_vec_t values;
+    kh_foreach_value(yaml_data.params, values,
+      result.num_inputs *= kv_size(values);
       num_params++;
-    }
+    );
   }
-  EKAT_REQUIRE_MSG(((num_params >= 1) and (num_params <= 7)),
-                   "Invalid number of overridden parameters ("
-                       << num_params << ", must be 1-7).");
+  if (num_params > 7) {
+    result.error_code = SW_TOO_MANY_PARAMS;
+    result.error_message =
+      new_string("The lattice ensemble in %s has %d traversed parameters "
+                 "(must be <= 7).");
+    return result;
+  }
 
-  // Start from reference data and build a list of inputs corresponding to all
-  // the overridden parameters. This involves some ugly index magic based on the
-  // number of parameters.
-  std::vector<InputData> inputs(num_inputs, ref_input);
-  for (size_t l = 0; l < num_inputs; ++l) {
+  // Build a list of inputs corresponding to all the traversed parameters. This
+  // involves some ugly index magic based on the number of parameters.
+  #define set_param(index, name, value) { \
+    int ret; \
+    khiter_t iter = kh_put(param_map, result.inputs[index].params, name, &ret);\
+    kh_value(result.inputs[index].params, iter) = value; \
+  }
+  result.inputs = malloc(sizeof(sw_input_t) * result.num_inputs);
+  for (size_t l = 0; l < result.num_inputs; ++l) {
+    result.inputs[l].params = kh_init(param_map);
     if (num_params == 1) {
-      auto iter = ensemble.begin();
-      auto name = iter->first;
-      const auto& vals = iter->second;
-      inputs[l][name] = vals[l];
+      const char *name;
+      sw_real_vec_t values;
+      kh_foreach(yaml_data.params, name, values,
+        if (kv_size(values) > 1) break;
+      );
+      sw_input_set(&result.inputs[l], name, kv_A(values, l));
     } else if (num_params == 2) {
-      auto iter = ensemble.begin();
-      auto name1 = iter->first;
-      const auto& vals1 = iter->second;
-      iter++;
-      auto name2 = iter->first;
-      const auto& vals2 = iter->second;
-      size_t n2 = vals2.size();
+      const char *name1 = NULL, *name2 = NULL;
+      sw_real_vec_t values, values1, values2;
+      for (khiter_t iter = kh_begin(yaml_data.params);
+           iter != kh_end(yaml_data.params); ++iter) {
+        values = kh_value(yaml_data.params, iter);
+        if (kv_size(values) > 1) {
+          if (name1 == NULL) {
+            name1 = kh_key(yaml_data.params, iter);
+            values1 = values;
+          } else if (name2 == NULL) {
+            name2 = kh_key(yaml_data.params, iter);
+            values2 = values;
+            break;
+          }
+        }
+      }
+      size_t n2 = kv_size(values2);
       size_t j1 = l / n2;
       size_t j2 = l - n2 * j1;
-      inputs[l][name1] = vals1[j1];
-      inputs[l][name2] = vals2[j2];
+      sw_input_set(&result.inputs[l], name1, kv_A(values1, j1));
+      sw_input_set(&result.inputs[l], name2, kv_A(values2, j2));
     } else if (num_params == 3) {
-      auto iter = ensemble.begin();
-      auto name1 = iter->first;
-      const auto& vals1 = iter->second;
-      iter++;
-      auto name2 = iter->first;
-      const auto& vals2 = iter->second;
-      iter++;
-      auto name3 = iter->first;
-      const auto& vals3 = iter->second;
-      size_t n2 = vals2.size();
-      size_t n3 = vals3.size();
+      const char *name1 = NULL, *name2 = NULL, *name3 = NULL;
+      sw_real_vec_t values, values1, values2, values3;
+      for (khiter_t iter = kh_begin(yaml_data.params);
+           iter != kh_end(yaml_data.params); ++iter) {
+        values = kh_value(yaml_data.params, iter);
+        if (kv_size(values) > 1) {
+          if (name1 == NULL) {
+            name1 = kh_key(yaml_data.params, iter);
+            values1 = values;
+          } else if (name2 == NULL) {
+            name2 = kh_key(yaml_data.params, iter);
+            values2 = values;
+          } else if (name3 == NULL) {
+            name3 = kh_key(yaml_data.params, iter);
+            values3 = values;
+            break;
+          }
+        }
+      }
+      size_t n2 = kv_size(values2);
+      size_t n3 = kv_size(values3);
       size_t j1 = l / (n2 * n3);
       size_t j2 = (l - n2 * n3 * j1) / n3;
       size_t j3 = l - n2 * n3 * j1 - n3 * j2;
-      inputs[l][name1] = vals1[j1];
-      inputs[l][name2] = vals2[j2];
-      inputs[l][name3] = vals3[j3];
+      sw_input_set(&result.inputs[l], name1, kv_A(values1, j1));
+      sw_input_set(&result.inputs[l], name2, kv_A(values2, j2));
+      sw_input_set(&result.inputs[l], name3, kv_A(values3, j3));
     } else if (num_params == 4) {
-      auto iter = ensemble.begin();
-      auto name1 = iter->first;
-      const auto& vals1 = iter->second;
-      iter++;
-      auto name2 = iter->first;
-      const auto& vals2 = iter->second;
-      iter++;
-      auto name3 = iter->first;
-      const auto& vals3 = iter->second;
-      iter++;
-      auto name4 = iter->first;
-      const auto& vals4 = iter->second;
-      size_t n2 = vals2.size();
-      size_t n3 = vals3.size();
-      size_t n4 = vals4.size();
+      const char *name1 = NULL, *name2 = NULL, *name3 = NULL, *name4 = NULL;
+      sw_real_vec_t values, values1, values2, values3, values4;
+      for (khiter_t iter = kh_begin(yaml_data.params);
+           iter != kh_end(yaml_data.params); ++iter) {
+        values = kh_value(yaml_data.params, iter);
+        if (kv_size(values) > 1) {
+          if (name1 == NULL) {
+            name1 = kh_key(yaml_data.params, iter);
+            values1 = values;
+          } else if (name2 == NULL) {
+            name2 = kh_key(yaml_data.params, iter);
+            values2 = values;
+          } else if (name3 == NULL) {
+            name3 = kh_key(yaml_data.params, iter);
+            values3 = values;
+          } else if (name4 == NULL) {
+            name4 = kh_key(yaml_data.params, iter);
+            values4 = values;
+            break;
+          }
+        }
+      }
+      size_t n2 = kv_size(values2);
+      size_t n3 = kv_size(values3);
+      size_t n4 = kv_size(values4);
       size_t j1 = l / (n2 * n3 * n4);
       size_t j2 = (l - n2 * n3 * n4 * j1) / (n3 * n4);
       size_t j3 = (l - n2 * n3 * n4 * j1 - n3 * n4 * j2) / n4;
       size_t j4 = l - n2 * n3 * n4 * j1 - n3 * n4 * j2 - n4 * j3;
-      inputs[l][name1] = vals1[j1];
-      inputs[l][name2] = vals2[j2];
-      inputs[l][name3] = vals3[j3];
-      inputs[l][name4] = vals4[j4];
+      sw_input_set(&result.inputs[l], name1, kv_A(values1, j1));
+      sw_input_set(&result.inputs[l], name2, kv_A(values2, j2));
+      sw_input_set(&result.inputs[l], name3, kv_A(values3, j3));
+      sw_input_set(&result.inputs[l], name4, kv_A(values4, j4));
     } else if (num_params == 5) {
-      auto iter = ensemble.begin();
-      auto name1 = iter->first;
-      const auto& vals1 = iter->second;
-      iter++;
-      auto name2 = iter->first;
-      const auto& vals2 = iter->second;
-      iter++;
-      auto name3 = iter->first;
-      const auto& vals3 = iter->second;
-      iter++;
-      auto name4 = iter->first;
-      const auto& vals4 = iter->second;
-      iter++;
-      auto name5 = iter->first;
-      const auto& vals5 = iter->second;
-      size_t n2 = vals2.size();
-      size_t n3 = vals3.size();
-      size_t n4 = vals4.size();
-      size_t n5 = vals5.size();
+      const char *name1 = NULL, *name2 = NULL, *name3 = NULL, *name4 = NULL,
+                 *name5 = NULL;
+      sw_real_vec_t values, values1, values2, values3, values4, values5;
+      for (khiter_t iter = kh_begin(yaml_data.params);
+           iter != kh_end(yaml_data.params); ++iter) {
+        values = kh_value(yaml_data.params, iter);
+        if (kv_size(values) > 1) {
+          if (name1 == NULL) {
+            name1 = kh_key(yaml_data.params, iter);
+            values1 = values;
+          } else if (name2 == NULL) {
+            name2 = kh_key(yaml_data.params, iter);
+            values2 = values;
+          } else if (name3 == NULL) {
+            name3 = kh_key(yaml_data.params, iter);
+            values3 = values;
+          } else if (name4 == NULL) {
+            name4 = kh_key(yaml_data.params, iter);
+            values4 = values;
+          } else if (name5 == NULL) {
+            name5 = kh_key(yaml_data.params, iter);
+            values5 = values;
+            break;
+          }
+        }
+      }
+      size_t n2 = kv_size(values2);
+      size_t n3 = kv_size(values3);
+      size_t n4 = kv_size(values4);
+      size_t n5 = kv_size(values5);
       size_t j1 = l / (n2 * n3 * n4 * n5);
       size_t j2 = (l - n2 * n3 * n4 * n5 * j1) / (n3 * n4 * n5);
       size_t j3 = (l - n2 * n3 * n4 * n5 * j1 - n3 * n4 * n5 * j2) / (n4 * n5);
@@ -310,35 +382,47 @@ static sw_build_result_t build_lattice_ensemble(sw_yaml_data_t yaml_data) {
           (l - n2 * n3 * n4 * n5 * j1 - n3 * n4 * n5 * j2 - n4 * n5 * j3) / n5;
       size_t j5 = l - n2 * n3 * n4 * n5 * j1 - n3 * n4 * n5 * j2 -
                   n4 * n5 * j3 - n5 * j4;
-      inputs[l][name1] = vals1[j1];
-      inputs[l][name2] = vals2[j2];
-      inputs[l][name3] = vals3[j3];
-      inputs[l][name4] = vals4[j4];
-      inputs[l][name5] = vals5[j5];
+      sw_input_set(&result.inputs[l], name1, kv_A(values1, j1));
+      sw_input_set(&result.inputs[l], name2, kv_A(values2, j2));
+      sw_input_set(&result.inputs[l], name3, kv_A(values3, j3));
+      sw_input_set(&result.inputs[l], name4, kv_A(values4, j4));
+      sw_input_set(&result.inputs[l], name5, kv_A(values5, j5));
     } else if (num_params == 6) {
-      auto iter = ensemble.begin();
-      auto name1 = iter->first;
-      const auto& vals1 = iter->second;
-      iter++;
-      auto name2 = iter->first;
-      const auto& vals2 = iter->second;
-      iter++;
-      auto name3 = iter->first;
-      const auto& vals3 = iter->second;
-      iter++;
-      auto name4 = iter->first;
-      const auto& vals4 = iter->second;
-      iter++;
-      auto name5 = iter->first;
-      const auto& vals5 = iter->second;
-      iter++;
-      auto name6 = iter->first;
-      const auto& vals6 = iter->second;
-      size_t n2 = vals2.size();
-      size_t n3 = vals3.size();
-      size_t n4 = vals4.size();
-      size_t n5 = vals5.size();
-      size_t n6 = vals6.size();
+      const char *name1 = NULL, *name2 = NULL, *name3 = NULL, *name4 = NULL,
+                 *name5 = NULL, *name6 = NULL;
+      sw_real_vec_t values, values1, values2, values3, values4, values5,
+                    values6;
+      for (khiter_t iter = kh_begin(yaml_data.params);
+           iter != kh_end(yaml_data.params); ++iter) {
+        values = kh_value(yaml_data.params, iter);
+        if (kv_size(values) > 1) {
+          if (name1 == NULL) {
+            name1 = kh_key(yaml_data.params, iter);
+            values1 = values;
+          } else if (name2 == NULL) {
+            name2 = kh_key(yaml_data.params, iter);
+            values2 = values;
+          } else if (name3 == NULL) {
+            name3 = kh_key(yaml_data.params, iter);
+            values3 = values;
+          } else if (name4 == NULL) {
+            name4 = kh_key(yaml_data.params, iter);
+            values4 = values;
+          } else if (name5 == NULL) {
+            name5 = kh_key(yaml_data.params, iter);
+            values5 = values;
+          } else if (name6 == NULL) {
+            name6 = kh_key(yaml_data.params, iter);
+            values6 = values;
+            break;
+          }
+        }
+      }
+      size_t n2 = kv_size(values2);
+      size_t n3 = kv_size(values3);
+      size_t n4 = kv_size(values4);
+      size_t n5 = kv_size(values5);
+      size_t n6 = kv_size(values6);
       size_t j1 = l / (n2 * n3 * n4 * n5 * n6);
       size_t j2 = (l - n2 * n3 * n4 * n5 * n6 * j1) / (n3 * n4 * n5 * n6);
       size_t j3 = (l - n2 * n3 * n4 * n5 * n6 * j1 - n3 * n4 * n5 * n6 * j2) /
@@ -351,40 +435,52 @@ static sw_build_result_t build_lattice_ensemble(sw_yaml_data_t yaml_data) {
                   n6;
       size_t j6 = l - n2 * n3 * n4 * n5 * n6 * j1 - n3 * n4 * n5 * n6 * j2 -
                   n4 * n5 * n6 * j3 - n5 * n6 * j4 - n6 * j5;
-      inputs[l][name1] = vals1[j1];
-      inputs[l][name2] = vals2[j2];
-      inputs[l][name3] = vals3[j3];
-      inputs[l][name4] = vals4[j4];
-      inputs[l][name5] = vals5[j5];
-      inputs[l][name6] = vals6[j6];
+      sw_input_set(&result.inputs[l], name1, kv_A(values1, j1));
+      sw_input_set(&result.inputs[l], name2, kv_A(values2, j2));
+      sw_input_set(&result.inputs[l], name3, kv_A(values3, j3));
+      sw_input_set(&result.inputs[l], name4, kv_A(values4, j4));
+      sw_input_set(&result.inputs[l], name5, kv_A(values5, j5));
+      sw_input_set(&result.inputs[l], name6, kv_A(values6, j6));
     } else {  // if (num_params == 7)
-      auto iter = ensemble.begin();
-      auto name1 = iter->first;
-      const auto& vals1 = iter->second;
-      iter++;
-      auto name2 = iter->first;
-      const auto& vals2 = iter->second;
-      iter++;
-      auto name3 = iter->first;
-      const auto& vals3 = iter->second;
-      iter++;
-      auto name4 = iter->first;
-      const auto& vals4 = iter->second;
-      iter++;
-      auto name5 = iter->first;
-      const auto& vals5 = iter->second;
-      iter++;
-      auto name6 = iter->first;
-      const auto& vals6 = iter->second;
-      iter++;
-      auto name7 = iter->first;
-      const auto& vals7 = iter->second;
-      size_t n2 = vals2.size();
-      size_t n3 = vals3.size();
-      size_t n4 = vals4.size();
-      size_t n5 = vals5.size();
-      size_t n6 = vals6.size();
-      size_t n7 = vals7.size();
+      const char *name1 = NULL, *name2 = NULL, *name3 = NULL, *name4 = NULL,
+                 *name5 = NULL, *name6 = NULL, *name7 = NULL;
+      sw_real_vec_t values, values1, values2, values3, values4, values5,
+                    values6, values7;
+      for (khiter_t iter = kh_begin(yaml_data.params);
+           iter != kh_end(yaml_data.params); ++iter) {
+        values = kh_value(yaml_data.params, iter);
+        if (kv_size(values) > 1) {
+          if (name1 == NULL) {
+            name1 = kh_key(yaml_data.params, iter);
+            values1 = values;
+          } else if (name2 == NULL) {
+            name2 = kh_key(yaml_data.params, iter);
+            values2 = values;
+          } else if (name3 == NULL) {
+            name3 = kh_key(yaml_data.params, iter);
+            values3 = values;
+          } else if (name4 == NULL) {
+            name4 = kh_key(yaml_data.params, iter);
+            values4 = values;
+          } else if (name5 == NULL) {
+            name5 = kh_key(yaml_data.params, iter);
+            values5 = values;
+          } else if (name6 == NULL) {
+            name6 = kh_key(yaml_data.params, iter);
+            values6 = values;
+          } else if (name7 == NULL) {
+            name7 = kh_key(yaml_data.params, iter);
+            values7 = values;
+            break;
+          }
+        }
+      }
+      size_t n2 = kv_size(values2);
+      size_t n3 = kv_size(values3);
+      size_t n4 = kv_size(values4);
+      size_t n5 = kv_size(values5);
+      size_t n6 = kv_size(values6);
+      size_t n7 = kv_size(values7);
       size_t j1 = l / (n2 * n3 * n4 * n5 * n6 * n7);
       size_t j2 =
           (l - n2 * n3 * n4 * n5 * n6 * n7 * j1) / (n3 * n4 * n5 * n6 * n7);
@@ -405,71 +501,106 @@ static sw_build_result_t build_lattice_ensemble(sw_yaml_data_t yaml_data) {
       size_t j7 = l - n2 * n3 * n4 * n5 * n6 * n7 * j1 -
                   n3 * n4 * n5 * n6 * n7 * j2 - n4 * n5 * n6 * n7 * j3 -
                   n5 * n6 * n7 * j4 - n6 * n7 * j5 - n7 * j6;
-      inputs[l][name1] = vals1[j1];
-      inputs[l][name2] = vals2[j2];
-      inputs[l][name3] = vals3[j3];
-      inputs[l][name4] = vals4[j4];
-      inputs[l][name5] = vals5[j5];
-      inputs[l][name6] = vals6[j6];
-      inputs[l][name7] = vals7[j7];
+      sw_input_set(&result.inputs[l], name1, kv_A(values1, j1));
+      sw_input_set(&result.inputs[l], name2, kv_A(values2, j2));
+      sw_input_set(&result.inputs[l], name3, kv_A(values3, j3));
+      sw_input_set(&result.inputs[l], name4, kv_A(values4, j4));
+      sw_input_set(&result.inputs[l], name5, kv_A(values5, j5));
+      sw_input_set(&result.inputs[l], name6, kv_A(values6, j6));
+      sw_input_set(&result.inputs[l], name7, kv_A(values7, j7));
     }
   }
 
-  return inputs;
+  return result;
 }
 
 static sw_build_result_t build_enumeration_ensemble(sw_yaml_data_t yaml_data) {
-  std::string first_name;
+  sw_build_result_t result = {.error_code = SW_SUCCESS};
   size_t num_inputs = 0;
-  for (auto param : ensemble) {
+  const char *first_name;
+  for (khiter_t iter = kh_begin(yaml_data.params);
+       iter != kh_end(yaml_data.params); ++iter) {
+    const char *name = kh_key(yaml_data.params, iter);
+    sw_real_vec_t values = kh_value(yaml_data.params, iter);
+
     if (num_inputs == 0) {
-      num_inputs = param.second.size();  // set of parameter values
-      first_name = param.first;
-    } else if (num_inputs != param.second.size()) {
-      throw YamlException(
-          std::string("Invalid enumeration: Parameter ") + param.first +
-          std::string(" has a different number of values than ") + first_name +
-          std::string(" (must match)"));
+      num_inputs = kv_size(values);
+      first_name = name;
+    } else if (num_inputs != kv_size(values)) {
+      result.error_code = SW_INVALID_ENUMERATION;
+      result.error_message = new_string(
+        "Invalid enumeration: Parameter %s has a different number of values (%ld)"
+        " than %s (%ld)", name, kv_size(values), first_name, num_inputs);
     }
   }
 
   if (num_inputs == 0) {
-    throw YamlException("No ensemble members!");
+    result.error_code = SW_EMPTY_ENSEMBLE;
+    result.error_message = new_string("Ensemble has no members!");
   }
 
   // Trudge through all the ensemble parameters as defined.
-  std::vector<InputData> inputs(num_inputs, ref_input);
+  result.num_inputs = num_inputs;
+  result.inputs = malloc(sizeof(sw_input_t) * result.num_inputs);
   for (size_t l = 0; l < num_inputs; ++l) {
-    for (auto iter = ensemble.begin(); iter != ensemble.end(); ++iter) {
-      auto name = iter->first;
-      const auto& vals = iter->second;
-      inputs[l][name] = vals[l];
-    }
+    const char *name;
+    sw_real_vec_t values;
+    kh_foreach(yaml_data.params, name, values,
+      sw_input_set(&result.inputs[l], name, kv_A(values, l));
+    );
   }
 
-  return inputs;
+  return result;
 }
 
-sw_load_result_t sw_load_ensemble(const char* yaml_file,
-                                  const char* settings_block) {
+sw_ensemble_result_t sw_load_ensemble(const char* yaml_file,
+                                      const char* settings_block) {
   sw_yaml_data_t data = parse_yaml(yaml_file, settings_block);
-  sw_load_result_t result = {.error_code = data.error_code,
-                             .error_message = data.error_message};
-  if (data.error_code == SKYWALKER_SUCCESS) {
+  sw_ensemble_result_t result = {.error_code = data.error_code,
+                                 .error_message = data.error_message};
+  if (data.error_code == SW_SUCCESS) {
+    result.settings = data.settings;
+    result.type = data.ensemble_type;
+    sw_build_result_t build_result;
+    if (data.ensemble_type == SW_LATTICE) {
+      build_result = build_lattice_ensemble(data);
+    } else {
+      build_result = build_enumeration_ensemble(data);
+    }
+    sw_ensemble_t *ensemble = malloc(sizeof(sw_ensemble_t));
+    ensemble->size = build_result.num_inputs;
+    ensemble->position = 0;
+    ensemble->inputs = build_result.inputs;
+    ensemble->outputs = malloc(ensemble->size*sizeof(sw_output_t));
+    for (size_t i = 0; i < ensemble->size; ++i) {
+      ensemble->outputs[i].metrics = kh_init(param_map);
+    }
+  } else {
+    result.error_code = data.error_code;
+    result.error_message = data.error_message;
+    sw_settings_free(data.settings);
   }
+
+  // Clean up YAML data.
+  sw_real_vec_t values;
+  kh_foreach_value(data.params, values,
+    kv_destroy(values);
+  );
+  kh_destroy(yaml_param_map, data.params);
+
   return result;
 }
 
 bool sw_ensemble_next(sw_ensemble_t *ensemble,
-                      int *pos,
-                      const sw_input_t **input,
+                      sw_input_t **input,
                       sw_output_t **output) {
-  if (*pos >= (int)ensemble->size) {
+  if (ensemble->position >= (int)ensemble->size) {
     return false;
   }
 
-  *input = ensemble->inputs[*pos];
-  *output = ensemble->outputs[*pos];
+  *input = &ensemble->inputs[ensemble->position];
+  *output = &ensemble->outputs[ensemble->position];
+  ++ensemble->position;
   return true;
 }
 
@@ -487,11 +618,16 @@ void sw_ensemble_write(sw_ensemble_t *ensemble, const char *module_filename) {
   fprintf(file, "# Input is stored here.\n");
   fprintf(file, "input = Object()\n");
   if (ensemble->size > 0) {
-    for (size_t i = 0; i < inputs[0].num_params; ++i) {
-      fprintf(file, "input.%s = [", inputs[0].param_names[i]);
-      for (size_t j = 0; j < ensemble->size; ++j) {
-        fprintf(file, "%g, ", inputs[j].param_values[i]);
+    khash_t(param_map) *params_0 = ensemble->inputs[0].params;
+    for (khiter_t iter = kh_begin(params_0); iter != kh_end(params_0); ++iter) {
+      const char *name = kh_key(params_0, iter);
+      fprintf(file, "input.%s = [", name);
+      for (size_t i = 0; i < ensemble->size; ++i) {
+        khash_t(param_map) *params_i = ensemble->inputs[i].params;
+        sw_real_t value = kh_get(param_map, params_i, name);
+        fprintf(file, "%g, ", value);
       }
+    }
   }
   fprintf(file, "]\n");
 
@@ -499,14 +635,17 @@ void sw_ensemble_write(sw_ensemble_t *ensemble, const char *module_filename) {
   fprintf(file, "\n# Output data is stored here.\n");
   fprintf(file, "output = Object()\n");
   if (ensemble->size > 0) {
-    for (size_t m = 0; m < outputs[0].num_metrics; ++m) {
-      fprintf(file, "output.%s = [", outputs[0].metric_names[m]);
+    khash_t(param_map) *params_0 = ensemble->outputs[0].metrics;
+    for (khiter_t iter = kh_begin(params_0); iter != kh_end(params_0); ++iter) {
+      const char *name = kh_key(params_0, iter);
+      fprintf(file, "output.%s = [", name);
       for (size_t i = 0; i < ensemble->size; ++i) {
-        real_t value = outputs[i].metric_values[m];
-        if (value == value) {
-          fprintf(file, "%g, ", value);
-        } else {
+        khash_t(param_map) *params_i = ensemble->outputs[i].metrics;
+        sw_real_t value = kh_get(param_map, params_i, name);
+        if (isnan(value)) {
           fprintf(file, "nan, ");
+        } else {
+          fprintf(file, "%g, ", value);
         }
       }
       fprintf(file, "]\n");
@@ -514,270 +653,18 @@ void sw_ensemble_write(sw_ensemble_t *ensemble, const char *module_filename) {
   }
 
   fclose(file);
+
+  // Destroy the ensemble.
+  sw_ensemble_free(ensemble);
 }
 
 //----------------------------
 // Skywalker Fortran bindings
 //----------------------------
-// The Skywalker Fortran interface is tailored to the needs of the MAM box
-// model. At any given time, its design is likely to reflect the needs of a
-// handful of legacy MAM-related codes for comparison with Haero. In this
-// sense, it's not a "faithful" Fortran representation of the Skywalker C++
-// library.
 
-// This container holds "live" instances of Skywalker Fortran ensemble data,
-// which is managed by this Fortran bridge.
-static std::set<EnsembleData*>* fortran_ensembles_ = nullptr;
+#ifdef SKYWALKER_F90
+#endif
 
-static void destroy_ensembles() {
-  for (auto ensemble : *fortran_ensembles_) {
-    delete ensemble;
-  }
-  delete fortran_ensembles_;
-  fortran_ensembles_ = nullptr;
-}
-
-/// Parses the given file, assuming the given named aerosol configuration,
-/// returning an opaque pointer to the ensemble data.
-/// @param [in] aerosol_config The named aerosol configuration. The only valid
-///                            configuration at this time is "mam4".
-/// @param [in] filename The name of the YAML file containing ensemble data.
-/// @param [in] model_impl The name of the model implementation (typically
-///                        "haero" or "mam").
-void* sw_load_ensemble(const char* aerosol_config, const char* filename,
-                       const char* model_impl) {
-  // Create a ParameterWalk object from the given config and file.
-  try {
-    auto param_walk =
-        skywalker::load_ensemble(aerosol_config, filename, model_impl);
-
-    // Create an ensemble, allocating storage for output data equal in length
-    // to the given input data.
-    auto ensemble = new EnsembleData;
-    ensemble->program_name = param_walk.program_name;
-    ensemble->program_params = param_walk.program_params;
-    ensemble->inputs = param_walk.gather_inputs();
-    OutputData ref_output(param_walk.aero_config);
-    ensemble->outputs =
-        std::vector<OutputData>(ensemble->inputs.size(), ref_output);
-    // Size up the output data arrays to make our life easier down the line.
-    for (size_t i = 0; i < ensemble->inputs.size(); ++i) {
-      const auto& input = ensemble->inputs[i];
-      auto& output = ensemble->outputs[i];
-      output.interstitial_number_mix_ratios.resize(
-          input.interstitial_number_mix_ratios.size());
-      output.cloud_number_mix_ratios.resize(
-          input.cloud_number_mix_ratios.size());
-      output.interstitial_aero_mmrs.resize(input.interstitial_aero_mmrs.size());
-      output.cloud_aero_mmrs.resize(input.cloud_aero_mmrs.size());
-      output.gas_mmrs.resize(input.gas_mmrs.size());
-    }
-
-    // Track this ensemble, storing its pointer for future reference.
-    if (fortran_ensembles_ == nullptr) {
-      fortran_ensembles_ = new std::set<EnsembleData*>();
-      atexit(destroy_ensembles);
-    }
-    fortran_ensembles_->emplace(ensemble);
-    auto ensemble_ptr = reinterpret_cast<void*>(ensemble);
-    return ensemble_ptr;
-  } catch (std::exception& e) {
-    fprintf(stderr, "Error loading ensemble from %s: %s\n", filename, e.what());
-    return nullptr;
-  }
-}
-
-/// Returns the name of the process being studied by the ensemble.
-const char* sw_ensemble_program_name(void* ensemble) {
-  auto data = reinterpret_cast<EnsembleData*>(ensemble);
-  return data->program_name.c_str();
-}
-
-/// Returns the number of parameters passed to the process being studied by the
-/// ensemble.
-int sw_ensemble_num_program_params(void* ensemble) {
-  auto data = reinterpret_cast<EnsembleData*>(ensemble);
-  return static_cast<int>(data->program_params.size());
-}
-
-/// Sets the given pointers to the name and value of the parameter with the
-/// given index, passed to the process for the ensemble.
-void sw_ensemble_get_program_param(void* ensemble, int index, const char** name,
-                                   const char** value) {
-  auto data = reinterpret_cast<EnsembleData*>(ensemble);
-  int i = 0;
-  for (const auto& param_kv : data->program_params) {
-    if (i ==
-        index - 1) {  // if the (1-based) index matches, fill in the blanks.
-      *name = param_kv.first.c_str();
-      *value = param_kv.second.c_str();
-      break;
-    } else {  // otherwise, keep going.
-      ++i;
-    }
-  }
-}
-
-/// Returns the number of inputs (members) for the given ensemble data.
-int sw_ensemble_size(void* ensemble) {
-  auto data = reinterpret_cast<EnsembleData*>(ensemble);
-  return data->inputs.size();
-}
-
-/// Fetches array sizes for members in the given ensemble.
-void sw_ensemble_get_array_sizes(void* ensemble, int* num_modes,
-                                 int* num_populations, int* num_gases) {
-  auto data = reinterpret_cast<EnsembleData*>(ensemble);
-  EKAT_REQUIRE(not data->inputs.empty());
-
-  // Get the aerosol configuration from the first input.
-  const auto& config = data->inputs[0].aero_config;
-
-  // Read off the data.
-  *num_modes = config.num_modes();
-  *num_populations = config.num_aerosol_populations;
-  *num_gases = config.num_gases();
-}
-
-/// Fetches the number of aerosols present in each mode, which can be used
-/// to map between population and aerosol indices. The output array is sized
-/// to store the number of aerosols in each mode.
-void sw_ensemble_get_modal_aerosol_sizes(void* ensemble,
-                                         int* aerosols_per_mode) {
-  auto data = reinterpret_cast<EnsembleData*>(ensemble);
-  EKAT_REQUIRE(not data->inputs.empty());
-
-  // Get the aerosol configuration from the first ensemble member.
-  const auto& config = data->inputs[0].aero_config;
-
-  // Fetch the numbers of species per mode.
-  for (int m = 0; m < config.num_modes(); ++m) {
-    const auto mode_species = config.aerosol_species_for_mode(m);
-    aerosols_per_mode[m] = int(mode_species.size());
-  }
-}
-
-/// Fetches an opaque pointer to the ith set of input data from the given
-/// ensemble.
-void* sw_ensemble_input(void* ensemble, int i) {
-  auto data = reinterpret_cast<EnsembleData*>(ensemble);
-  EKAT_REQUIRE(i > 0);
-  EKAT_REQUIRE(i <= data->inputs.size());
-  InputData* input = &(data->inputs[i - 1]);
-  return reinterpret_cast<void*>(input);
-}
-
-/// Fetches timestepping data from the given ensemble input data pointer.
-void sw_input_get_timestepping(void* input, Real* dt, Real* total_time) {
-  auto inp = reinterpret_cast<InputData*>(input);
-  *dt = inp->dt;
-  *total_time = inp->total_time;
-}
-
-/// Fetches atmosphere data from the given ensemble input data pointer.
-void sw_input_get_atmosphere(void* input, Real* temperature, Real* pressure,
-                             Real* vapor_mixing_ratio, Real* height,
-                             Real* hydrostatic_dp,
-                             Real* planetary_boundary_layer_height) {
-  auto inp = reinterpret_cast<InputData*>(input);
-  *temperature = inp->temperature;
-  *pressure = inp->pressure;
-  *vapor_mixing_ratio = inp->vapor_mixing_ratio;
-  *height = inp->height;
-  *hydrostatic_dp = inp->hydrostatic_dp;
-  *planetary_boundary_layer_height = inp->planetary_boundary_layer_height;
-}
-
-/// Fetches aerosol data from the given ensemble input data pointer. All output
-/// arguments are arrays that are properly sized to store aerosol data.
-void sw_input_get_aerosols(void* input, Real* interstitial_number_mix_ratios,
-                           Real* cloud_number_mix_ratios,
-                           Real* interstitial_aero_mmrs,
-                           Real* cloud_aero_mmrs) {
-  auto inp = reinterpret_cast<InputData*>(input);
-  std::copy(inp->interstitial_number_mix_ratios.begin(),
-            inp->interstitial_number_mix_ratios.end(),
-            interstitial_number_mix_ratios);
-  std::copy(inp->cloud_number_mix_ratios.begin(),
-            inp->cloud_number_mix_ratios.end(), cloud_number_mix_ratios);
-  std::copy(inp->interstitial_aero_mmrs.begin(),
-            inp->interstitial_aero_mmrs.end(), interstitial_aero_mmrs);
-  std::copy(inp->cloud_aero_mmrs.begin(), inp->cloud_aero_mmrs.end(),
-            cloud_aero_mmrs);
-}
-
-/// Fetches gas data from the given ensemble input data pointer. The output
-/// argument is an array properly sized to store gas mass mixing ratios.
-void sw_input_get_gases(void* input, Real* gas_mmrs) {
-  auto inp = reinterpret_cast<InputData*>(input);
-  std::copy(inp->gas_mmrs.begin(), inp->gas_mmrs.end(), gas_mmrs);
-}
-
-/// Fetches the value of a named user parameter for the given ensemble input.
-void sw_input_get_user_param(void* input, const char* name, Real* value) {
-  auto inp = reinterpret_cast<InputData*>(input);
-  *value = inp->user_params[name];
-}
-
-/// Fetches an opaque pointer to the ith set of output data from the given
-/// ensemble.
-void* sw_ensemble_output(void* ensemble, int i) {
-  auto data = reinterpret_cast<EnsembleData*>(ensemble);
-  EKAT_REQUIRE(i > 0);
-  EKAT_REQUIRE(i <= data->outputs.size());
-  OutputData* output = &(data->outputs[i - 1]);
-  return reinterpret_cast<void*>(output);
-}
-
-/// Sets aerosol data for the given ensemble output data pointer.
-void sw_output_set_aerosols(void* output, Real* interstitial_number_mix_ratios,
-                            Real* cloud_number_mix_ratios,
-                            Real* interstitial_aero_mmrs,
-                            Real* cloud_aero_mmrs) {
-  auto outp = reinterpret_cast<OutputData*>(output);
-  size_t num_modes = outp->interstitial_number_mix_ratios.size();
-  size_t num_pops = outp->interstitial_aero_mmrs.size();
-  std::copy(interstitial_number_mix_ratios,
-            interstitial_number_mix_ratios + num_modes,
-            outp->interstitial_number_mix_ratios.begin());
-  std::copy(cloud_number_mix_ratios, cloud_number_mix_ratios + num_modes,
-            outp->cloud_number_mix_ratios.begin());
-  std::copy(interstitial_aero_mmrs, interstitial_aero_mmrs + num_pops,
-            outp->interstitial_aero_mmrs.begin());
-  std::copy(cloud_aero_mmrs, cloud_aero_mmrs + num_pops,
-            outp->cloud_aero_mmrs.begin());
-}
-
-/// Sets gas data for the given ensemble output data pointer.
-void sw_output_set_gases(void* output, Real* gas_mmrs) {
-  auto outp = reinterpret_cast<OutputData*>(output);
-  size_t num_gases = outp->gas_mmrs.size();
-  std::copy(gas_mmrs, gas_mmrs + num_gases, outp->gas_mmrs.begin());
-}
-
-/// Sets the value of a named metric for the given ensemble output.
-void sw_output_set_metric(void* output, const char* name, Real value) {
-  auto outp = reinterpret_cast<OutputData*>(output);
-  outp->metrics[name] = value;
-}
-
-// Writes out a Python module containing input and output data for the
-// ǥiven ensemble to the given filename.
-void sw_ensemble_write_py_module(void* ensemble, const char* filename) {
-  auto data = reinterpret_cast<EnsembleData*>(ensemble);
-  skywalker::write_py_module(data->inputs, data->outputs, filename);
-}
-
-/// Frees all memory associated with the ensemble, including input and output
-/// data.
-void sw_ensemble_free(void* ensemble) {
-  if (fortran_ensembles_ != nullptr) {
-    auto data = reinterpret_cast<EnsembleData*>(ensemble);
-    auto iter = fortran_ensembles_->find(data);
-    if (iter != fortran_ensembles_->end()) {
-      fortran_ensembles_->erase(iter);
-      delete data;
-    }
-  }
-}
-}
+#ifdef __cplusplus
+} // extern "C"
+#endif

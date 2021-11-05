@@ -1,4 +1,5 @@
-include(add_skywalker_driver)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_BINARY_DIR}/share/")
+include(skywalker)
 
 # Copy all the input files into place.
 foreach (yaml lattice_test.yaml enumeration_test.yaml)

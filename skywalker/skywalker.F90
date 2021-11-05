@@ -16,10 +16,9 @@ module skywalker
   ! Error codes
   integer, parameter :: sw_success = 0
   integer, parameter :: sw_bad_param_name = 1
-  integer, parameter :: sw_bad_metric_name = 2
-  integer, parameter :: sw_yaml_file_not_found = 3
-  integer, parameter :: sw_settings_block_not_found = 4
-  integer, parameter :: sw_value_not_found = 5
+  integer, parameter :: sw_yaml_file_not_found = 2
+  integer, parameter :: sw_settings_not_found = 3
+  integer, parameter :: sw_param_not_found = 4
 
   ! Ensemble types
   integer, parameter :: sw_lattice     = 1

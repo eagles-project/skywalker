@@ -8,6 +8,13 @@ configure_file(
   @ONLY
 )
 
+# Generate skywalker.cmake with installation information
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/skywalker.cmake.in
+  ${PROJECT_BINARY_DIR}/share/skywalker.cmake
+  @ONLY
+)
+
 # We mash all the libyaml sources directly into our libraries to make them
 # nice and self-contained.
 set(LIBYAML_INCDIRS ${PROJECT_SOURCE_DIR}/ext/libyaml/include;
@@ -41,12 +48,6 @@ install(FILES py2ncl
                     OWNER_EXECUTE;GROUP_EXECUTE;WORLD_EXECUTE
         DESTINATION bin)
 
-# Generate skywalker.cmake with installation information
-configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/skywalker.cmake.in
-  ${PROJECT_BINARY_DIR}/cmake/skywalker.cmake
-  @ONLY
-)
 install(FILES ${PROJECT_BINARY_DIR}/cmake/skywalker.cmake
         DESTINATION share)
 

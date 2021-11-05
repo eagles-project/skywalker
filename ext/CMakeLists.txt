@@ -11,3 +11,4 @@ find_program(GIT git REQUIRED)
 message(STATUS "Updating git submodules recursively...")
 execute_process(COMMAND ${GIT} submodule update --init --recursive
                 WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+

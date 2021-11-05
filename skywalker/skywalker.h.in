@@ -4,15 +4,22 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // Error codes (treated as integers).
 typedef enum sw_error_code_t {
-  SW_SUCCESS = 0,
-  SW_BAD_PARAM_NAME,
-  SW_BAD_METRIC_NAME,
-  SW_YAML_FILE_NOT_FOUND,
-  SW_SETTINGS_BLOCK_NOT_FOUND,
-  SW_VALUE_NOT_FOUND
-};
+  SW_SUCCESS = 0,         // no error occurred
+  SW_YAML_FILE_NOT_FOUND, // the specified YAML file was not found
+  SW_SETTINGS_NOT_FOUND,  // the specified YAML settings block was not found
+  SW_BAD_PARAM_NAME,      // the specified parameter name is invalid
+  SW_PARAM_NOT_FOUND,     // the specified setting/input parameter was not found
+  SW_TOO_MANY_PARAMS,     // the specified lattice ensemble has > 7 parameters
+  SW_INVALID_ENUMERATION, // the specified enumeration ensemble has an invalid
+                          // enumeration
+  SW_EMPTY_ENSEMBLE       // the specified ensemble has no members
+} sw_error_code_t;
 
 // Precision of real numbers
 typedef @SKYWALKER_REAL_TYPE@ sw_real_t;
@@ -82,7 +89,7 @@ size_t sw_ensemble_size(sw_ensemble_t* ensemble);
 // traversed. Use it as a predicate in a while loop in which inputs and outputs
 // are processed.
 bool sw_ensemble_next(sw_ensemble_t *ensemble,
-                      const sw_input_t **input,
+                      sw_input_t **input,
                       sw_output_t **output);
 
 // This type stores the result of the attempt to fetch an input parameter.
@@ -112,5 +119,9 @@ sw_output_result_t sw_output_set(sw_output_t *output,
 // in the file with the given name. This function consumes the ensemble, freeing
 // all resources associated with it.
 void sw_ensemble_write(sw_ensemble_t *ensemble, const char *module_filename);
+
+#ifdef __cplusplus
+} // extern "C"
+#endif
 
 #endif
