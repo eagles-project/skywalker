@@ -74,11 +74,11 @@ typedef struct sw_setting_result_t {
   const char* value;         // fetched value (if error_code == 0)
   int error_code;            // error code indicating success or failure
   const char* error_message; // text description of error
-} sw_setting_result_t;
+} sw_settings_result_t;
 
 // Retrieves the setting with the given name.
-sw_setting_result_t sw_settings_get(sw_settings_t *settings,
-                                    const char *name);
+sw_settings_result_t sw_settings_get(sw_settings_t *settings,
+                                     const char *name);
 
 // Returns the size of the given ensemble.
 size_t sw_ensemble_size(sw_ensemble_t* ensemble);

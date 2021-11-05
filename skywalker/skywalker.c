@@ -114,10 +114,10 @@ static sw_output_result_t sw_settings_set(sw_settings_t *settings,
   return result;
 }
 
-sw_setting_result_t sw_settings_get(sw_settings_t *settings,
+sw_settings_result_t sw_settings_get(sw_settings_t *settings,
                                     const char* name) {
   khiter_t iter = kh_get(string_map, settings->params, name);
-  sw_setting_result_t result = {.error_code = SW_SUCCESS};
+  sw_settings_result_t result = {.error_code = SW_SUCCESS};
   if (iter != kh_end(settings->params)) {
     result.value = kh_val(settings->params, iter);
   } else {

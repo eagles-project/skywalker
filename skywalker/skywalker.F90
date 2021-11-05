@@ -6,29 +6,30 @@ module skywalker
 
   implicit none
 
-  private
-
-  public :: wp, input_t, output_t, ensemble_t, load_ensemble
-
   ! Working precision real kind
   integer, parameter :: wp = c_real
 
   ! Error codes
   integer, parameter :: sw_success = 0
-  integer, parameter :: sw_bad_param_name = 1
-  integer, parameter :: sw_yaml_file_not_found = 2
-  integer, parameter :: sw_settings_not_found = 3
+  integer, parameter :: sw_yaml_file_not_found = 1
+  integer, parameter :: sw_settings_not_found = 2
+  integer, parameter :: sw_bad_param_name = 3
   integer, parameter :: sw_param_not_found = 4
+  integer, parameter :: sw_too_many_params = 5
+  integer, parameter :: sw_invalid_enumeration = 6
+  integer, parameter :: sw_empty_ensemble = 7
 
   ! Ensemble types
-  integer, parameter :: sw_lattice     = 1
-  integer, parameter :: sw_enumeration = 2
+  integer, parameter :: sw_lattice     = 0
+  integer, parameter :: sw_enumeration = 1
 
   ! This type represents an ensemble that has been loaded from a skywalker input
   ! YAML file. It's an opaque type whose innards cannot be manipulated.
   type :: ensemble_t
     type(c_ptr) :: ptr
   contains
+    ! Iterates over ensemble members
+    procedure :: next => ensemble_next
     ! Writes a Python module containing input/output data to a file
     procedure :: write => ensemble_write
   end type ensemble_t
@@ -40,10 +41,11 @@ module skywalker
   contains
     ! Fetches a user-defined parameter.
     procedure :: get => settings_get
+    procedure :: get_setting => settings_get_setting
   end type
 
   ! This type stores the result of the attempt to fetch a setting.
-  type ::settings_result_t
+  type :: settings_result_t
     character(len=:), pointer :: value         ! fetched value (if error_code == 0)
     integer                   :: error_code    ! error code indicating success or failure
     character(len=:), pointer :: error_message ! text description of error
@@ -55,6 +57,7 @@ module skywalker
   contains
     ! Fetches a user-defined parameter.
     procedure :: get => input_get
+    procedure :: get_param => input_get_param
   end type input_t
 
   ! This type stores the result of the attempt to fetch an input parameter.
@@ -141,6 +144,12 @@ module skywalker
       real(c_real), value, intent(in) :: value
     end subroutine
 
+    logical(c_bool) function sw_ensemble_ext(ensemble, input, output) bind(c)
+      use iso_c_binding, only: c_bool, c_ptr
+      type(c_ptr), value, intent(in) :: ensemble
+      type(c_ptr), intent(out) :: input, output
+    end function
+
     subroutine sw_ensemble_write(ensemble, filename) bind(c)
       use iso_c_binding, only: c_ptr
       type(c_ptr), value, intent(in) :: ensemble
@@ -173,7 +182,7 @@ contains
   end function
 
   ! Retrieves the setting with the given name.
-  function settings_get(settings, name) result(s_result)
+  function settings_get_setting(settings, name) result(s_result)
     use iso_c_binding, only: c_ptr
     implicit none
 
@@ -187,11 +196,25 @@ contains
                              c_value, s_result%error_code, c_err_msg)
     s_result%value = c_to_f_string(c_value)
     s_result%error_message = c_to_f_string(c_err_msg)
-
   end function
 
-  ! Retrieves the input parameter with the given name.
-  function input_get(input, name) result(i_result)
+  ! Retrieves the setting with the given name.
+  function settings_get(settings, name) result(str)
+    use iso_c_binding, only: c_ptr
+    implicit none
+
+    class(settings_t), intent(in) :: settings
+    character(len=*), intent(in)  :: name
+
+    type(settings_result_t) :: s_result
+    character(len=128) :: str
+
+    s_result = settings%get_setting(name)
+    str = s_result%value
+  end function
+
+  ! Retrieves the input parameter with the given name, halting on errors.
+  function input_get_param(input, name) result(i_result)
     use iso_c_binding, only: c_ptr
     implicit none
 
@@ -207,6 +230,21 @@ contains
     i_result%error_message = c_to_f_string(c_err_msg)
   end function
 
+  ! Retrieves the input parameter with the given name.
+  function input_get(input, name) result(val)
+    use iso_c_binding, only: c_ptr, c_real
+    implicit none
+
+    class(input_t), intent(in)   :: input
+    character(len=*), intent(in) :: name
+
+    type(input_result_t) :: i_result
+    real(c_real) :: val
+
+    i_result = input%get_param(name)
+    val = i_result%value
+  end function
+
   ! This function sets a quantity with the given name and value to the given
   ! output instance, returning a result that indicates success or failure.
   subroutine output_set(output, name, value)
@@ -219,6 +257,19 @@ contains
 
     call sw_output_set(output%ptr, f_to_c_string(name), value)
   end subroutine
+
+  ! Iterates over the members of the ensemble, returning the input and output
+  ! data structures for the next member.
+  function ensemble_next(ensemble, input, output) result(next)
+    implicit none
+
+    class(ensemble_t), intent(in) :: ensemble
+    type(input_t), intent(out)    :: input
+    type(output_t), intent(out)   :: output
+    logical(c_bool) :: next
+
+    next = sw_ensemble_next(ensemble%ptr, input%ptr, output%ptr)
+  end function
 
   ! Writes input and output data within the ensemble to a Python module stored
   ! in the file with the given name. This function consumes the ensemble, freeing

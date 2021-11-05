@@ -35,84 +35,46 @@ program enumeration_test
 
   implicit none
 
-  character(len=255) :: input_file = "enumeration_test.yaml"
-  type(ensemble_t)   :: ensemble
-  type(input_t)      :: input
-  type(output_t)     :: output
-  integer            :: i
+  character(len=255)      :: input_file = "enumeration_test.yaml"
+  type(ensemble_result_t) :: load_result
+  type(settings_t)        :: settings
+  type(ensemble_t)        :: ensemble
+  type(input_t)           :: input
+  type(output_t)          :: output
 
   ! Load the ensemble. Any error encountered is fatal.
   print *, "enumeration_test: Loading ensemble from ", trim(input_file)
-  ensemble = load_ensemble("user", trim(input_file), "user_program")
+  load_result = load_ensemble(trim(input_file), "settings")
 
   ! Make sure everything is as it should be.
+  if (load_result%error_code /= 0) then
+    print *, "enumeration_test: ", trim(load_result%error_message)
+    stop
+  end if
+  assert(load_result%type == sw_enumeration)
 
-  ! process section
-  assert(trim(ensemble%program_name) == "user_program")
-  assert(ensemble%num_program_params == 3)
-  assert(trim(ensemble%program_param_names(1)) == "param1")
-  assert(trim(ensemble%program_param_values(1)) == "hello")
-  assert(trim(ensemble%program_param_names(2)) == "param2")
-  assert(trim(ensemble%program_param_values(2)) == "81")
-  assert(trim(ensemble%program_param_names(3)) == "param3")
-  assert(trim(ensemble%program_param_values(3)) == "3.14159265357")
-
-  ! aerosol configuration -- everything should be zero
-  assert(ensemble%num_modes == 0)
-  assert(ensemble%num_populations == 0) ! all species in all modes
-  assert(ensemble%num_gases == 0)
+  ! check settings
+  settings = load_result%settings
+  assert(trim(settings%get("param1")) == "hello")
+  assert(trim(settings%get("param2")) == "81")
+  assert(trim(settings%get("param3")) == "3.14159265357")
 
   ! ensemble information
-  assert(ensemble%size == 11)
-  do i = 1, ensemble%size
-    input = ensemble%inputs(i)
-
-    ! Time stepping parameters -- should be zero
-    assert(input%dt == 0._wp)
-    assert(input%total_time == 0._wp)
-
-    ! Atmospheric parameters -- should be zero
-    assert(approx_equal(input%pressure, 0._wp))
-    assert(approx_equal(input%vapor_mixing_ratio, 0._wp))
-    assert(approx_equal(input%height, 0._wp))
-    assert(approx_equal(input%hydrostatic_dp, 0._wp))
-    assert(approx_equal(input%planetary_boundary_layer_height, 0._wp))
-
-    ! User parameters
-
-    ! Fixed parameters
-    assert(approx_equal(input%user_param("p1"), 1.0_wp))
-    assert(approx_equal(input%user_param("p2"), 2.0_wp))
-    assert(approx_equal(input%user_param("p3"), 3.0_wp))
-
-    ! Ensemble parameters
-    assert(input%user_param("tick") >= 0.0_wp)
-    assert(input%user_param("tick") <= 10.0_wp)
-    assert(input%user_param("tock") >= 1e1_wp)
-    assert(input%user_param("tock") <= 1e11_wp)
-  end do
-
-  ! Process input to get output! To keep things simple, we just copy our input
-  ! data to output data.
-  do i = 1, ensemble%size
-    input = ensemble%inputs(i)
-    output = ensemble%outputs(i)
-    output%interstitial_aero_nmrs = input%interstitial_aero_nmrs
-    output%cloud_aero_nmrs = input%cloud_aero_nmrs
-    output%interstitial_aero_mmrs = input%interstitial_aero_mmrs
-    output%cloud_aero_mmrs = input%cloud_aero_mmrs
+  ensemble = load_result%ensemble
+  do while (ensemble%next(input, output))
+    assert(approx_equal(input%get("p1"), 1.0_wp))
+    assert(approx_equal(input%get("p2"), 2.0_wp))
+    assert(approx_equal(input%get("p3"), 3.0_wp))
+    assert(input%get("tick") >= 0.0_wp)
+    assert(input%get("tick") <= 10.0_wp)
+    assert(input%get("tock") >= 1e1_wp)
+    assert(input%get("tock") <= 1e11_wp)
 
     ! Add a "qoi" metric set to 4.
-    call output%add_metric("qoi", 4.0_wp)
+    call output%set("qoi", 4.0_wp)
   end do
 
   ! Now we write out a Python module containing the output data.
-  call ensemble%write_py_module("f90_user_enum_test.py")
-
-  ! Clean up.
-  call ensemble%free()
-
-  ! If we got here, everything is all right!
-  print *, "PASS"
+  call ensemble%write("enumeration_test_f90.py")
 
 end program
