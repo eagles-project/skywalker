@@ -12,3 +12,7 @@ message(STATUS "Updating git submodules recursively...")
 execute_process(COMMAND ${GIT} submodule update --init --recursive
                 WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
+# Generate a config.h file for libyaml.
+find_program(GREP grep REQUIRED)
+execute_process(COMMAND ${GREP} \(YAML_VERSION_ ${CMAKE_CURRENT_SOURCE_DIR}/libyaml/CMakeLists.txt
+                OUTPUT_FILE ${PROJECT_BINARY_DIR}/libyaml.cmake)
