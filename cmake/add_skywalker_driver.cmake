@@ -1,0 +1,17 @@
+# Use this function to create a simple Skywalker driver program in C or Fortran.
+function(add_skywalker_driver driver_name)
+  add_executable(${driver_name} ${ARGN})
+  # Is it a C or Fortran program?
+  set(is_fortran FALSE)
+  foreach(source ${ARGN})
+    if (${source} MATCHES "[fF]90$")
+      set(is_fortran TRUE)
+      break()
+    endif()
+  endforeach()
+  if (is_fortran)
+    target_link_libraries(${driver_name} skywalker_f90)
+  else()
+    target_link_libraries(${driver_name} skywalker)
+  endif()
+endfunction()

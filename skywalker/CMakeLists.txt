@@ -1,5 +1,5 @@
-include_directories(${CMAKE_CURRENT_BINARY_DIR} ${HAERO_INCDIRS} ${HAERO_DRIVER_INCDIRS})
-include_directories(${PROJECT_BINARY_DIR}/skywalker)
+include_directories(${PROJECT_BINARY_DIR})
+include_directories(${PROJECT_SOURCE_DIR}/ext/klib)
 
 # Generate skywalker.h and skywalker.cmake with the correct settings.
 configure_file(

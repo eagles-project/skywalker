@@ -1,0 +1,20 @@
+# This input file tests Skywalker's Fortran 90 module with an enumeration
+# ensemble.
+
+type: enumeration
+
+settings:
+  param1: hello
+  param2: 81
+  param3: 3.14159265357
+
+# All parameters must have a single value (which means they're the same in
+# every run) or be sequences of the same size, which is the number of members
+# in the ensemble (in this case, 3).
+input:
+  p1: 1
+  p2: 2
+  p3: 3
+  tick:        [0, 10, 1] # linear spacing
+  log10(tock): [1, 11, 1] # logarithmic spacing
+

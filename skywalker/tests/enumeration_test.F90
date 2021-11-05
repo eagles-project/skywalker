@@ -1,7 +1,7 @@
 ! This program tests Skywalker's Fortran 90 interface with a user-defined
 ! configuration that uses an "enumeration" ensemble.
 
-module f90_user_enum_test
+module enumeration_test_mod
   implicit none
 contains
   subroutine fatal_error(message, line)
@@ -23,27 +23,26 @@ contains
       equal = .false.
     end if
   end function
-end module f90_user_enum_test
+end module enumeration_test_mod
 
 ! This macro halts the program if the predicate x isn't true.
 #define assert(x) if (.not. (x)) call fatal_error("Assertion failed at line", __LINE__)
 
-program skywalker_f90_enum_test
+program enumeration_test
 
-  use f90_user_enum_test
+  use enumeration_test_mod
   use skywalker
-  use haero_precision, only: wp
 
   implicit none
 
-  character(len=255)  :: input_file = "f90_user_enum_test.yaml"
-  type(ensemble_t)    :: ensemble
-  type(input_data_t)  :: input
-  type(output_data_t) :: output
-  integer             :: i
+  character(len=255) :: input_file = "enumeration_test.yaml"
+  type(ensemble_t)   :: ensemble
+  type(input_t)      :: input
+  type(output_t)     :: output
+  integer            :: i
 
   ! Load the ensemble. Any error encountered is fatal.
-  print *, "skywalker_f90_user_test: Loading ensemble from ", trim(input_file)
+  print *, "enumeration_test: Loading ensemble from ", trim(input_file)
   ensemble = load_ensemble("user", trim(input_file), "user_program")
 
   ! Make sure everything is as it should be.

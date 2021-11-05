@@ -8,423 +8,273 @@ module skywalker
 
   private
 
-  public :: wp, input_data_t, output_data_t, ensemble_t, load_ensemble
+  public :: wp, input_t, output_t, ensemble_t, load_ensemble
 
-  !> Working precision real kind
+  ! Working precision real kind
   integer, parameter :: wp = c_real
 
-  !> This Fortran type is the equivalent of the C InputData struct.
-  type :: input_data_t
-    ! C pointer
-    type(c_ptr) :: ptr
-    ! Timestepping data
-    real(c_real) :: dt, total_time
-    ! atmospheric state parameters
-    real(c_real) :: temperature, pressure, vapor_mixing_ratio, height, &
-                    hydrostatic_dp, planetary_boundary_layer_height
+  ! Error codes
+  integer, parameter :: sw_success = 0
+  integer, parameter :: sw_bad_param_name = 1
+  integer, parameter :: sw_bad_metric_name = 2
+  integer, parameter :: sw_yaml_file_not_found = 3
+  integer, parameter :: sw_settings_block_not_found = 4
+  integer, parameter :: sw_value_not_found = 5
 
-    ! Modal aerosol number mixing ratios [# aero molecules / kg air]
-    real(c_real), dimension(:), pointer :: interstitial_aero_nmrs, &
-                                           cloud_aero_nmrs
-    ! Aerosol mass mixing ratios [kg aerosol / kg air], indexed by mode and species
-    real(c_real), dimension(:, :), pointer :: interstitial_aero_mmrs, &
-                                              cloud_aero_mmrs
-    ! Gas mass mixing ratios [kg gas / kg air]
-    real(c_real), dimension(:), pointer :: gas_mmrs
-  contains
-    ! Fetches a user-defined parameter.
-    procedure :: user_param => i_user_param
-  end type input_data_t
+  ! Ensemble types
+  integer, parameter :: sw_lattice     = 1
+  integer, parameter :: sw_enumeration = 2
 
-  type :: output_data_t
-    ! C pointer
-    type(c_ptr) :: ptr
-    ! Modal aerosol number concentrations [# aero molecules / kg air]
-    real(c_real), dimension(:), pointer :: interstitial_aero_nmrs, &
-                                           cloud_aero_nmrs
-    ! Aerosol mass mixing ratios [kg aerosol / kg air], indexed by mode and species
-    real(c_real), dimension(:, :), pointer :: interstitial_aero_mmrs, &
-                                              cloud_aero_mmrs
-    ! Gas mass mixing ratios [kg gas / kg air]
-    real(c_real), dimension(:), pointer :: gas_mmrs
-  contains
-    ! Adds a named metric to the output data.
-    procedure :: add_metric => o_add_metric
-  end type output_data_t
-
-  ! This type represents an ensemble and its corresponding input and output
-  ! data for each member.
+  ! This type represents an ensemble that has been loaded from a skywalker input
+  ! YAML file. It's an opaque type whose innards cannot be manipulated.
   type :: ensemble_t
-    ! C pointer
     type(c_ptr) :: ptr
-    ! Name of the aerosol process being studied by this ensemble
-    character(len=255) :: program_name
-    ! Number of parameters passed to the process
-    integer :: num_program_params
-    ! List of names of parameters passed to the process
-    character(len=255), dimension(:), allocatable :: program_param_names
-    ! List of values of parameters passed to the process
-    character(len=255), dimension(:), allocatable :: program_param_values
-    ! The number of members in the ensemble
-    integer :: size
-    ! Number of aerosol modes and populations, and number of gases
-    integer(c_int) :: num_modes, num_populations, num_gases
-    ! An array of input data for every member of the ensemble
-    type(input_data_t), dimension(:), allocatable :: inputs
-    ! An array of output data for every member of the ensemble
-    type(output_data_t), dimension(:), allocatable :: outputs
-
   contains
     ! Writes a Python module containing input/output data to a file
-    procedure :: write_py_module => e_write_py_module
-    ! Frees resources allocated to the ensemble
-    procedure :: free => e_free
+    procedure :: write => ensemble_write
   end type ensemble_t
+
+  ! This opaque type stores named settings intended for use with Skywalker
+  ! driver programs.
+  type :: settings_t
+    type(c_ptr) :: ptr
+  contains
+    ! Fetches a user-defined parameter.
+    procedure :: get => settings_get
+  end type
+
+  ! This type stores the result of the attempt to fetch a setting.
+  type ::settings_result_t
+    character(len=:), pointer :: value         ! fetched value (if error_code == 0)
+    integer                   :: error_code    ! error code indicating success or failure
+    character(len=:), pointer :: error_message ! text description of error
+  end type settings_result_t
+
+  ! Input data for simulations. Opaque type.
+  type :: input_t
+    type(c_ptr) :: ptr
+  contains
+    ! Fetches a user-defined parameter.
+    procedure :: get => input_get
+  end type input_t
+
+  ! This type stores the result of the attempt to fetch an input parameter.
+  type :: input_result_t
+    real(c_real)              :: value         ! fetched value (if error_code == 0)
+    integer                   :: error_code    ! error code indicating success or failure
+    character(len=:), pointer :: error_message ! text description of error
+  end type input_result_t
+
+  ! Output data for simulations. Opaque type.
+  type :: output_t
+    type(c_ptr) :: ptr
+  contains
+    ! Adds a named metric to the output data.
+    procedure :: set => output_set
+  end type output_t
+
+  ! This type stores the result of an attempt to store an output metric.
+  type :: output_result_t
+    integer                   :: error_code    ! error code indicating success or failure
+    character(len=:), pointer :: error_message ! text description of error
+  end type output_result_t
+
+  ! This type contains all data loaded from an ensemble, including an error code
+  ! and description of any issues encountered loading the ensemble. Do not
+  ! attempt to free any of these resources.
+  type :: ensemble_result_t
+    ! The settings associated with the driver program
+    type(settings_t) :: settings
+    ! The ensemble loaded (if no error occurred)
+    type(ensemble_t) :: ensemble
+    ! The ensemble's type
+    integer :: type
+    ! An error code indicating any problems encountered loading the ensemble
+    ! (zero = success, non-zero = failure)
+    integer :: error_code
+    ! A string describing any error encountered, or NULL if error_code == 0.
+    character(len=:), pointer :: error_message
+  end type ensemble_result_t
 
   interface
 
-    ! Loads and returns an ensemble from the given file, interpreting its data
-    ! according to the given aerosol configuration.
-    type(c_ptr) function sw_load_ensemble(aerosol_config, filename, model_impl) bind(c)
-      use iso_c_binding, only: c_ptr
-      type(c_ptr), value, intent(in) :: aerosol_config, filename, model_impl
-    end function
-
-    ! Returns the name of the selected process for the given ensemble.
-    type(c_ptr) function sw_ensemble_program_name(ensemble) bind(c)
+    subroutine sw_load_ensemble_f90(yaml_file, settings_block, &
+                                    settings, ensemble, type, &
+                                    error_code, error_message) bind(c)
       use iso_c_binding, only: c_ptr, c_int
+      type(c_ptr), value, intent(in) :: yaml_file, settings_block
+      type(c_ptr), intent(out) :: settings, ensemble, error_message
+      integer(c_int), intent(out) :: type, error_code
+    end subroutine
+
+    subroutine sw_settings_get_f90(settings, name, &
+                                   value, error_code, error_message) bind(c)
+      use iso_c_binding, only: c_ptr, c_int, c_double, c_float
+      type(c_ptr), value, intent(in) :: settings, name
+      type(c_ptr), intent(out) :: value
+      integer(c_int), intent(out) :: error_code
+      type(c_ptr), intent(out) :: error_message
+    end subroutine
+
+    integer(c_size_t) function sw_ensemble_size(ensemble) bind(c)
+      use iso_c_binding, only: c_ptr, c_size_t
       type(c_ptr), value, intent(in) :: ensemble
     end function
 
-    ! Returns the number of parameters passed to the selected process for the
-    ! given ensemble.
-    integer(c_int) function sw_ensemble_num_program_params(ensemble) bind(c)
-      use iso_c_binding, only: c_ptr, c_int
-      type(c_ptr), value, intent(in) :: ensemble
+    logical(c_bool) function sw_ensemble_next(ensemble, input, output) bind(c)
+      use iso_c_binding, only: c_ptr, c_bool
+      type(c_ptr), value, intent(in) :: ensemble, input, output
     end function
 
-    ! Sets the given pointers to strings that contain the name and value for
-    ! the parameter with the given index passed to an ensemble.
-    subroutine sw_ensemble_get_program_param(ensemble, index, param_name, param_value) bind(c)
-      use iso_c_binding, only: c_ptr, c_int
-      type(c_ptr), value, intent(in) :: ensemble
-      integer(c_int), value, intent(in) :: index
-      type(c_ptr), intent(out) :: param_name
-      type(c_ptr), intent(out) :: param_value
-    end subroutine
-
-    ! Returns the number of members in an ensemble
-    integer(c_int) function sw_ensemble_size(ensemble) bind(c)
-      use iso_c_binding, only: c_ptr, c_int
-      type(c_ptr), value, intent(in) :: ensemble
-    end function
-
-    subroutine sw_ensemble_get_array_sizes(ensemble, num_modes, num_pops, num_gases) bind(c)
-      use iso_c_binding, only: c_ptr, c_int
-      type(c_ptr), value, intent(in) :: ensemble
-      integer(c_int), intent(inout) :: num_modes, num_pops, num_gases
-    end subroutine
-
-    subroutine sw_ensemble_get_modal_aerosol_sizes(ensemble, aerosols_per_mode) bind(c)
-      use iso_c_binding, only: c_ptr, c_int
-      type(c_ptr), value, intent(in) :: ensemble
-      type(c_ptr), value, intent(in) :: aerosols_per_mode
-    end subroutine
-
-    type(c_ptr) function sw_ensemble_input(ensemble, i) bind(c)
-      use iso_c_binding, only: c_ptr, c_int
-      type(c_ptr), value, intent(in) :: ensemble
-      integer(c_int), value, intent(in) :: i
-    end function
-
-    subroutine sw_input_get_timestepping(input, dt, total_time) bind(c)
-      use iso_c_binding, only: c_ptr, c_real
-      type(c_ptr), value, intent(in) :: input
-      real(c_real), intent(out) :: dt, total_time
-    end subroutine
-
-    subroutine sw_input_get_atmosphere(input, temperature, pressure, qv, height,&
-                                       dp, pblh) bind(c)
-      use iso_c_binding, only: c_ptr, c_real
-      type(c_ptr), value, intent(in) :: input
-      real(c_real), intent(out) :: temperature, pressure, qv, height, dp, pblh
-    end subroutine
-
-    subroutine sw_input_get_aerosols(input, int_aero_nmrs, cld_aero_nmrs, &
-                                     int_aero_mmrs, cld_aero_mmrs) bind(c)
-      use iso_c_binding, only: c_ptr
-      type(c_ptr), value, intent(in) :: input
-      type(c_ptr), value, intent(in) :: int_aero_nmrs, cld_aero_nmrs,&
-                                        int_aero_mmrs, cld_aero_mmrs
-    end subroutine
-
-    subroutine sw_input_get_gases(input, gas_mmrs) bind(c)
-      use iso_c_binding, only: c_ptr
-      type(c_ptr), value, intent(in) :: input
-      type(c_ptr), value, intent(in) :: gas_mmrs
-    end subroutine
-
-    subroutine sw_input_get_user_param(output, name, value) bind(c)
-      use iso_c_binding, only: c_ptr, c_double, c_float
-      type(c_ptr), value, intent(in) :: output
-      type(c_ptr), value, intent(in) :: name
+    subroutine sw_input_get_f90(input, name, &
+                                value, error_code, error_message) bind(c)
+      use iso_c_binding, only: c_ptr, c_int, c_double, c_float
+      type(c_ptr), value, intent(in) :: input, name
       real(c_real), intent(out) :: value
+      integer(c_int), intent(out) :: error_code
+      type(c_ptr), intent(out) :: error_message
     end subroutine
 
-    type(c_ptr) function sw_ensemble_output(ensemble, i) bind(c)
-      use iso_c_binding, only: c_ptr, c_int
-      type(c_ptr), value, intent(in) :: ensemble
-      integer(c_int), value, intent(in) :: i
-    end function
-
-    subroutine sw_output_set_aerosols(output, int_aero_nmrs, cld_aero_nmrs, &
-                                      int_aero_mmrs, cld_aero_mmrs) bind(c)
-      use iso_c_binding, only: c_ptr
-      type(c_ptr), value, intent(in) :: output
-      type(c_ptr), value, intent(in) :: int_aero_nmrs, cld_aero_nmrs,&
-                                        int_aero_mmrs, cld_aero_mmrs
-    end subroutine
-
-    subroutine sw_output_set_gases(output, gas_mmrs) bind(c)
-      use iso_c_binding, only: c_ptr
-      type(c_ptr), value, intent(in) :: output
-      type(c_ptr), value, intent(in) :: gas_mmrs
-    end subroutine
-
-    subroutine sw_output_set_metric(output, name, value) bind(c)
+    subroutine sw_output_set(output, name, value) bind(c)
       use iso_c_binding, only: c_ptr, c_double, c_float
       type(c_ptr), value, intent(in) :: output
       type(c_ptr), value, intent(in) :: name
       real(c_real), value, intent(in) :: value
     end subroutine
 
-    subroutine sw_ensemble_write_py_module(ensemble, filename) bind(c)
+    subroutine sw_ensemble_write(ensemble, filename) bind(c)
       use iso_c_binding, only: c_ptr
       type(c_ptr), value, intent(in) :: ensemble
       type(c_ptr), value, intent(in) :: filename
-    end subroutine
-
-    subroutine sw_ensemble_free(ensemble) bind(c)
-      use iso_c_binding, only: c_ptr
-      type(c_ptr), value, intent(in) :: ensemble
     end subroutine
 
   end interface
 
 contains
 
-  ! Given an aerosol configuration string and a skywalker input file, fetch an
-  ! ensemble's worth of input data. Here, model_impl is a string indicating
-  ! which underlying aerosol mode skywalker will use to select an appropriate
-  ! aerosol process. It's usually "haero" or "mam".
-  function load_ensemble(aerosol_config, filename, model_impl) result(ensemble)
-    use iso_c_binding, only: c_int, c_ptr, c_associated, c_loc
-    use haero, only: f_to_c_string, c_to_f_string
+  ! Reads an ensemble from a YAML input file, returning a pointer to the ensemble
+  ! (if the read was successful). The settings_block argument indicates the name
+  ! of the YAML block to read to retrieve settings for the driver program using
+  ! Skywalker.
+  function load_ensemble(yaml_file, settings_block) result(e_result)
+    use iso_c_binding, only: c_ptr
     implicit none
 
-    character(len=*), intent(in) :: aerosol_config
-    character(len=*), intent(in) :: filename
-    character(len=*), intent(in) :: model_impl
+    character(len=*), intent(in) :: yaml_file
+    character(len=*), intent(in) :: settings_block
 
-    type(ensemble_t) :: ensemble
-    type(input_data_t) :: input
-    type(output_data_t) :: output
-    integer(c_int), dimension(:), pointer :: mode_array_sizes
-    integer :: i, m, s, p, max_mode_size
-    real(c_real), dimension(:), allocatable, target :: int_aero_data, cld_aero_data
-    type(c_ptr) :: p_name, p_value
+    type(ensemble_result_t) :: e_result
+    type(c_ptr) :: c_err_msg
 
-    ! Fetch the ensemble pointer from C.
-    ensemble%ptr = sw_load_ensemble(f_to_c_string(aerosol_config), &
-                                    f_to_c_string(filename), &
-                                    f_to_c_string(model_impl))
-    if (.not. c_associated(ensemble%ptr)) then
-      print *, "Could not load a ", aerosol_config, " from ", filename
-      stop
-    end if
-
-    ! Fetch the name of the process and its associated parameters
-    ensemble%program_name = c_to_f_string(sw_ensemble_program_name(ensemble%ptr))
-    ensemble%num_program_params = sw_ensemble_num_program_params(ensemble%ptr)
-    if (ensemble%num_program_params > 0) then
-      allocate(ensemble%program_param_names(ensemble%num_program_params))
-      allocate(ensemble%program_param_values(ensemble%num_program_params))
-      do p = 1, ensemble%num_program_params
-        call sw_ensemble_get_program_param(ensemble%ptr, p, p_name, p_value)
-        ensemble%program_param_names(p) = c_to_f_string(p_name)
-        ensemble%program_param_values(p) = c_to_f_string(p_value)
-      end do
-    end if
-
-    ! Extract metadata.
-    call sw_ensemble_get_array_sizes(ensemble%ptr, ensemble%num_modes, &
-                                     ensemble%num_populations, &
-                                     ensemble%num_gases)
-    allocate(mode_array_sizes(ensemble%num_modes))
-    call sw_ensemble_get_modal_aerosol_sizes(ensemble%ptr, c_loc(mode_array_sizes))
-    max_mode_size = 0
-    do m = 1, ensemble%num_modes
-      max_mode_size = max(max_mode_size, mode_array_sizes(m))
-    end do
-    allocate(int_aero_data(ensemble%num_populations))
-    allocate(cld_aero_data(ensemble%num_populations))
-
-    ! Size up the ensemble.
-    ensemble%size = sw_ensemble_size(ensemble%ptr)
-    allocate(ensemble%inputs(ensemble%size))
-    allocate(ensemble%outputs(ensemble%size))
-
-    ! Allocate input and output aerosol and gas arrays for the ensemble,
-    ! and extract input data
-    do i = 1, ensemble%size
-      input = ensemble%inputs(i)
-      input%ptr = sw_ensemble_input(ensemble%ptr, i)
-      allocate(input%interstitial_aero_nmrs(ensemble%num_modes))
-      allocate(input%cloud_aero_nmrs(ensemble%num_modes))
-      allocate(input%interstitial_aero_mmrs(ensemble%num_modes, max_mode_size))
-      allocate(input%cloud_aero_mmrs(ensemble%num_modes, max_mode_size))
-      allocate(input%gas_mmrs(ensemble%num_gases))
-
-      output = ensemble%outputs(i)
-      output%ptr = sw_ensemble_output(ensemble%ptr, i)
-      allocate(output%interstitial_aero_nmrs(ensemble%num_modes))
-      allocate(output%cloud_aero_nmrs(ensemble%num_modes))
-      allocate(output%interstitial_aero_mmrs(ensemble%num_modes, max_mode_size))
-      allocate(output%cloud_aero_mmrs(ensemble%num_modes, max_mode_size))
-      allocate(output%gas_mmrs(ensemble%num_gases))
-
-      ! Timestepping data
-      call sw_input_get_timestepping(input%ptr, input%dt, input%total_time)
-
-      ! Atmosphere data
-      call sw_input_get_atmosphere(input%ptr, input%temperature, input%pressure, &
-        input%vapor_mixing_ratio, input%height, input%hydrostatic_dp, &
-        input%planetary_boundary_layer_height)
-
-      ! Aerosol data
-      call sw_input_get_aerosols(input%ptr, &
-        c_loc(input%interstitial_aero_nmrs), &
-        c_loc(input%cloud_aero_nmrs), &
-        c_loc(int_aero_data), c_loc(cld_aero_data))
-      p = 1 ! population index
-      do m = 1, ensemble%num_modes
-        do s = 1, mode_array_sizes(m)
-          input%interstitial_aero_mmrs(m, s) = int_aero_data(p)
-          input%cloud_aero_mmrs(m, s) = cld_aero_data(p)
-          p = p + 1
-        end do
-      end do
-
-      ! Gas data
-      call sw_input_get_gases(input%ptr, c_loc(input%gas_mmrs))
-
-      ensemble%inputs(i) = input
-      ensemble%outputs(i) = output
-    end do
-
-    ! Clean up.
-    deallocate(int_aero_data, cld_aero_data, mode_array_sizes)
+    call sw_load_ensemble_f90(f_to_c_string(yaml_file), &
+                              f_to_c_string(settings_block), &
+                              e_result%settings%ptr, e_result%ensemble%ptr, &
+                              e_result%type, e_result%error_code, c_err_msg)
+    e_result%error_message = c_to_f_string(c_err_msg)
   end function
 
-  ! Fetches a user-defined parameter.
-  function i_user_param(input, name) result(val)
-    use iso_c_binding, only: c_ptr, c_double, c_float
-    use haero, only: f_to_c_string
+  ! Retrieves the setting with the given name.
+  function settings_get(settings, name) result(s_result)
+    use iso_c_binding, only: c_ptr
     implicit none
 
-    class(input_data_t), intent(in) :: input
-    character(len=*), intent(in) :: name
-    real(c_real) :: val
+    class(settings_t), intent(in) :: settings
+    character(len=*), intent(in)  :: name
 
-    call sw_input_get_user_param(input%ptr, f_to_c_string(name), val)
+    type(settings_result_t) :: s_result
+    type(c_ptr) :: c_value, c_err_msg
+
+    call sw_settings_get_f90(settings%ptr, f_to_c_string(name), &
+                             c_value, s_result%error_code, c_err_msg)
+    s_result%value = c_to_f_string(c_value)
+    s_result%error_message = c_to_f_string(c_err_msg)
+
   end function
 
-  ! Adds a value for a named metric to output data.
-  subroutine o_add_metric(output, name, val)
-    use iso_c_binding, only: c_ptr, c_double, c_float
-    use haero, only: f_to_c_string
+  ! Retrieves the input parameter with the given name.
+  function input_get(input, name) result(i_result)
+    use iso_c_binding, only: c_ptr
     implicit none
 
-    class(output_data_t), intent(in) :: output
+    class(input_t), intent(in)   :: input
     character(len=*), intent(in) :: name
-    real(c_real), intent(in) :: val
 
-    call sw_output_set_metric(output%ptr, f_to_c_string(name), val)
+    type(input_result_t) :: i_result
+    type(c_ptr) :: c_err_msg
+
+    call sw_input_get_f90(input%ptr, f_to_c_string(name), &
+                          i_result%value, i_result%error_code, &
+                          c_err_msg)
+    i_result%error_message = c_to_f_string(c_err_msg)
+  end function
+
+  ! This function sets a quantity with the given name and value to the given
+  ! output instance, returning a result that indicates success or failure.
+  subroutine output_set(output, name, value)
+    use iso_c_binding, only: c_double, c_float
+    implicit none
+
+    class(output_t), intent(in)  :: output
+    character(len=*), intent(in) :: name
+    real(c_real), intent(in)     :: value
+
+    call sw_output_set(output%ptr, f_to_c_string(name), value)
   end subroutine
 
-  ! Writes a Python module containing all input and output for the given
-  ! ensemble to a file with the given name.
-  subroutine e_write_py_module(ensemble, filename)
-    use iso_c_binding, only: c_ptr
-    use haero, only: f_to_c_string
+  ! Writes input and output data within the ensemble to a Python module stored
+  ! in the file with the given name. This function consumes the ensemble, freeing
+  ! all resources associated with it.
+  subroutine ensemble_write(ensemble, module_filename)
     implicit none
 
     class(ensemble_t), intent(in) :: ensemble
-    character(len=*), intent(in) :: filename
+    character(len=*), intent(in)  :: module_filename
 
-    integer i, m, s, p
-    integer(c_int), dimension(:), pointer :: mode_array_sizes
-    real(c_real), dimension(:), pointer :: int_aero_data, cld_aero_data
-
-    ! Copy output data into place.
-    allocate(int_aero_data(ensemble%num_populations))
-    allocate(cld_aero_data(ensemble%num_populations))
-
-    ! Aerosol data
-    allocate(mode_array_sizes(ensemble%num_modes))
-    call sw_ensemble_get_modal_aerosol_sizes(ensemble%ptr, c_loc(mode_array_sizes))
-    do i = 1, ensemble%size
-      p = 1 ! population index
-      do m = 1, ensemble%num_modes
-        do s = 1, mode_array_sizes(m)
-          int_aero_data(p) = ensemble%outputs(i)%interstitial_aero_mmrs(m, s)
-          cld_aero_data(p) = ensemble%outputs(i)%cloud_aero_mmrs(m, s)
-          p = p + 1
-        end do
-      end do
-      call sw_output_set_aerosols(ensemble%outputs(i)%ptr, &
-        c_loc(ensemble%outputs(i)%interstitial_aero_nmrs), &
-        c_loc(ensemble%outputs(i)%cloud_aero_nmrs), &
-        c_loc(int_aero_data), c_loc(cld_aero_data))
-
-      ! Gas data
-      call sw_output_set_gases(ensemble%outputs(i)%ptr, &
-        c_loc(ensemble%outputs(i)%gas_mmrs))
-    end do
-
-    ! Generate the Python module.
-    call sw_ensemble_write_py_module(ensemble%ptr, f_to_c_string(filename))
-
-    ! Clean up.
-    deallocate(mode_array_sizes, int_aero_data, cld_aero_data)
+    call sw_ensemble_write(ensemble%ptr, f_to_c_string(module_filename))
   end subroutine
 
-  ! Frees all resources allcated to the given ensemble object.
-  subroutine e_free(ensemble)
-    use iso_c_binding, only: c_ptr
+  ! This helper function converts the given C string to a Fortran string.
+  function c_to_f_string(c_string) result(f_string)
+    use, intrinsic :: iso_c_binding
     implicit none
+    type(c_ptr), value, intent(in) :: c_string
+    character(len=:), pointer      :: f_ptr
+    character(len=:), allocatable  :: f_string
+    integer(c_size_t)              :: c_string_len
 
-    class(ensemble_t), intent(inout) :: ensemble
-    integer :: i
+    interface
+        function c_strlen(str_ptr) bind (c, name = "strlen" ) result(len)
+        use, intrinsic :: iso_c_binding
+            type(c_ptr), value     :: str_ptr
+            integer(c_size_t)      :: len
+        end function c_strlen
+    end interface
 
-    do i = 1, ensemble%size
-      deallocate(ensemble%inputs(i)%interstitial_aero_nmrs)
-      deallocate(ensemble%inputs(i)%cloud_aero_nmrs)
-      deallocate(ensemble%inputs(i)%interstitial_aero_mmrs)
-      deallocate(ensemble%inputs(i)%cloud_aero_mmrs)
-      deallocate(ensemble%inputs(i)%gas_mmrs)
-      deallocate(ensemble%outputs(i)%interstitial_aero_nmrs)
-      deallocate(ensemble%outputs(i)%cloud_aero_nmrs)
-      deallocate(ensemble%outputs(i)%interstitial_aero_mmrs)
-      deallocate(ensemble%outputs(i)%cloud_aero_mmrs)
-      deallocate(ensemble%outputs(i)%gas_mmrs)
-    end do
-    deallocate(ensemble%inputs)
-    deallocate(ensemble%outputs)
-    if (ensemble%num_program_params > 0) then
-      deallocate(ensemble%program_param_names)
-      deallocate(ensemble%program_param_values)
-    end if
-  end subroutine
+    call c_f_pointer(c_string, f_ptr )
+    c_string_len = c_strlen(c_string)
+
+    f_string = f_ptr(1:c_string_len)
+  end function c_to_f_string
+
+  ! This helper function converts the given Fortran string to a C string.
+  function f_to_c_string(f_string) result(c_string)
+    use, intrinsic :: iso_c_binding
+    implicit none
+    character(len=*), target :: f_string
+    character(len=:), pointer :: f_ptr
+    type(c_ptr) :: c_string
+
+    interface
+        function new_c_string(f_str_ptr, f_str_len) bind (c) result(c_string)
+        use, intrinsic :: iso_c_binding
+            type(c_ptr), value :: f_str_ptr
+            integer(c_int), value :: f_str_len
+            type(c_ptr) :: c_string
+        end function new_c_string
+    end interface
+
+    f_ptr => f_string
+    c_string = new_c_string(c_loc(f_ptr), len(f_string))
+  end function f_to_c_string
 
 end module

@@ -1,47 +1,159 @@
 #include <skywalker/skywalker.h>
 
+#include <khash.h>
+#include <klist.h>
+
 #include <assert.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <strings.h>
 
-// Destroys an input, freeing all allocated resources.
-static void sw_input_free(sw_input_t *input) {
-  for (size_t i = 0; i < input->num_params; ++i) {
-    free(input->param_names[i]);
+// Some basic data structures.
+
+// A list of C strings.
+#define free_string(x) free(x->data)
+KLIST_INIT(string_list, const char*, free_string)
+
+// A hash table whose keys are C strings and whose values are real numbers.
+KHASH_MAP_INIT_STR(param_hash, sw_real_t)
+
+// A list of strings to be deallocated by skywalker.
+static klist_t(string_list)* sw_strings_ = NULL;
+
+// This function cleans up all maintained strings at the end of a process.
+static void free_strings() {
+  kl_destroy(string_list, sw_strings_);
+}
+
+// This function constructs a string in the manner of sprintf, but allocates
+// and returns a string of sufficient size.
+static const char* new_string(const char *fmt, ...) {
+  char *s;
+  va_list ap;
+  va_start(ap, fmt);
+  vasprintf(&s, fmt, ap);
+  va_end(ap);
+}
+
+// This function appends a string to the list of maintained strings, setting
+// things up when it's called for the first time.
+static void append_string(const char *s) {
+  if (!sw_strings_) {
+    sw_strings_ = kl_init(string_list);
+    atexit(free_strings);
   }
-  free(input->param_names);
-  free(input->param_values);
+  const char ** s_p = kl_pushp(string_list, sw_strings_);
+  *s_p = s;
+}
+
+struct sw_settings_t {
+  khash_t(param_hash) *params;
+} sw_settings_t;
+
+// Creates a settings instance.
+static sw_settings_t *sw_settings_new() {
+  sw_settings_t *settings = malloc(sizeof(sw_settings_t));
+  settings->params = kh_init(param_hash);
+  return settings;
+}
+
+// Destroys a settings instance, freeing all allocated resources.
+static void sw_settings_free(sw_settings_t *settings) {
+  kh_destroy(param_map, settings->params);
+}
+
+sw_store_result_t sw_set_setting(sw_settings_t *settings,
+                                 const char *name,
+                                 sw_real_t value) {
+  sw_store_result_t result = {.error_code = SW_SUCCESS};
+  int ret;
+  const char* n = strdup(name);
+  khiter_t iter = kh_put(param_map, settings->param, n, &ret);
+  kh_value(settings->param, iter) = value;
+  append_string(n);
+  return result;
+}
+
+sw_fetch_result_t sw_get_setting(sw_settings_t *settings,
+                                 const char* setting_name) {
+  khiter_t iter = kh_get(param_hash, settings->params, setting_name);
+  sw_fetch_result_t result = {.error_code = SW_SUCCESS};
+  if (iter != kh_end(settings->params)) {
+    result.value = kh_val(settings->params, iter);
+  } else {
+    result.error_code = SW_VALUE_NOT_FOUND;
+    const char *s = new_string("The setting '%s' was not found.", setting_name);
+    result.error_string = s;
+    append_string(s);
+  }
+  return result;
+}
+
+struct sw_input_t {
+  khash_t(param_hash) *params;
+} sw_input_t;
+
+// Creates an input instance.
+static sw_input_new *sw_input_new() {
+  sw_input_t *input = malloc(sizeof(sw_input_new));
+  input->params = kh_init(param_hash);
+  return input;
+}
+
+// Destroys an input instance, freeing all allocated resources.
+static void sw_input_free(sw_input_t *input) {
+  kh_destroy(param_map, input->params);
   free(input);
 }
 
+sw_store_result_t sw_set_input_param(sw_input_t *input,
+                                     const char *name,
+                                     sw_real_t value) {
+  sw_store_result_t result = {.error_code = SW_SUCCESS};
+  int ret;
+  const char* n = strdup(name);
+  khiter_t iter = kh_put(param_map, input->param, n, &ret);
+  kh_value(input->param, iter) = value;
+  append_string(n);
+  return result;
+}
+
+sw_param_result_t sw_get_input_param(sw_input_t *input,
+                                     const char *param_name) {
+  khiter_t iter = kh_get(param_hash, input->params, param_name);
+  sw_param_result_t result = {.error_code = SW_SUCCESS};
+  if (iter != kh_end(input->params)) {
+    result.value = kh_val(input->params, iter);
+  } else {
+    result.error_code = SW_VALUE_NOT_FOUND;
+    const char *s = new_string("The input parameter '%s' was not found.", param_name);
+    result.error_string = s;
+    append_string(s);
+  }
+  return result;
+}
+
 struct sw_output_t {
-  // Number of output metrics.
-  size_t num_params;
-
-  // Names of output metrics (of length num_metrics)
-  const char **metric_names;
-
-  // Values of output metrics (of length num_metrics)
-  real_t *metric_values;
+  khash_t(param_hash) *metrics;
 };
 
-// Destroys an output, freeing all allocated resources.
+// Destroys an output instance, freeing all allocated resources.
 static void sw_output_free(sw_output_t *output) {
-  for (size_t i = 0; i < output->num_metrics; ++i) {
-    free(output->metric_names[i]);
-    free(output->metric_values[i]);
-  }
-  free(output->metric_names);
-  free(output->metric_values);
+  kh_destroy(param_map, output->metrics);
   free(output);
 }
 
-// This type identifies whether we're running a "lattice" or "enumeration"
-// ensemble.
-typedef enum sw_ens_type_t {
-  LATTICE = 0,
-  ENUMERATION
-} sw_ens_type_t;
+sw_store_result_t sw_add_output_metric(sw_output_t *output,
+                                       const char *name,
+                                       sw_real_t metric_value) {
+  sw_store_result_t result = {.error_code = SW_SUCCESS};
+  int ret;
+  const char* n = strdup(name);
+  khiter_t iter = kh_put(param_map, output->metrics, n, &ret);
+  kh_value(output->metrics, iter) = metric_value;
+  append_string(n);
+  return result;
+}
 
 // ensemble type
 struct sw_ensemble_t {

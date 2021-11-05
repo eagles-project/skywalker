@@ -4,80 +4,109 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-// Error codes
-static const int SKYWALKER_SUCCESS = 0;
+// Error codes (treated as integers).
+typedef enum sw_error_code_t {
+  SW_SUCCESS = 0,
+  SW_BAD_PARAM_NAME,
+  SW_BAD_METRIC_NAME,
+  SW_YAML_FILE_NOT_FOUND,
+  SW_SETTINGS_BLOCK_NOT_FOUND,
+  SW_VALUE_NOT_FOUND
+};
 
 // Precision of real numbers
-typedef @SKYWALKER_REAL_TYPE@ real_t;
-
-// Input data for simulations.
-typedef struct sw_input_t {
-
-  // Number of input parameters.
-  size_t num_params;
-
-  // Names of input parameters (of length num_params)
-  const char **param_names;
-
-  // Values of input parameters (of length num_params)
-  real_t *param_values;
-} sw_input_t;
-
-// Output data for simulations. Opaque type.
-typedef struct sw_output_t sw_output_t;
-
-// This function adds a metric with the given name and value to the given output
-// instance, returning an error code indicating success or failure.
-int sw_output_add_metric(sw_output_t *output,
-                         const char *name,
-                         const real_t value);
-
-// This type stores named settings intended for use with Skywalker driver
-// programs.
-typedef struct sw_settings_t {
-  // Number of settings.
-  size_t num_settings;
-
-  // Names of settings (of length num_settings)
-  const char **setting_names;
-
-  // (String) values of settings (of length num_settings)
-  const char **setting_values;
-} sw_settings_t;
+typedef @SKYWALKER_REAL_TYPE@ sw_real_t;
 
 // This type represents an ensemble that has been loaded from a skywalker input
 // file. It's an opaque type whose innards cannot be manipulated.
 typedef struct sw_ensemble_t sw_ensemble_t;
 
+// This type identifies the type of a given ensemble're running a "lattice"
+// or "enumeration" ensemble.
+typedef enum sw_ens_type_t {
+  SW_LATTICE = 0, // ensemble members constructed from outer product of inputs
+  SW_ENUMERATION  // ensemble members constructed from an explicit list
+} sw_ens_type_t;
+
+// This opaque type stores named settings intended for use with Skywalker driver
+// programs.
+typedef struct sw_settings_t sw_settings_t;
+
+// Input data for simulations. Opaque type.
+typedef struct sw_input_t sw_input_t;
+
+// Output data for simulations. Opaque type.
+typedef struct sw_output_t sw_output_t;
+
 // This type contains all data loaded from an ensemble, including an error code
 // and description of any issues encountered loading the ensemble. Do not
 // attempt to free any of these resources.
-typedef struct sw_load_result_t {
+typedef struct sw_ensemble_result_t {
+  // The settings associated with the driver program
+  sw_settings_t *settings;
   // The ensemble loaded (or NULL on failure)
   sw_ensemble_t *ensemble;
-  // The settings associated with the driver program
-  sw_settings_t settings;
+  // The ensemble's type
+  sw_ens_type_t type;
   // An error code indicating any problems encountered loading the ensemble
   // (zero = success, non-zero = failure)
   int error_code;
   // A string describing any error encountered, or NULL if error_code == 0.
   const char* error_message;
-} sw_load_result_t;
+} sw_ensemble_result_t;
 
 // Reads an ensemble from a YAML input file, returning a pointer to the ensemble
 // (or NULL if the read was not successful). The settings_block argument
 // indicates the name of the YAML block to read to retrieve settings for the
 // driver program using Skywalker.
-sw_load_result_t sw_load_ensemble(const char *yaml_file,
-                                  const char *settings_block);
+sw_ensemble_result_t sw_load_ensemble(const char *yaml_file,
+                                      const char *settings_block);
+
+// This type stores the result of the attempt to fetch a setting.
+typedef struct sw_setting_result_t {
+  const char* value;         // fetched value (if error_code == 0)
+  int error_code;            // error code indicating success or failure
+  const char* error_message; // text description of error
+} sw_setting_result_t;
+
+// Retrieves the setting with the given name.
+sw_setting_result_t sw_settings_get(sw_settings_t *settings,
+                                    const char *name);
+
+// Returns the size of the given ensemble.
+size_t sw_ensemble_size(sw_ensemble_t* ensemble);
 
 // Iterates over the inputs and outputs in an ensemble, making them available
-// one at a time for computation. Use this function as a predicate in a while
-// loop, with *pos set to 0.
+// one at a time for computation. This function returns true once for each
+// member of an ensemble and false once the ensemble's members have been
+// traversed. Use it as a predicate in a while loop in which inputs and outputs
+// are processed.
 bool sw_ensemble_next(sw_ensemble_t *ensemble,
-                      int *pos,
                       const sw_input_t **input,
                       sw_output_t **output);
+
+// This type stores the result of the attempt to fetch an input parameter.
+typedef struct sw_input_result_t {
+  sw_real_t value;           // fetched value (if error_code == 0)
+  int error_code;            // error code indicating success or failure
+  const char* error_message; // text description of error
+} sw_input_result_t;
+
+// Retrieves the input parameter with the given name.
+sw_input_result_t sw_input_get(sw_input_t *input,
+                               const char *name);
+
+// This type stores the result of an attempt to store an output metric.
+typedef struct sw_output_result_t {
+  int error_code;            // error code indicating success or failure
+  const char* error_message; // text description of error
+} sw_output_result_t;
+
+// This function sets a quantity with the given name and value to the given
+// output instance, returning a result that indicates success or failure.
+sw_output_result_t sw_output_set(sw_output_t *output,
+                                 const char *name,
+                                 sw_real_t value);
 
 // Writes input and output data within the ensemble to a Python module stored
 // in the file with the given name. This function consumes the ensemble, freeing

@@ -40,7 +40,7 @@ set(BUILD_SHARED_LIBS OFF)
 if (APPLE)
   set(SYS_FLAGS "-DAPPLE=1")
   message(STATUS "Configuring on Mac.")
-elseif(LINUX)
+elseif(UNIX)
   set(SYS_FLAGS "-DLINUX=1")
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pthread")
   set(CMAKE_Fortran_STANDARD_LIBRARIES "-no-pie")
@@ -99,6 +99,9 @@ endif()
 
 # Report the installation prefix.
 message(STATUS "Installation prefix is ${CMAKE_INSTALL_PREFIX}")
+
+# Third-party libs
+add_subdirectory(ext)
 
 # Unit testing.
 include(CTest)
