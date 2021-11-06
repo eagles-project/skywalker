@@ -10,6 +10,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <strings.h>
 
 #ifdef __cplusplus
@@ -205,6 +206,7 @@ typedef struct yaml_state_t {
   bool parsing_settings;
   const char *current_setting;
   bool parsing_input;
+  bool parsing_input_sequence;
   const char *current_input;
 } yaml_state_t;
 
@@ -227,19 +229,21 @@ static void handle_yaml_event(yaml_event_t *event,
         data->error_code = SW_INVALID_ENSEMBLE_TYPE;
         data->error_message = new_string("Invalid ensemble type: %s", value);
       }
+      state->parsing_type = false;
 
     // settings block
     } else if (!state->parsing_settings &&
                strcmp(value, state->settings_block) == 0) {
+      assert(!state->current_setting);
       state->parsing_settings = true;
     } else if (state->parsing_settings) {
       if (!state->current_setting) {
-        state->current_setting = value;
+        state->current_setting = strdup(value);
       } else {
-        int ret;
-        khiter_t iter = kh_put(string_map, data->settings->params,
-                               state->current_setting, &ret);
-        kh_value(data->settings->params, iter) = value;
+        printf("Setting '%s' (%p) to '%s' (%p)\n", state->current_setting, state->current_setting, value, value);
+        sw_settings_set(data->settings, state->current_setting, value);
+        free((char*)state->current_setting);
+        state->current_setting = NULL;
       }
 
     // input block
@@ -247,7 +251,7 @@ static void handle_yaml_event(yaml_event_t *event,
       state->parsing_input = true;
     } else if (state->parsing_input) {
       if (!state->current_input) {
-        state->current_input = value;
+        state->current_input = strdup(value);
       } else {
         // Try to interpret the value as a real number.
         char *endp;
@@ -260,33 +264,34 @@ static void handle_yaml_event(yaml_event_t *event,
         } else {
           // Append the (valid) value to the list of inputs with this name.
           int ret;
-          khiter_t iter = kh_put(yaml_param_map, data->params, value, &ret);
+          khiter_t iter = kh_put(yaml_param_map, data->params,
+                                 state->current_input, &ret);
           kv_push(sw_real_t, kh_value(data->params, iter), real_value);
+        }
+        if (!state->parsing_input_sequence) {
+          free((char*)state->current_input);
+          state->current_input = NULL;
         }
       }
     }
   } else if (event->type == YAML_MAPPING_END_EVENT) {
-    if (state->parsing_type) state->parsing_type = false;
-    else if (state->parsing_settings) state->parsing_settings = false;
-    else if (state->parsing_input) state->parsing_input = false;
+    state->parsing_type = false;
+    state->parsing_input = false;
+    state->parsing_settings = false;
+  } else if (event->type == YAML_SEQUENCE_START_EVENT) {
+    if (state->parsing_input) state->parsing_input_sequence = true;
   } else if (event->type == YAML_SEQUENCE_END_EVENT) {
-    state->current_input = NULL;
+    state->parsing_input_sequence = false;
+    if (state->current_input) {
+      free((char*)state->current_input);
+      state->current_input = NULL;
+    }
   }
 }
 
 // Parses a YAML file, returning the results.
-static yaml_data_t parse_yaml(const char* yaml_file,
-                                 const char* settings_block) {
+static yaml_data_t parse_yaml(FILE* file, const char* settings_block) {
   yaml_data_t data = {.error_code = 0};
-
-  // Check for the existence of the file.
-  FILE *file = fopen(yaml_file, "r");
-  if (file == NULL) {
-    data.error_code = SW_YAML_FILE_NOT_FOUND;
-    data.error_message = new_string("The file '%s' could not be opened.",
-                                    yaml_file);
-    return data;
-  }
 
   data.params = kh_init(yaml_param_map);
   data.settings = sw_settings_new();
@@ -295,8 +300,7 @@ static yaml_data_t parse_yaml(const char* yaml_file,
   yaml_parser_initialize(&parser);
   yaml_parser_set_input_file(&parser, file);
 
-  yaml_state_t state = {.settings_block = settings_block,
-                        .parsing_type = false};
+  yaml_state_t state = {.settings_block = settings_block};
   yaml_event_type_t event_type;
   do {
     yaml_event_t event;
@@ -328,7 +332,6 @@ static yaml_data_t parse_yaml(const char* yaml_file,
     yaml_event_delete(&event);
   } while (event_type != YAML_STREAM_END_EVENT);
   yaml_parser_delete(&parser);
-  fclose(file);
 
   // Did we find a settings block?
   if (data.settings == NULL) {
@@ -681,9 +684,28 @@ static sw_build_result_t build_enumeration_ensemble(yaml_data_t yaml_data) {
 
 sw_ensemble_result_t sw_load_ensemble(const char* yaml_file,
                                       const char* settings_block) {
-  yaml_data_t data = parse_yaml(yaml_file, settings_block);
-  sw_ensemble_result_t result = {.error_code = data.error_code,
-                                 .error_message = data.error_message};
+  sw_ensemble_result_t result = {.error_code = 0};
+
+  // Validate inputs.
+  if ((strcmp(settings_block, "type") == 0) ||
+      (strcmp(settings_block, "input") == 0)) {
+    result.error_code = SW_INVALID_SETTINGS_BLOCK;
+    result.error_message = new_string("Invalid settings block name: '%s'"
+                                      " (cannot be 'type' or 'input')",
+                                      settings_block);
+    return result;
+  }
+
+  FILE *file = fopen(yaml_file, "r");
+  if (file == NULL) {
+    result.error_code = SW_YAML_FILE_NOT_FOUND;
+    result.error_message = new_string("The file '%s' could not be opened.",
+                                      yaml_file);
+    return result;
+  }
+
+  yaml_data_t data = parse_yaml(file, settings_block);
+  fclose(file);
   if (data.error_code == SW_SUCCESS) {
     result.settings = data.settings;
     result.type = data.ensemble_type;
@@ -701,10 +723,10 @@ sw_ensemble_result_t sw_load_ensemble(const char* yaml_file,
     for (size_t i = 0; i < ensemble->size; ++i) {
       ensemble->outputs[i].metrics = kh_init(param_map);
     }
+    result.ensemble = ensemble;
   } else {
     result.error_code = data.error_code;
     result.error_message = data.error_message;
-    sw_settings_free(data.settings);
   }
 
   // Clean up YAML data.

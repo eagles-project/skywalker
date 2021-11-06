@@ -15,12 +15,13 @@ module skywalker
   integer, parameter :: sw_invalid_yaml = 2
   integer, parameter :: sw_invalid_ensemble_type = 3
   integer, parameter :: sw_invalid_param_value = 4
-  integer, parameter :: sw_settings_not_found = 5
-  integer, parameter :: sw_bad_param_name = 6
-  integer, parameter :: sw_param_not_found = 7
-  integer, parameter :: sw_too_many_params = 8
-  integer, parameter :: sw_invalid_enumeration = 9
-  integer, parameter :: sw_empty_ensemble = 10
+  integer, parameter :: sw_invalid_settings_block = 5
+  integer, parameter :: sw_settings_not_found = 6
+  integer, parameter :: sw_bad_param_name = 7
+  integer, parameter :: sw_param_not_found = 8
+  integer, parameter :: sw_too_many_params = 9
+  integer, parameter :: sw_invalid_enumeration = 10
+  integer, parameter :: sw_empty_ensemble = 11
 
   ! Ensemble types
   integer, parameter :: sw_lattice     = 0
