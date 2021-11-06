@@ -45,6 +45,7 @@ static void append_string(const char *s) {
   *s_p = s;
 }
 
+#ifndef APPLE
 // Here we implement a portable version of the non-standard vasprintf
 // function (see https://stackoverflow.com/questions/40159892/using-asprintf-on-windows).
 static int vscprintf(const char *format, va_list ap) {
@@ -70,6 +71,7 @@ static int vasprintf(char **strp, const char *format, va_list ap) {
   *strp = str;
   return retval;
 }
+#endif
 
 // This function constructs a string in the manner of sprintf, but allocates
 // and returns a string of sufficient size. Strings created this way are freed
