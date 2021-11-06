@@ -3,11 +3,13 @@
 #include <khash.h>
 #include <klist.h>
 #include <kvec.h>
+#include <yaml.h>
 
 #include <assert.h>
 #include <math.h>
 #include <stdarg.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <strings.h>
 
 #ifdef __cplusplus
@@ -188,18 +190,153 @@ typedef kvec_t(sw_real_t) sw_real_vec_t;
 KHASH_MAP_INIT_STR(yaml_param_map, sw_real_vec_t)
 
 // This type stores data parsed from YAML.
-typedef struct sw_yaml_data_t {
+typedef struct yaml_data_t {
   sw_ens_type_t ensemble_type;
   sw_settings_t *settings;
   khash_t(yaml_param_map) *params;
   int error_code;
-  const char* error_message;
-} sw_yaml_data_t;
+  const char *error_message;
+} yaml_data_t;
+
+// This type keeps track of the state of the YAML parser.
+typedef struct yaml_state_t {
+  bool parsing_type;
+  const char *settings_block;
+  bool parsing_settings;
+  const char *current_setting;
+  bool parsing_input;
+  const char *current_input;
+} yaml_state_t;
+
+// Handles a YAML event, populating our data instance.
+static void handle_yaml_event(yaml_event_t *event,
+                              yaml_state_t* state,
+                              yaml_data_t *data)
+{
+  if (event->type == YAML_SCALAR_EVENT) {
+    const char *value = (const char*)(event->data.scalar.value);
+    // type block
+    if (!state->parsing_type && (strcmp(value, "type") == 0)) {
+      state->parsing_type = true;
+    } else if (state->parsing_type) {
+      if (strcmp(value, "lattice") == 0) {
+        data->ensemble_type = SW_LATTICE;
+      } else if (strcmp(value, "enumeration") == 0) {
+        data->ensemble_type = SW_ENUMERATION;
+      } else {
+        data->error_code = SW_INVALID_ENSEMBLE_TYPE;
+        data->error_message = new_string("Invalid ensemble type: %s", value);
+      }
+
+    // settings block
+    } else if (!state->parsing_settings &&
+               strcmp(value, state->settings_block) == 0) {
+      state->parsing_settings = true;
+    } else if (state->parsing_settings) {
+      if (!state->current_setting) {
+        state->current_setting = value;
+      } else {
+        int ret;
+        khiter_t iter = kh_put(string_map, data->settings->params,
+                               state->current_setting, &ret);
+        kh_value(data->settings->params, iter) = value;
+      }
+
+    // input block
+    } else if (!state->parsing_input && strcmp(value, "input") == 0) {
+      state->parsing_input = true;
+    } else if (state->parsing_input) {
+      if (!state->current_input) {
+        state->current_input = value;
+      } else {
+        // Try to interpret the value as a real number.
+        char *endp;
+        sw_real_t real_value = strtod(value, &endp);
+        if (endp) { // invalid value!
+          data->error_code = SW_INVALID_PARAM_VALUE;
+          data->error_message = new_string(
+            "Invalid input value for parameter %s: %s", state->current_input,
+            value);
+        } else {
+          // Append the (valid) value to the list of inputs with this name.
+          int ret;
+          khiter_t iter = kh_put(yaml_param_map, data->params, value, &ret);
+          kv_push(sw_real_t, kh_value(data->params, iter), real_value);
+        }
+      }
+    }
+  } else if (event->type == YAML_MAPPING_END_EVENT) {
+    if (state->parsing_type) state->parsing_type = false;
+    else if (state->parsing_settings) state->parsing_settings = false;
+    else if (state->parsing_input) state->parsing_input = false;
+  } else if (event->type == YAML_SEQUENCE_END_EVENT) {
+    state->current_input = NULL;
+  }
+}
 
 // Parses a YAML file, returning the results.
-static sw_yaml_data_t parse_yaml(const char* yaml_file,
+static yaml_data_t parse_yaml(const char* yaml_file,
                                  const char* settings_block) {
-  sw_yaml_data_t data = {.error_code = 0};
+  yaml_data_t data = {.error_code = 0};
+
+  // Check for the existence of the file.
+  FILE *file = fopen(yaml_file, "r");
+  if (file == NULL) {
+    data.error_code = SW_YAML_FILE_NOT_FOUND;
+    data.error_message = new_string("The file '%s' could not be opened.",
+                                    yaml_file);
+    return data;
+  }
+
+  data.params = kh_init(yaml_param_map);
+  data.settings = sw_settings_new();
+
+  yaml_parser_t parser;
+  yaml_parser_initialize(&parser);
+  yaml_parser_set_input_file(&parser, file);
+
+  yaml_state_t state = {.settings_block = settings_block,
+                        .parsing_type = false};
+  yaml_event_type_t event_type;
+  do {
+    yaml_event_t event;
+
+    // Parse the next YAML "event" and handle any errors encountered.
+    if (!yaml_parser_parse(&parser, &event)) {
+      kh_destroy(yaml_param_map, data.params);
+      sw_settings_free(data.settings);
+      data.error_code = SW_INVALID_YAML;
+      data.error_message = strdup(parser.problem);
+      append_string(data.error_message);
+      yaml_parser_delete(&parser);
+      fclose(file);
+      return data;
+    }
+
+    // Process the event, using it to populate our YAML data, and handle
+    // any errors resulting from properly-formed YAML that doesn't conform
+    // to Skywalker's spec.
+    handle_yaml_event(&event, &state, &data);
+    if (data.error_code != SW_SUCCESS) {
+      kh_destroy(yaml_param_map, data.params);
+      sw_settings_free(data.settings);
+      yaml_parser_delete(&parser);
+      fclose(file);
+      return data;
+    }
+    event_type = event.type;
+    yaml_event_delete(&event);
+  } while (event_type != YAML_STREAM_END_EVENT);
+  yaml_parser_delete(&parser);
+  fclose(file);
+
+  // Did we find a settings block?
+  if (data.settings == NULL) {
+    kh_destroy(yaml_param_map, data.params);
+    data.error_code = SW_SETTINGS_NOT_FOUND;
+    data.error_message = new_string("The settings block '%s' was not found.",
+                                    settings_block);
+  }
   return data;
 }
 
@@ -213,7 +350,7 @@ typedef struct sw_build_result_t {
 } sw_build_result_t;
 
 // Generates an array of inputs for a lattice ensemble.
-static sw_build_result_t build_lattice_ensemble(sw_yaml_data_t yaml_data) {
+static sw_build_result_t build_lattice_ensemble(yaml_data_t yaml_data) {
   sw_build_result_t result = {.error_code = SW_SUCCESS};
   // Count up the number of inputs.
   size_t num_params = 0;
@@ -503,7 +640,7 @@ static sw_build_result_t build_lattice_ensemble(sw_yaml_data_t yaml_data) {
   return result;
 }
 
-static sw_build_result_t build_enumeration_ensemble(sw_yaml_data_t yaml_data) {
+static sw_build_result_t build_enumeration_ensemble(yaml_data_t yaml_data) {
   sw_build_result_t result = {.error_code = SW_SUCCESS};
   size_t num_inputs = 0;
   const char *first_name;
@@ -544,7 +681,7 @@ static sw_build_result_t build_enumeration_ensemble(sw_yaml_data_t yaml_data) {
 
 sw_ensemble_result_t sw_load_ensemble(const char* yaml_file,
                                       const char* settings_block) {
-  sw_yaml_data_t data = parse_yaml(yaml_file, settings_block);
+  yaml_data_t data = parse_yaml(yaml_file, settings_block);
   sw_ensemble_result_t result = {.error_code = data.error_code,
                                  .error_message = data.error_message};
   if (data.error_code == SW_SUCCESS) {

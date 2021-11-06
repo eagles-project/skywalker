@@ -9,15 +9,18 @@ module skywalker
   ! Working precision real kind
   integer, parameter :: wp = c_real
 
-  ! Error codes
+  ! Error codes -- see skywalker.h.in for descriptions
   integer, parameter :: sw_success = 0
   integer, parameter :: sw_yaml_file_not_found = 1
-  integer, parameter :: sw_settings_not_found = 2
-  integer, parameter :: sw_bad_param_name = 3
-  integer, parameter :: sw_param_not_found = 4
-  integer, parameter :: sw_too_many_params = 5
-  integer, parameter :: sw_invalid_enumeration = 6
-  integer, parameter :: sw_empty_ensemble = 7
+  integer, parameter :: sw_invalid_yaml = 2
+  integer, parameter :: sw_invalid_ensemble_type = 3
+  integer, parameter :: sw_invalid_param_value = 4
+  integer, parameter :: sw_settings_not_found = 5
+  integer, parameter :: sw_bad_param_name = 6
+  integer, parameter :: sw_param_not_found = 7
+  integer, parameter :: sw_too_many_params = 8
+  integer, parameter :: sw_invalid_enumeration = 9
+  integer, parameter :: sw_empty_ensemble = 10
 
   ! Ensemble types
   integer, parameter :: sw_lattice     = 0
@@ -41,7 +44,7 @@ module skywalker
   ! This opaque type stores named settings intended for use with Skywalker
   ! driver programs.
   type :: settings_t
-    type(c_ptr) :: ptr
+    type(c_ptr) :: ptr, ensemble_ptr
   contains
     ! Fetches a user-defined parameter.
     procedure :: get => settings_get
@@ -57,7 +60,7 @@ module skywalker
 
   ! Input data for simulations. Opaque type.
   type :: input_t
-    type(c_ptr) :: ptr
+    type(c_ptr) :: ptr, ensemble_ptr
   contains
     ! Fetches a user-defined parameter.
     procedure :: get => input_get
@@ -189,6 +192,10 @@ contains
                               e_result%type, e_result%error_code, c_err_msg)
     e_result%ensemble%size = sw_ensemble_size(e_result%ensemble%ptr)
     e_result%error_message = c_to_f_string(c_err_msg)
+
+    ! Set the ensemble pointer on settings to allow proper destruction
+    ! using settings%get().
+    e_result%settings%ensemble_ptr = e_result%ensemble%ptr
   end function
 
   ! Retrieves the setting with the given name, returning a result that can
@@ -224,6 +231,7 @@ contains
     s_result = settings%get_param(name)
     if (s_result%error_code /= SW_SUCCESS) then
       print *, s_result%error_message
+      call sw_ensemble_free(settings%ensemble_ptr)
       stop
     else
       str = s_result%value
@@ -261,6 +269,7 @@ contains
     i_result = input%get_param(name)
     if (i_result%error_code /= SW_SUCCESS) then
       print *, i_result%error_message
+      call sw_ensemble_free(input%ensemble_ptr)
       stop
     else
       val = i_result%value
@@ -291,6 +300,9 @@ contains
     logical(c_bool) :: next
 
     next = sw_ensemble_next(ensemble%ptr, input%ptr, output%ptr)
+    ! Set the ensemble pointer on input to allow proper destruction using
+    ! input%get().
+    input%ensemble_ptr = ensemble%ptr
   end function
 
   ! Writes input and output data within the ensemble to a Python module stored

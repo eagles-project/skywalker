@@ -10,15 +10,18 @@ extern "C" {
 
 // Error codes (treated as integers).
 typedef enum sw_error_code_t {
-  SW_SUCCESS = 0,         // no error occurred
-  SW_YAML_FILE_NOT_FOUND, // the specified YAML file was not found
-  SW_SETTINGS_NOT_FOUND,  // the specified YAML settings block was not found
-  SW_BAD_PARAM_NAME,      // the specified parameter name is invalid
-  SW_PARAM_NOT_FOUND,     // the specified setting/input parameter was not found
-  SW_TOO_MANY_PARAMS,     // the specified lattice ensemble has > 7 parameters
-  SW_INVALID_ENUMERATION, // the specified enumeration ensemble has an invalid
-                          // enumeration
-  SW_EMPTY_ENSEMBLE       // the specified ensemble has no members
+  SW_SUCCESS = 0,           // no error occurred
+  SW_YAML_FILE_NOT_FOUND,   // the specified YAML file was not found
+  SW_INVALID_YAML,          // a problem was encountered parsing the YAML file
+  SW_INVALID_ENSEMBLE_TYPE, // an invalid ensemble type was read from the YAML file
+  SW_INVALID_PARAM_VALUE,   // an invalid input value was read from the YAML file
+  SW_SETTINGS_NOT_FOUND,    // the specified YAML settings block was not found
+  SW_BAD_PARAM_NAME,        // the specified parameter name is invalid
+  SW_PARAM_NOT_FOUND,       // the specified setting/input parameter was not found
+  SW_TOO_MANY_PARAMS,       // the specified lattice ensemble has > 7 parameters
+  SW_INVALID_ENUMERATION,   // the specified enumeration ensemble has an invalid
+                            // enumeration
+  SW_EMPTY_ENSEMBLE         // the specified ensemble has no members
 } sw_error_code_t;
 
 // Precision of real numbers
