@@ -106,4 +106,7 @@ int main(int argc, char **argv) {
 
   // Write out a Python module.
   sw_ensemble_write(ensemble, "enumeration_test.py");
+
+  // Clean up.
+  sw_ensemble_free(ensemble);
 }

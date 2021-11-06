@@ -39,6 +39,7 @@ program enumeration_test
   type(ensemble_result_t) :: load_result
   type(settings_t)        :: settings
   type(ensemble_t)        :: ensemble
+  type(input_result_t)    :: in_result
   type(input_t)           :: input
   type(output_t)          :: output
 
@@ -71,6 +72,11 @@ program enumeration_test
     assert(input%get("tock") >= 1e1_wp)
     assert(input%get("tock") <= 1e11_wp)
 
+    ! Look for a parameter that doesn't exist, checking its result by calling
+    ! get_param() instead of get().
+    in_result = input%get_param("invalid_param")
+    assert(in_result%error_code == SW_PARAM_NOT_FOUND)
+
     ! Add a "qoi" metric set to 4.
     call output%set("qoi", 4.0_wp)
   end do
@@ -78,4 +84,6 @@ program enumeration_test
   ! Now we write out a Python module containing the output data.
   call ensemble%write("enumeration_test_f90.py")
 
+  ! Clean up.
+  call ensemble%free()
 end program

@@ -116,9 +116,12 @@ sw_output_result_t sw_output_set(sw_output_t *output,
                                  sw_real_t value);
 
 // Writes input and output data within the ensemble to a Python module stored
-// in the file with the given name. This function consumes the ensemble, freeing
-// all resources associated with it.
+// in the file with the given name.
 void sw_ensemble_write(sw_ensemble_t *ensemble, const char *module_filename);
+
+// Destroys an ensemble, freeing its allocated resources. Use this at the end
+// of your driver program, or when a fatal error has been encountered.
+void sw_ensemble_free(sw_ensemble_t *ensemble);
 
 #ifdef __cplusplus
 } // extern "C"

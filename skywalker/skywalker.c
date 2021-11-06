@@ -183,19 +183,6 @@ struct sw_ensemble_t {
   sw_output_t *outputs;
 };
 
-// Destroys an ensemble, freeing all allocated resources.
-static void sw_ensemble_free(sw_ensemble_t *ensemble) {
-  if (ensemble->inputs) {
-    for (size_t i = 0; i < ensemble->size; ++i) {
-      kh_destroy(param_map, ensemble->inputs[i].params);
-      kh_destroy(param_map, ensemble->outputs[i].metrics);
-    }
-    free(ensemble->inputs);
-    free(ensemble->outputs);
-  }
-  free(ensemble);
-}
-
 // A hash table whose keys are C strings and whose values are arrays of numbers.
 typedef kvec_t(sw_real_t) sw_real_vec_t;
 KHASH_MAP_INIT_STR(yaml_param_map, sw_real_vec_t)
@@ -659,9 +646,18 @@ void sw_ensemble_write(sw_ensemble_t *ensemble, const char *module_filename) {
   }
 
   fclose(file);
+}
 
-  // Destroy the ensemble.
-  sw_ensemble_free(ensemble);
+void sw_ensemble_free(sw_ensemble_t *ensemble) {
+  if (ensemble->inputs) {
+    for (size_t i = 0; i < ensemble->size; ++i) {
+      kh_destroy(param_map, ensemble->inputs[i].params);
+      kh_destroy(param_map, ensemble->outputs[i].metrics);
+    }
+    free(ensemble->inputs);
+    free(ensemble->outputs);
+  }
+  free(ensemble);
 }
 
 //----------------------------

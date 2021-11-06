@@ -40,6 +40,7 @@ program lattice_test
   type(settings_t)        :: settings
   type(ensemble_t)        :: ensemble
   type(input_t)           :: input
+  type(input_result_t)    :: in_result
   type(output_t)          :: output
 
   ! Load the ensemble. Any error encountered is fatal.
@@ -81,6 +82,11 @@ program lattice_test
     assert(input%get("sextet") >= 1)
     assert(input%get("sextet") <= 6)
 
+    ! Look for a parameter that doesn't exist, checking its result by calling
+    ! get_param() instead of get().
+    in_result = input%get_param("invalid_param")
+    assert(in_result%error_code == SW_PARAM_NOT_FOUND)
+
     ! Add a "qoi" metric set to 4.
     call output%set("qoi", 4.0_wp)
   end do
@@ -88,4 +94,6 @@ program lattice_test
   ! Now we write out a Python module containing the output data.
   call ensemble%write("lattice_test_f90.py")
 
+  ! Clean up.
+  call ensemble%free()
 end program

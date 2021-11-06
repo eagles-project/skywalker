@@ -33,6 +33,9 @@ module skywalker
     procedure :: next => ensemble_next
     ! Writes a Python module containing input/output data to a file
     procedure :: write => ensemble_write
+    ! Destroys an ensemble, freeing all allocated resources. Use at the end of
+    ! a driver program, or when a fatal error has occurred.
+    procedure :: free => ensemble_free
   end type ensemble_t
 
   ! This opaque type stores named settings intended for use with Skywalker
@@ -42,7 +45,7 @@ module skywalker
   contains
     ! Fetches a user-defined parameter.
     procedure :: get => settings_get
-    procedure :: get_setting => settings_get_setting
+    procedure :: get_param => settings_get_param
   end type
 
   ! This type stores the result of the attempt to fetch a setting.
@@ -157,6 +160,11 @@ module skywalker
       type(c_ptr), value, intent(in) :: filename
     end subroutine
 
+    subroutine sw_ensemble_free(ensemble) bind(c)
+      use iso_c_binding, only: c_ptr
+      type(c_ptr), value, intent(in) :: ensemble
+    end subroutine
+
   end interface
 
 contains
@@ -183,8 +191,9 @@ contains
     e_result%error_message = c_to_f_string(c_err_msg)
   end function
 
-  ! Retrieves the setting with the given name.
-  function settings_get_setting(settings, name) result(s_result)
+  ! Retrieves the setting with the given name, returning a result that can
+  ! be checked for errors that occur.
+  function settings_get_param(settings, name) result(s_result)
     use iso_c_binding, only: c_ptr
     implicit none
 
@@ -200,7 +209,8 @@ contains
     s_result%error_message = c_to_f_string(c_err_msg)
   end function
 
-  ! Retrieves the setting with the given name.
+  ! Retrieves the setting with the given name, halting the program if an
+  ! error occurs.
   function settings_get(settings, name) result(str)
     use iso_c_binding, only: c_ptr
     implicit none
@@ -211,8 +221,13 @@ contains
     type(settings_result_t) :: s_result
     character(len=128) :: str
 
-    s_result = settings%get_setting(name)
-    str = s_result%value
+    s_result = settings%get_param(name)
+    if (s_result%error_code /= SW_SUCCESS) then
+      print *, s_result%error_message
+      stop
+    else
+      str = s_result%value
+    end if
   end function
 
   ! Retrieves the input parameter with the given name, halting on errors.
@@ -244,7 +259,12 @@ contains
     real(c_real) :: val
 
     i_result = input%get_param(name)
-    val = i_result%value
+    if (i_result%error_code /= SW_SUCCESS) then
+      print *, i_result%error_message
+      stop
+    else
+      val = i_result%value
+    end if
   end function
 
   ! This function sets a quantity with the given name and value to the given
@@ -274,8 +294,7 @@ contains
   end function
 
   ! Writes input and output data within the ensemble to a Python module stored
-  ! in the file with the given name. This function consumes the ensemble, freeing
-  ! all resources associated with it.
+  ! in the file with the given name.
   subroutine ensemble_write(ensemble, module_filename)
     implicit none
 
@@ -283,6 +302,15 @@ contains
     character(len=*), intent(in)  :: module_filename
 
     call sw_ensemble_write(ensemble%ptr, f_to_c_string(module_filename))
+  end subroutine
+
+  ! Destroys an ensemble, freeing all allocated resources.
+  subroutine ensemble_free(ensemble)
+    implicit none
+
+    class(ensemble_t), intent(in) :: ensemble
+
+    call sw_ensemble_free(ensemble%ptr)
   end subroutine
 
   ! This helper function converts the given C string to a Fortran string.
