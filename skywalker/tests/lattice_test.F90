@@ -30,7 +30,7 @@ end module lattice_test_mod
 
 program lattice_test
 
-  use lattest_test_mod
+  use lattice_test_mod
   use skywalker
 
   implicit none
@@ -44,7 +44,7 @@ program lattice_test
 
   ! Load the ensemble. Any error encountered is fatal.
   print *, "lattice_test: Loading ensemble from ", trim(input_file)
-  ensemble = load_ensemble(trim(input_file), "settings")
+  load_result = load_ensemble(trim(input_file), "settings")
 
   ! Make sure everything is as it should be.
   if (load_result%error_code /= 0) then
@@ -61,6 +61,7 @@ program lattice_test
 
   ! ensemble information
   ensemble = load_result%ensemble
+  assert(ensemble%size == 245520)
   do while (ensemble%next(input, output))
     assert(approx_equal(input%get("p1"), 1.0_wp))
     assert(approx_equal(input%get("p2"), 2.0_wp))

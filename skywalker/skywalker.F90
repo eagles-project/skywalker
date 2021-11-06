@@ -26,7 +26,8 @@ module skywalker
   ! This type represents an ensemble that has been loaded from a skywalker input
   ! YAML file. It's an opaque type whose innards cannot be manipulated.
   type :: ensemble_t
-    type(c_ptr) :: ptr
+    type(c_ptr)       :: ptr
+    integer(c_size_t) :: size  ! number of members
   contains
     ! Iterates over ensemble members
     procedure :: next => ensemble_next
@@ -178,6 +179,7 @@ contains
                               f_to_c_string(settings_block), &
                               e_result%settings%ptr, e_result%ensemble%ptr, &
                               e_result%type, e_result%error_code, c_err_msg)
+    e_result%ensemble%size = sw_ensemble_size(e_result%ensemble%ptr)
     e_result%error_message = c_to_f_string(c_err_msg)
   end function
 
@@ -219,7 +221,7 @@ contains
     implicit none
 
     class(input_t), intent(in)   :: input
-    character(len=*), intent(in) :: name
+      character(len=*), intent(in) :: name
 
     type(input_result_t) :: i_result
     type(c_ptr) :: c_err_msg
@@ -315,16 +317,16 @@ contains
     type(c_ptr) :: c_string
 
     interface
-        function new_c_string(f_str_ptr, f_str_len) bind (c) result(c_string)
+        function sw_new_c_string(f_str_ptr, f_str_len) bind (c) result(c_string)
         use, intrinsic :: iso_c_binding
             type(c_ptr), value :: f_str_ptr
             integer(c_int), value :: f_str_len
             type(c_ptr) :: c_string
-        end function new_c_string
+        end function sw_new_c_string
     end interface
 
     f_ptr => f_string
-    c_string = new_c_string(c_loc(f_ptr), len(f_string))
+    c_string = sw_new_c_string(c_loc(f_ptr), len(f_string))
   end function f_to_c_string
 
 end module

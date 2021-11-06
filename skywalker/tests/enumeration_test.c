@@ -3,6 +3,11 @@
 
 #include <skywalker.h>
 
+#include <assert.h>
+#include <stdio.h>
+#include <string.h>
+#include <tgmath.h>
+
 void usage(const char *prog_name) {
   fprintf(stderr, "%s: usage:\n", prog_name);
   fprintf(stderr, "%s <input.yaml>\n", prog_name);
@@ -35,21 +40,21 @@ int main(int argc, char **argv) {
 
   // Settings
   sw_settings_t *settings = load_result.settings;
-  se_setting_result_t setting_result;
-  setting_result = sw_get_setting(settings, "param1");
-  assert(setting_result.error_code == 0);
-  assert(strcmp(setting_result.value, "hello") == 0);
-  assert(setting_result.error_string == NULL);
+  sw_settings_result_t settings_result;
+  settings_result = sw_settings_get(settings, "param1");
+  assert(settings_result.error_code == 0);
+  assert(strcmp(settings_result.value, "hello") == 0);
+  assert(settings_result.error_message == NULL);
 
-  setting_result = sw_get_setting(settings, "param2");
-  assert(setting_result.error_code == 0);
-  assert(strcmp(setting_result.value, "81") == 0);
-  assert(setting_result.error_string == NULL);
+  settings_result = sw_settings_get(settings, "param2");
+  assert(settings_result.error_code == 0);
+  assert(strcmp(settings_result.value, "81") == 0);
+  assert(settings_result.error_message == NULL);
 
-  setting_result = sw_get_setting(settings, "param3");
-  assert(setting_result.error_code == 0);
-  assert(strcmp(setting_result.value, "3.14159265357") == 0);
-  assert(setting_result.error_string == NULL);
+  settings_result = sw_settings_get(settings, "param3");
+  assert(settings_result.error_code == 0);
+  assert(strcmp(settings_result.value, "3.14159265357") == 0);
+  assert(settings_result.error_message == NULL);
 
   // Ensemble data
   sw_ensemble_t *ensemble = load_result.ensemble;
@@ -60,43 +65,43 @@ int main(int argc, char **argv) {
     sw_input_result_t in_result;
 
     // Fixed parameters
-    in_result = sw_get_input_param(input, "p1");
+    in_result = sw_input_get(input, "p1");
     assert(in_result.error_code == SW_SUCCESS);
     assert(approx_equal(in_result.value, 1.0));
-    assert(in_result.error_string == NULL);
+    assert(in_result.error_message == NULL);
 
-    in_result = sw_get_input_param(input, "p2");
+    in_result = sw_input_get(input, "p2");
     assert(in_result.error_code == SW_SUCCESS);
     assert(approx_equal(in_result.value, 2.0));
-    assert(in_result.error_string == NULL);
+    assert(in_result.error_message == NULL);
 
-    in_result = sw_get_input_param(input, "p3");
+    in_result = sw_input_get(input, "p3");
     assert(in_result.error_code == SW_SUCCESS);
     assert(approx_equal(in_result.value, 3.0));
-    assert(in_result.error_string == NULL);
+    assert(in_result.error_message == NULL);
 
     // Ensemble parameters
-    in_result = sw_get_input_param(input, "tick");
+    in_result = sw_input_get(input, "tick");
     assert(in_result.error_code == SW_SUCCESS);
     assert(in_result.value >= 0.0);
     assert(in_result.value <= 10.0);
-    assert(in_result.error_string == NULL);
+    assert(in_result.error_message == NULL);
 
-    in_result = sw_get_input_param(input, "tock");
+    in_result = sw_input_get(input, "tock");
     assert(in_result.error_code == SW_SUCCESS);
     assert(in_result.value >= 1e1);
     assert(in_result.value <= 1e11);
-    assert(in_result.error_string == NULL);
+    assert(in_result.error_message == NULL);
 
     // Look for a parameter that doesn't exist.
-    in_result = sw_get_input_param(input, "invalid_param");
-    assert(in_result.error_code == SW_VALUE_NOT_FOUND);
-    assert(in_result.error_string != NULL);
+    in_result = sw_input_get(input, "invalid_param");
+    assert(in_result.error_code == SW_PARAM_NOT_FOUND);
+    assert(in_result.error_message != NULL);
 
     // Add a "qoi" metric set to 4.
-    sw_output_result_t out_result = sw_add_output_metric(output, "qoi", 4.0);
+    sw_output_result_t out_result = sw_output_set(output, "qoi", 4.0);
     assert(out_result.error_code == SW_SUCCESS);
-    assert(out_result.error_string == NULL);
+    assert(out_result.error_message == NULL);
   }
 
   // Write out a Python module.

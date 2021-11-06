@@ -44,7 +44,7 @@ set_target_properties(skywalker PROPERTIES
 add_library(skywalker_f90 skywalker.c skywalker.F90)
 set_target_properties(skywalker_f90 PROPERTIES
                                     OUTPUT_NAME skywalker_f90_${SKYWALKER_REAL_TYPE}
-                                    COMPILE_DEFINITIONS HAVE_CONFIG_H=1)
+                                    COMPILE_DEFINITIONS "SKYWALKER_F90=1;HAVE_CONFIG_H=1")
 
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/skywalker.h
         DESTINATION include/skywalker)

@@ -591,6 +591,10 @@ sw_ensemble_result_t sw_load_ensemble(const char* yaml_file,
   return result;
 }
 
+size_t sw_ensemble_size(sw_ensemble_t* ensemble) {
+  return ensemble->size;
+}
+
 bool sw_ensemble_next(sw_ensemble_t *ensemble,
                       sw_input_t **input,
                       sw_output_t **output) {
@@ -663,7 +667,53 @@ void sw_ensemble_write(sw_ensemble_t *ensemble, const char *module_filename) {
 //----------------------------
 
 #ifdef SKYWALKER_F90
-#endif
+
+void sw_load_ensemble_f90(const char *yaml_file, const char *settings_block,
+                          sw_settings_t **settings, sw_ensemble_t **ensemble,
+                          int *type, int *error_code,
+                          const char **error_message) {
+  sw_ensemble_result_t result = sw_load_ensemble(yaml_file, settings_block);
+  if (result.error_code == SW_SUCCESS) {
+    *settings = result.settings;
+    *ensemble = result.ensemble;
+    *type = result.type;
+  }
+  *error_code = result.error_code;
+  *error_message = result.error_message;
+}
+
+void sw_settings_get_f90(sw_settings_t *settings, const char *name,
+                         const char **value, int *error_code,
+                         const char **error_message) {
+  sw_settings_result_t result = sw_settings_get(settings, name);
+  if (result.error_code == SW_SUCCESS) {
+    *value = result.value;
+  }
+  *error_code = result.error_code;
+  *error_message = result.error_message;
+}
+
+void sw_input_get_f90(sw_input_t *input, const char *name, sw_real_t *value,
+                      int *error_code, const char **error_message) {
+  sw_input_result_t result = sw_input_get(input, name);
+  if (result.error_code == SW_SUCCESS) {
+    *value = result.value;
+  }
+  *error_code = result.error_code;
+  *error_message = result.error_message;
+}
+
+// Returns a newly-allocated C string for the given Fortran string pointer with
+// the given length. Strings of this sort are freed at program exit.
+const char* sw_new_c_string(char* f_str_ptr, int f_str_len) {
+  char* s = malloc(sizeof(char) * (f_str_len+1));
+  memcpy(s, f_str_ptr, sizeof(char) * f_str_len);
+  s[f_str_len] = '\0';
+  append_string((const char*)s);
+  return (const char*)s;
+}
+
+#endif // SKYWALKER_F90
 
 #ifdef __cplusplus
 } // extern "C"

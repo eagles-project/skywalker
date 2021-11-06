@@ -61,6 +61,7 @@ program enumeration_test
 
   ! ensemble information
   ensemble = load_result%ensemble
+  assert(ensemble%size == 11)
   do while (ensemble%next(input, output))
     assert(approx_equal(input%get("p1"), 1.0_wp))
     assert(approx_equal(input%get("p2"), 2.0_wp))
