@@ -104,5 +104,23 @@ add_subdirectory(ext)
 include(CTest)
 enable_testing()
 
-# Source directories.
-add_subdirectory(skywalker)
+# Generate skywalker.h and skywalker.cmake with the correct settings.
+configure_file(
+  ${PROJECT_SOURCE_DIR}/include/skywalker.h.in
+  ${CMAKE_CURRENT_BINARY_DIR}/include/skywalker.h
+  @ONLY
+)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/skywalker.h
+        DESTINATION include/skywalker)
+
+# Generate skywalker.cmake with installation information
+configure_file(
+  ${PROJECT_SOURCE_DIR}/cmake/skywalker.cmake.in
+  ${PROJECT_BINARY_DIR}/share/skywalker.cmake
+  @ONLY
+)
+install(FILES ${PROJECT_BINARY_DIR}/share/skywalker.cmake
+        DESTINATION share)
+
+# Source directory.
+add_subdirectory(src)

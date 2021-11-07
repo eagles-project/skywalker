@@ -1,4 +1,4 @@
-#include <skywalker/skywalker.h>
+#include <skywalker.h>
 
 #include <khash.h>
 #include <klist.h>

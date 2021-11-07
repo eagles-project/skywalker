@@ -1,4 +1,4 @@
-include_directories(${PROJECT_BINARY_DIR}/skywalker) # for skywalker.mod
+include_directories(${PROJECT_BINARY_DIR}/src) # for skywalker.mod
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_BINARY_DIR}/share/")
 include(skywalker) # for add_skywalker_driver function
