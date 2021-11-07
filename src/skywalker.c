@@ -256,16 +256,22 @@ static void handle_yaml_event(yaml_event_t *event,
         // Try to interpret the value as a real number.
         char *endp;
         sw_real_t real_value = strtod(value, &endp);
-        if (endp) { // invalid value!
+        if (endp == value) { // invalid value!
           data->error_code = SW_INVALID_PARAM_VALUE;
           data->error_message = new_string(
             "Invalid input value for parameter %s: %s", state->current_input,
             value);
         } else {
           // Append the (valid) value to the list of inputs with this name.
-          int ret;
-          khiter_t iter = kh_put(yaml_param_map, data->params,
-                                 state->current_input, &ret);
+          printf("Appending %g to '%s'\n", real_value, state->current_input);
+          khiter_t iter = kh_get(yaml_param_map, data->params,
+                                 state->current_input);
+          if (iter == kh_end(data->params)) {
+            int ret;
+            iter = kh_put(yaml_param_map, data->params,
+                          state->current_input, &ret);
+            kv_init(kh_value(data->params, iter));
+          }
           kv_push(sw_real_t, kh_value(data->params, iter), real_value);
         }
         if (!state->parsing_input_sequence) {
@@ -652,10 +658,10 @@ static sw_build_result_t build_enumeration_ensemble(yaml_data_t yaml_data) {
     const char *name = kh_key(yaml_data.params, iter);
     sw_real_vec_t values = kh_value(yaml_data.params, iter);
 
-    if (num_inputs == 0) {
+    if ((num_inputs == 0) || (num_inputs == 1)) {
       num_inputs = kv_size(values);
       first_name = name;
-    } else if (num_inputs != kv_size(values)) {
+    } else if ((num_inputs != kv_size(values)) && (kv_size(values) > 1)) {
       result.error_code = SW_INVALID_ENUMERATION;
       result.error_message = new_string(
         "Invalid enumeration: Parameter %s has a different number of values (%ld)"
