@@ -111,6 +111,7 @@ static sw_settings_t *sw_settings_new() {
 // Destroys a settings instance, freeing all allocated resources.
 static void sw_settings_free(sw_settings_t *settings) {
   kh_destroy(string_map, settings->params);
+  free(settings);
 }
 
 static sw_output_result_t sw_settings_set(sw_settings_t *settings,
@@ -192,6 +193,7 @@ struct sw_ensemble_t {
   size_t size, position;
   sw_input_t *inputs;
   sw_output_t *outputs;
+  sw_settings_t *settings; // for freeing
 };
 
 //------------------------------------------------------------------------
@@ -907,6 +909,7 @@ sw_ensemble_result_t sw_load_ensemble(const char* yaml_file,
       for (size_t i = 0; i < ensemble->size; ++i) {
         ensemble->outputs[i].metrics = kh_init(param_map);
       }
+      ensemble->settings = result.settings;
       result.ensemble = ensemble;
     }
   } else {
@@ -1000,6 +1003,8 @@ void sw_ensemble_write(sw_ensemble_t *ensemble, const char *module_filename) {
 }
 
 void sw_ensemble_free(sw_ensemble_t *ensemble) {
+  if (ensemble->settings)
+    sw_settings_free(ensemble->settings);
   if (ensemble->inputs) {
     for (size_t i = 0; i < ensemble->size; ++i) {
       kh_destroy(param_map, ensemble->inputs[i].params);
