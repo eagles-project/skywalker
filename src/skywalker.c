@@ -155,7 +155,6 @@ static sw_output_result_t sw_input_set(sw_input_t *input,
   sw_output_result_t result = {.error_code = SW_SUCCESS};
   const char* n = dup_string(name);
   int ret;
-  printf("Setting input %s to %g\n", name, value);
   khiter_t iter = kh_put(param_map, input->params, n, &ret);
   assert(ret == 1);
   kh_value(input->params, iter) = value;
@@ -284,8 +283,6 @@ static void handle_yaml_event(yaml_event_t *event,
       if (!state->current_setting) {
         state->current_setting = dup_yaml_string(value);
       } else {
-        printf("Setting '%s' (%p) to '%s' (%p)\n", state->current_setting,
-          state->current_setting, value, value);
         sw_settings_set(data->settings, state->current_setting, value);
         state->current_setting = NULL;
       }
@@ -470,6 +467,17 @@ static yaml_data_t parse_yaml(FILE* file, const char* settings_block) {
 //------------------------------------------------------------------------
 //                          Ensemble construction
 //------------------------------------------------------------------------
+
+static void assign_single_valued_params(yaml_data_t yaml_data,
+                                        sw_input_t *input) {
+  const char *name;
+  real_vec_t values;
+  kh_foreach(yaml_data.input, name, values,
+    if (kv_size(values) == 1) {
+      sw_input_set(input, name, kv_A(values, 0));
+    }
+  );
+}
 
 static void assign_1_lattice_param(yaml_data_t yaml_data, size_t l,
                                    sw_input_t *input) {
@@ -776,14 +784,15 @@ typedef struct sw_build_result_t {
 
 // Generates an array of inputs for a lattice ensemble.
 static sw_build_result_t build_lattice_ensemble(yaml_data_t yaml_data) {
-  sw_build_result_t result = {.error_code = SW_SUCCESS};
+  sw_build_result_t result = {.num_inputs = 1, .error_code = SW_SUCCESS};
   // Count up the number of inputs and parameters.
   size_t num_params = 0;
   {
     real_vec_t values;
     kh_foreach_value(yaml_data.input, values,
       result.num_inputs *= kv_size(values);
-      num_params++;
+      if (kv_size(values) > 1) // exclude single-valued parameters
+        num_params++;
     );
   }
   if (num_params == 0) {
@@ -793,8 +802,8 @@ static sw_build_result_t build_lattice_ensemble(yaml_data_t yaml_data) {
   } else if (num_params > 7) {
     result.error_code = SW_TOO_MANY_PARAMS;
     result.error_message =
-      new_string("The lattice ensemble in %s has %d traversed parameters "
-                 "(must be <= 7).");
+      new_string("The given lattice ensemble has %d traversed parameters "
+                 "(must be <= 7).", num_params);
     return result;
   }
 
@@ -810,6 +819,7 @@ static sw_build_result_t build_lattice_ensemble(yaml_data_t yaml_data) {
   result.inputs = malloc(sizeof(sw_input_t) * result.num_inputs);
   for (size_t l = 0; l < result.num_inputs; ++l) {
     result.inputs[l].params = kh_init(param_map);
+    assign_single_valued_params(yaml_data, &result.inputs[l]);
     assign_lattice_params[num_params](yaml_data, l, &result.inputs[l]);
   }
 
@@ -893,7 +903,6 @@ sw_ensemble_result_t sw_load_ensemble(const char* yaml_file,
   fclose(file);
 
   if (data.error_code == SW_SUCCESS) {
-    result.settings = data.settings;
     result.type = data.ensemble_type;
     sw_build_result_t build_result;
     if (data.ensemble_type == SW_LATTICE) {
@@ -913,6 +922,7 @@ sw_ensemble_result_t sw_load_ensemble(const char* yaml_file,
       for (size_t i = 0; i < ensemble->size; ++i) {
         ensemble->outputs[i].metrics = kh_init(param_map);
       }
+      result.settings = data.settings;
       ensemble->settings = result.settings;
       result.ensemble = ensemble;
     }
