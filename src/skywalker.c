@@ -48,10 +48,9 @@ static void append_string(const char *s) {
   *s_p = s;
 }
 
-#ifndef APPLE
 // Here we implement a portable version of the non-standard vasprintf
 // function (see https://stackoverflow.com/questions/40159892/using-asprintf-on-windows).
-static int vscprintf(const char *format, va_list ap) {
+static int sw_vscprintf(const char *format, va_list ap) {
   va_list ap_copy;
   va_copy(ap_copy, ap);
   int retval = vsnprintf(NULL, 0, format, ap_copy);
@@ -59,8 +58,8 @@ static int vscprintf(const char *format, va_list ap) {
   return retval;
 }
 
-static int vasprintf(char **strp, const char *format, va_list ap) {
-  int len = vscprintf(format, ap);
+static int sw_vasprintf(char **strp, const char *format, va_list ap) {
+  int len = sw_vscprintf(format, ap);
   if (len == -1)
     return -1;
   char *str = (char*)malloc((size_t) len + 1);
@@ -74,7 +73,6 @@ static int vasprintf(char **strp, const char *format, va_list ap) {
   *strp = str;
   return retval;
 }
-#endif
 
 // This function constructs a string in the manner of sprintf, but allocates
 // and returns a string of sufficient size. Strings created this way are freed
@@ -83,10 +81,20 @@ static const char* new_string(const char *fmt, ...) {
   char *s;
   va_list ap;
   va_start(ap, fmt);
-  vasprintf(&s, fmt, ap);
+  sw_vasprintf(&s, fmt, ap);
   va_end(ap);
   append_string(s);
   return s;
+}
+
+// This function duplicates the given string and appends it to the list of
+// strings to be freed when the program exits.
+static const char* dup_string(const char *s) {
+  size_t len = strlen(s);
+  char *dup = malloc(sizeof(char)*(len+1));
+  strcpy(dup, s);
+  append_string(dup);
+  return (const char*)dup;
 }
 
 struct sw_settings_t {
@@ -109,13 +117,12 @@ static sw_output_result_t sw_settings_set(sw_settings_t *settings,
                                           const char *name,
                                           const char *value) {
   sw_output_result_t result = {.error_code = SW_SUCCESS};
+  const char* n = dup_string(name);
+  const char* v = dup_string(value);
   int ret;
-  const char* n = strdup(name);
-  const char* v = strdup(value);
   khiter_t iter = kh_put(string_map, settings->params, n, &ret);
+  assert(ret == 1);
   kh_value(settings->params, iter) = v;
-  append_string(n);
-  append_string(v);
   return result;
 }
 
@@ -141,11 +148,12 @@ static sw_output_result_t sw_input_set(sw_input_t *input,
                                        const char *name,
                                        sw_real_t value) {
   sw_output_result_t result = {.error_code = SW_SUCCESS};
+  const char* n = dup_string(name);
   int ret;
-  const char* n = strdup(name);
+  printf("Setting input %s to %g\n", name, value);
   khiter_t iter = kh_put(param_map, input->params, n, &ret);
+  assert(ret == 1);
   kh_value(input->params, iter) = value;
-  append_string(n);
   return result;
 }
 
@@ -171,11 +179,11 @@ sw_output_result_t sw_output_set(sw_output_t *output,
                                  const char *name,
                                  sw_real_t value) {
   sw_output_result_t result = {.error_code = SW_SUCCESS};
+  const char* n = dup_string(name);
   int ret;
-  const char* n = strdup(name);
   khiter_t iter = kh_put(param_map, output->metrics, n, &ret);
+  assert(ret == 1);
   kh_value(output->metrics, iter) = value;
-  append_string(n);
   return result;
 }
 
@@ -186,21 +194,51 @@ struct sw_ensemble_t {
   sw_output_t *outputs;
 };
 
+//------------------------------------------------------------------------
+//                              YAML parsing
+//------------------------------------------------------------------------
+
+// A YAML-specific string pool.
+static klist_t(string_list)* yaml_strings_ = NULL;
+
+// This function cleans up all maintained strings at the end of a process.
+static void free_yaml_strings() {
+  kl_destroy(string_list, yaml_strings_);
+}
+
+// This function creates a copy of a string encountered in the YAML parser,
+// placing it in the YAML string pool.
+static const char* dup_yaml_string(const char *s) {
+  // Copy the string.
+  size_t len = strlen(s);
+  char *dup = malloc(sizeof(char)*(len+1));
+  strcpy(dup, s);
+
+  // Stick it in the YAML string pool.
+  if (!yaml_strings_) {
+    yaml_strings_ = kl_init(string_list);
+  }
+  const char ** s_p = kl_pushp(string_list, yaml_strings_);
+  *s_p = dup;
+
+  return (const char*)dup;
+}
+
 // A hash table whose keys are C strings and whose values are arrays of numbers.
-typedef kvec_t(sw_real_t) sw_real_vec_t;
-KHASH_MAP_INIT_STR(yaml_param_map, sw_real_vec_t)
+typedef kvec_t(sw_real_t) real_vec_t;
+KHASH_MAP_INIT_STR(yaml_param_map, real_vec_t)
 
 // This type stores data parsed from YAML.
 typedef struct yaml_data_t {
   sw_ens_type_t ensemble_type;
   sw_settings_t *settings;
-  khash_t(yaml_param_map) *params;
+  khash_t(yaml_param_map) *input;
   int error_code;
   const char *error_message;
 } yaml_data_t;
 
 // This type keeps track of the state of the YAML parser.
-typedef struct yaml_state_t {
+typedef struct parser_state_t {
   bool parsing_type;
   const char *settings_block;
   bool parsing_settings;
@@ -208,11 +246,11 @@ typedef struct yaml_state_t {
   bool parsing_input;
   bool parsing_input_sequence;
   const char *current_input;
-} yaml_state_t;
+} parser_state_t;
 
 // Handles a YAML event, populating our data instance.
 static void handle_yaml_event(yaml_event_t *event,
-                              yaml_state_t* state,
+                              parser_state_t* state,
                               yaml_data_t *data)
 {
   if (event->type == YAML_SCALAR_EVENT) {
@@ -238,11 +276,11 @@ static void handle_yaml_event(yaml_event_t *event,
       state->parsing_settings = true;
     } else if (state->parsing_settings) {
       if (!state->current_setting) {
-        state->current_setting = strdup(value);
+        state->current_setting = dup_yaml_string(value);
       } else {
-        printf("Setting '%s' (%p) to '%s' (%p)\n", state->current_setting, state->current_setting, value, value);
+        printf("Setting '%s' (%p) to '%s' (%p)\n", state->current_setting,
+          state->current_setting, value, value);
         sw_settings_set(data->settings, state->current_setting, value);
-        free((char*)state->current_setting);
         state->current_setting = NULL;
       }
 
@@ -251,7 +289,7 @@ static void handle_yaml_event(yaml_event_t *event,
       state->parsing_input = true;
     } else if (state->parsing_input) {
       if (!state->current_input) {
-        state->current_input = strdup(value);
+        state->current_input = dup_yaml_string(value);
       } else {
         // Try to interpret the value as a real number.
         char *endp;
@@ -263,19 +301,17 @@ static void handle_yaml_event(yaml_event_t *event,
             value);
         } else {
           // Append the (valid) value to the list of inputs with this name.
-          printf("Appending %g to '%s'\n", real_value, state->current_input);
-          khiter_t iter = kh_get(yaml_param_map, data->params,
+          khiter_t iter = kh_get(yaml_param_map, data->input,
                                  state->current_input);
-          if (iter == kh_end(data->params)) {
+          if (iter == kh_end(data->input)) {
             int ret;
-            iter = kh_put(yaml_param_map, data->params,
-                          state->current_input, &ret);
-            kv_init(kh_value(data->params, iter));
+            iter = kh_put(yaml_param_map, data->input, state->current_input, &ret);
+            assert(ret == 1);
+            kv_init(kh_value(data->input, iter));
           }
-          kv_push(sw_real_t, kh_value(data->params, iter), real_value);
+          kv_push(sw_real_t, kh_value(data->input, iter), real_value);
         }
         if (!state->parsing_input_sequence) {
-          free((char*)state->current_input);
           state->current_input = NULL;
         }
       }
@@ -289,35 +325,105 @@ static void handle_yaml_event(yaml_event_t *event,
   } else if (event->type == YAML_SEQUENCE_END_EVENT) {
     state->parsing_input_sequence = false;
     if (state->current_input) {
-      free((char*)state->current_input);
       state->current_input = NULL;
     }
   }
+}
+
+// Postprocess the input parameters in the YAML data.
+void postprocess_input_data(yaml_data_t *yaml_data) {
+  // Expand any relevant 3-parameter lists.
+  for (khiter_t iter = kh_begin(yaml_data->input);
+      iter != kh_end(yaml_data->input); ++iter) {
+
+    if (!kh_exist(yaml_data->input, iter)) continue;
+
+    const char *param_name = kh_key(yaml_data->input, iter);
+    real_vec_t values = kh_value(yaml_data->input, iter);
+
+    if (kv_size(values) == 3) {
+      sw_real_t val0 = kv_A(values, 0),
+                val1 = kv_A(values, 1),
+                val2 = kv_A(values, 2);
+      if ((val0 < val1) && (val2 < val1)) { // expand!
+        real_vec_t expanded_values;
+        kv_init(expanded_values);
+        size_t size = (size_t)(ceil((val1 - val0) / val2) + 1);
+        for (size_t i = 0; i < size; ++i) {
+          kv_push(sw_real_t, expanded_values, val0 + i * val2);
+        }
+        kh_value(yaml_data->input, iter) = expanded_values;
+        kv_destroy(values);
+      }
+    }
+  }
+
+  // Exponentiate any log10 values, renaming "log10(x)" to "x".
+  khash_t(yaml_param_map) *renamed_input = kh_init(yaml_param_map);
+  for (khiter_t iter = kh_begin(yaml_data->input);
+      iter != kh_end(yaml_data->input); ++iter) {
+
+    if (!kh_exist(yaml_data->input, iter)) continue;
+
+    const char *param_name = kh_key(yaml_data->input, iter);
+    size_t pname_len = strlen(param_name);
+    real_vec_t values = kh_value(yaml_data->input, iter);
+
+    char new_param_name[pname_len+1];
+    if (strstr(param_name, "log10(") == param_name) {
+      if (param_name[pname_len-1] != ')') { // Did we close our parens?
+        yaml_data->error_code = SW_INVALID_PARAM_NAME;
+        yaml_data->error_message = new_string("Unclosed parens in parameter %s.",
+          param_name);
+        kh_destroy(yaml_param_map, yaml_data->input);
+        return;
+      }
+      if (!renamed_input)
+        renamed_input = kh_init(yaml_param_map);
+
+      memcpy(new_param_name, &param_name[6], pname_len-7);
+      new_param_name[pname_len-7] = '\0';
+
+      for (size_t i = 0; i < kv_size(values); ++i) {
+        kv_A(values, i) = pow(10.0, kv_A(values, i));
+      }
+    } else {
+      strcpy(new_param_name, param_name);
+    }
+
+    int ret;
+    khiter_t r_iter = kh_put(yaml_param_map, renamed_input,
+                             dup_yaml_string(new_param_name), &ret);
+    assert(ret == 1);
+    kh_value(renamed_input, r_iter) = values;
+  }
+
+  kh_destroy(yaml_param_map, yaml_data->input);
+  yaml_data->input = renamed_input;
 }
 
 // Parses a YAML file, returning the results.
 static yaml_data_t parse_yaml(FILE* file, const char* settings_block) {
   yaml_data_t data = {.error_code = 0};
 
-  data.params = kh_init(yaml_param_map);
+  data.input = kh_init(yaml_param_map);
   data.settings = sw_settings_new();
 
   yaml_parser_t parser;
   yaml_parser_initialize(&parser);
   yaml_parser_set_input_file(&parser, file);
 
-  yaml_state_t state = {.settings_block = settings_block};
+  parser_state_t state = {.settings_block = settings_block};
   yaml_event_type_t event_type;
   do {
     yaml_event_t event;
 
     // Parse the next YAML "event" and handle any errors encountered.
     if (!yaml_parser_parse(&parser, &event)) {
-      kh_destroy(yaml_param_map, data.params);
+      kh_destroy(yaml_param_map, data.input);
       sw_settings_free(data.settings);
       data.error_code = SW_INVALID_YAML;
-      data.error_message = strdup(parser.problem);
-      append_string(data.error_message);
+      data.error_message = dup_string(parser.problem);
       yaml_parser_delete(&parser);
       fclose(file);
       return data;
@@ -328,7 +434,7 @@ static yaml_data_t parse_yaml(FILE* file, const char* settings_block) {
     // to Skywalker's spec.
     handle_yaml_event(&event, &state, &data);
     if (data.error_code != SW_SUCCESS) {
-      kh_destroy(yaml_param_map, data.params);
+      kh_destroy(yaml_param_map, data.input);
       sw_settings_free(data.settings);
       yaml_parser_delete(&parser);
       fclose(file);
@@ -341,12 +447,316 @@ static yaml_data_t parse_yaml(FILE* file, const char* settings_block) {
 
   // Did we find a settings block?
   if (data.settings == NULL) {
-    kh_destroy(yaml_param_map, data.params);
+    kh_destroy(yaml_param_map, data.input);
     data.error_code = SW_SETTINGS_NOT_FOUND;
     data.error_message = new_string("The settings block '%s' was not found.",
                                     settings_block);
   }
+
+  // Postprocess the input parameters, expanding 3-element lists if needed, and
+  // applying log10 operations.
+  if (data.error_code == SW_SUCCESS)
+    postprocess_input_data(&data);
+
   return data;
+}
+
+//------------------------------------------------------------------------
+//                          Ensemble construction
+//------------------------------------------------------------------------
+
+static void assign_1_lattice_param(yaml_data_t yaml_data, size_t l,
+                                   sw_input_t *input) {
+  const char *name;
+  real_vec_t values;
+  kh_foreach(yaml_data.input, name, values,
+    if (kv_size(values) > 1) break;
+  );
+  sw_input_set(input, name, kv_A(values, l));
+}
+
+static void assign_2_lattice_params(yaml_data_t yaml_data, size_t l,
+                                    sw_input_t *input) {
+  const char *name1 = NULL, *name2 = NULL;
+  real_vec_t values, values1, values2;
+  for (khiter_t iter = kh_begin(yaml_data.input);
+      iter != kh_end(yaml_data.input); ++iter) {
+
+    if (!kh_exist(yaml_data.input, iter)) continue;
+
+    values = kh_value(yaml_data.input, iter);
+    if (kv_size(values) > 1) {
+      if (name1 == NULL) {
+        name1 = kh_key(yaml_data.input, iter);
+        values1 = values;
+      } else if (name2 == NULL) {
+        name2 = kh_key(yaml_data.input, iter);
+        values2 = values;
+        break;
+      }
+    }
+  }
+  size_t n2 = kv_size(values2);
+  size_t j1 = l / n2;
+  size_t j2 = l - n2 * j1;
+  sw_input_set(input, name1, kv_A(values1, j1));
+  sw_input_set(input, name2, kv_A(values2, j2));
+}
+
+static void assign_3_lattice_params(yaml_data_t yaml_data, size_t l,
+                                    sw_input_t *input) {
+  const char *name1 = NULL, *name2 = NULL, *name3 = NULL;
+  real_vec_t values, values1, values2, values3;
+  for (khiter_t iter = kh_begin(yaml_data.input);
+      iter != kh_end(yaml_data.input); ++iter) {
+
+    if (!kh_exist(yaml_data.input, iter)) continue;
+
+    values = kh_value(yaml_data.input, iter);
+    if (kv_size(values) > 1) {
+      if (name1 == NULL) {
+        name1 = kh_key(yaml_data.input, iter);
+        values1 = values;
+      } else if (name2 == NULL) {
+        name2 = kh_key(yaml_data.input, iter);
+        values2 = values;
+      } else if (name3 == NULL) {
+        name3 = kh_key(yaml_data.input, iter);
+        values3 = values;
+        break;
+      }
+    }
+  }
+  size_t n2 = kv_size(values2);
+  size_t n3 = kv_size(values3);
+  size_t j1 = l / (n2 * n3);
+  size_t j2 = (l - n2 * n3 * j1) / n3;
+  size_t j3 = l - n2 * n3 * j1 - n3 * j2;
+  sw_input_set(input, name1, kv_A(values1, j1));
+  sw_input_set(input, name2, kv_A(values2, j2));
+  sw_input_set(input, name3, kv_A(values3, j3));
+}
+
+static void assign_4_lattice_params(yaml_data_t yaml_data, size_t l,
+                                    sw_input_t *input) {
+  const char *name1 = NULL, *name2 = NULL, *name3 = NULL, *name4 = NULL;
+  real_vec_t values, values1, values2, values3, values4;
+  for (khiter_t iter = kh_begin(yaml_data.input);
+      iter != kh_end(yaml_data.input); ++iter) {
+
+    if (!kh_exist(yaml_data.input, iter)) continue;
+
+    values = kh_value(yaml_data.input, iter);
+    if (kv_size(values) > 1) {
+      if (name1 == NULL) {
+        name1 = kh_key(yaml_data.input, iter);
+        values1 = values;
+      } else if (name2 == NULL) {
+        name2 = kh_key(yaml_data.input, iter);
+        values2 = values;
+      } else if (name3 == NULL) {
+        name3 = kh_key(yaml_data.input, iter);
+        values3 = values;
+      } else if (name4 == NULL) {
+        name4 = kh_key(yaml_data.input, iter);
+        values4 = values;
+        break;
+      }
+    }
+  }
+  size_t n2 = kv_size(values2);
+  size_t n3 = kv_size(values3);
+  size_t n4 = kv_size(values4);
+  size_t j1 = l / (n2 * n3 * n4);
+  size_t j2 = (l - n2 * n3 * n4 * j1) / (n3 * n4);
+  size_t j3 = (l - n2 * n3 * n4 * j1 - n3 * n4 * j2) / n4;
+  size_t j4 = l - n2 * n3 * n4 * j1 - n3 * n4 * j2 - n4 * j3;
+  sw_input_set(input, name1, kv_A(values1, j1));
+  sw_input_set(input, name2, kv_A(values2, j2));
+  sw_input_set(input, name3, kv_A(values3, j3));
+  sw_input_set(input, name4, kv_A(values4, j4));
+}
+
+static void assign_5_lattice_params(yaml_data_t yaml_data, size_t l,
+                                    sw_input_t *input) {
+  const char *name1 = NULL, *name2 = NULL, *name3 = NULL, *name4 = NULL,
+  *name5 = NULL;
+  real_vec_t values, values1, values2, values3, values4, values5;
+  for (khiter_t iter = kh_begin(yaml_data.input);
+      iter != kh_end(yaml_data.input); ++iter) {
+
+    if (!kh_exist(yaml_data.input, iter)) continue;
+
+    values = kh_value(yaml_data.input, iter);
+    if (kv_size(values) > 1) {
+      if (name1 == NULL) {
+        name1 = kh_key(yaml_data.input, iter);
+        values1 = values;
+      } else if (name2 == NULL) {
+        name2 = kh_key(yaml_data.input, iter);
+        values2 = values;
+      } else if (name3 == NULL) {
+        name3 = kh_key(yaml_data.input, iter);
+        values3 = values;
+      } else if (name4 == NULL) {
+        name4 = kh_key(yaml_data.input, iter);
+        values4 = values;
+      } else if (name5 == NULL) {
+        name5 = kh_key(yaml_data.input, iter);
+        values5 = values;
+        break;
+      }
+    }
+  }
+  size_t n2 = kv_size(values2);
+  size_t n3 = kv_size(values3);
+  size_t n4 = kv_size(values4);
+  size_t n5 = kv_size(values5);
+  size_t j1 = l / (n2 * n3 * n4 * n5);
+  size_t j2 = (l - n2 * n3 * n4 * n5 * j1) / (n3 * n4 * n5);
+  size_t j3 = (l - n2 * n3 * n4 * n5 * j1 - n3 * n4 * n5 * j2) / (n4 * n5);
+  size_t j4 =
+    (l - n2 * n3 * n4 * n5 * j1 - n3 * n4 * n5 * j2 - n4 * n5 * j3) / n5;
+  size_t j5 = l - n2 * n3 * n4 * n5 * j1 - n3 * n4 * n5 * j2 -
+    n4 * n5 * j3 - n5 * j4;
+  sw_input_set(input, name1, kv_A(values1, j1));
+  sw_input_set(input, name2, kv_A(values2, j2));
+  sw_input_set(input, name3, kv_A(values3, j3));
+  sw_input_set(input, name4, kv_A(values4, j4));
+  sw_input_set(input, name5, kv_A(values5, j5));
+}
+
+static void assign_6_lattice_params(yaml_data_t yaml_data, size_t l,
+                                    sw_input_t *input) {
+  const char *name1 = NULL, *name2 = NULL, *name3 = NULL, *name4 = NULL,
+  *name5 = NULL, *name6 = NULL;
+  real_vec_t values, values1, values2, values3, values4, values5,
+                values6;
+  for (khiter_t iter = kh_begin(yaml_data.input);
+      iter != kh_end(yaml_data.input); ++iter) {
+
+    if (!kh_exist(yaml_data.input, iter)) continue;
+
+    values = kh_value(yaml_data.input, iter);
+    if (kv_size(values) > 1) {
+      if (name1 == NULL) {
+        name1 = kh_key(yaml_data.input, iter);
+        values1 = values;
+      } else if (name2 == NULL) {
+        name2 = kh_key(yaml_data.input, iter);
+        values2 = values;
+      } else if (name3 == NULL) {
+        name3 = kh_key(yaml_data.input, iter);
+        values3 = values;
+      } else if (name4 == NULL) {
+        name4 = kh_key(yaml_data.input, iter);
+        values4 = values;
+      } else if (name5 == NULL) {
+        name5 = kh_key(yaml_data.input, iter);
+        values5 = values;
+      } else if (name6 == NULL) {
+        name6 = kh_key(yaml_data.input, iter);
+        values6 = values;
+        break;
+      }
+    }
+  }
+  size_t n2 = kv_size(values2);
+  size_t n3 = kv_size(values3);
+  size_t n4 = kv_size(values4);
+  size_t n5 = kv_size(values5);
+  size_t n6 = kv_size(values6);
+  size_t j1 = l / (n2 * n3 * n4 * n5 * n6);
+  size_t j2 = (l - n2 * n3 * n4 * n5 * n6 * j1) / (n3 * n4 * n5 * n6);
+  size_t j3 = (l - n2 * n3 * n4 * n5 * n6 * j1 - n3 * n4 * n5 * n6 * j2) /
+    (n4 * n5 * n6);
+  size_t j4 = (l - n2 * n3 * n4 * n5 * n6 * j1 - n3 * n4 * n5 * n6 * j2 -
+      n4 * n5 * n6 * j3) /
+    (n5 * n6);
+  size_t j5 = (l - n2 * n3 * n4 * n5 * n6 * j1 - n3 * n4 * n5 * n6 * j2 -
+      n4 * n5 * n6 * j3 - n5 * n6 * j4) /
+    n6;
+  size_t j6 = l - n2 * n3 * n4 * n5 * n6 * j1 - n3 * n4 * n5 * n6 * j2 -
+    n4 * n5 * n6 * j3 - n5 * n6 * j4 - n6 * j5;
+  sw_input_set(input, name1, kv_A(values1, j1));
+  sw_input_set(input, name2, kv_A(values2, j2));
+  sw_input_set(input, name3, kv_A(values3, j3));
+  sw_input_set(input, name4, kv_A(values4, j4));
+  sw_input_set(input, name5, kv_A(values5, j5));
+  sw_input_set(input, name6, kv_A(values6, j6));
+}
+
+static void assign_7_lattice_params(yaml_data_t yaml_data, size_t l,
+                                    sw_input_t *input) {
+  const char *name1 = NULL, *name2 = NULL, *name3 = NULL, *name4 = NULL,
+  *name5 = NULL, *name6 = NULL, *name7 = NULL;
+  real_vec_t values, values1, values2, values3, values4, values5,
+                values6, values7;
+  for (khiter_t iter = kh_begin(yaml_data.input);
+      iter != kh_end(yaml_data.input); ++iter) {
+
+    if (!kh_exist(yaml_data.input, iter)) continue;
+
+    values = kh_value(yaml_data.input, iter);
+    if (kv_size(values) > 1) {
+      if (name1 == NULL) {
+        name1 = kh_key(yaml_data.input, iter);
+        values1 = values;
+      } else if (name2 == NULL) {
+        name2 = kh_key(yaml_data.input, iter);
+        values2 = values;
+      } else if (name3 == NULL) {
+        name3 = kh_key(yaml_data.input, iter);
+        values3 = values;
+      } else if (name4 == NULL) {
+        name4 = kh_key(yaml_data.input, iter);
+        values4 = values;
+      } else if (name5 == NULL) {
+        name5 = kh_key(yaml_data.input, iter);
+        values5 = values;
+      } else if (name6 == NULL) {
+        name6 = kh_key(yaml_data.input, iter);
+        values6 = values;
+      } else if (name7 == NULL) {
+        name7 = kh_key(yaml_data.input, iter);
+        values7 = values;
+        break;
+      }
+    }
+  }
+  size_t n2 = kv_size(values2);
+  size_t n3 = kv_size(values3);
+  size_t n4 = kv_size(values4);
+  size_t n5 = kv_size(values5);
+  size_t n6 = kv_size(values6);
+  size_t n7 = kv_size(values7);
+  size_t j1 = l / (n2 * n3 * n4 * n5 * n6 * n7);
+  size_t j2 =
+    (l - n2 * n3 * n4 * n5 * n6 * n7 * j1) / (n3 * n4 * n5 * n6 * n7);
+  size_t j3 =
+    (l - n2 * n3 * n4 * n5 * n6 * n7 * j1 - n3 * n4 * n5 * n6 * n7 * j2) /
+    (n4 * n5 * n6 * n7);
+  size_t j4 = (l - n2 * n3 * n4 * n5 * n6 * n7 * j1 -
+      n3 * n4 * n5 * n6 * n7 * j2 - n4 * n5 * n6 * n7 * j3) /
+    (n5 * n6 * n7);
+  size_t j5 =
+    (l - n2 * n3 * n4 * n5 * n6 * n7 * j1 - n3 * n4 * n5 * n6 * n7 * j2 -
+     n4 * n5 * n6 * n7 * j3 - n5 * n6 * n7 * j4) /
+    (n6 * n7);
+  size_t j6 =
+    (l - n2 * n3 * n4 * n5 * n6 * n7 * j1 - n3 * n4 * n5 * n6 * n7 * j2 -
+     n4 * n5 * n6 * n7 * j3 - n5 * n6 * n7 * j4 - n6 * n7 * j5) /
+    n7;
+  size_t j7 = l - n2 * n3 * n4 * n5 * n6 * n7 * j1 -
+    n3 * n4 * n5 * n6 * n7 * j2 - n4 * n5 * n6 * n7 * j3 -
+    n5 * n6 * n7 * j4 - n6 * n7 * j5 - n7 * j6;
+  sw_input_set(input, name1, kv_A(values1, j1));
+  sw_input_set(input, name2, kv_A(values2, j2));
+  sw_input_set(input, name3, kv_A(values3, j3));
+  sw_input_set(input, name4, kv_A(values4, j4));
+  sw_input_set(input, name5, kv_A(values5, j5));
+  sw_input_set(input, name6, kv_A(values6, j6));
+  sw_input_set(input, name7, kv_A(values7, j7));
 }
 
 // This type contains results from building an ensemble.
@@ -361,16 +771,20 @@ typedef struct sw_build_result_t {
 // Generates an array of inputs for a lattice ensemble.
 static sw_build_result_t build_lattice_ensemble(yaml_data_t yaml_data) {
   sw_build_result_t result = {.error_code = SW_SUCCESS};
-  // Count up the number of inputs.
+  // Count up the number of inputs and parameters.
   size_t num_params = 0;
   {
-    sw_real_vec_t values;
-    kh_foreach_value(yaml_data.params, values,
+    real_vec_t values;
+    kh_foreach_value(yaml_data.input, values,
       result.num_inputs *= kv_size(values);
       num_params++;
     );
   }
-  if (num_params > 7) {
+  if (num_params == 0) {
+    result.error_code = SW_EMPTY_ENSEMBLE;
+    result.error_message = new_string("Ensemble has no members!");
+    return result;
+  } else if (num_params > 7) {
     result.error_code = SW_TOO_MANY_PARAMS;
     result.error_message =
       new_string("The lattice ensemble in %s has %d traversed parameters "
@@ -378,272 +792,19 @@ static sw_build_result_t build_lattice_ensemble(yaml_data_t yaml_data) {
     return result;
   }
 
-  // Build a list of inputs corresponding to all the traversed parameters. This
-  // involves some ugly index magic based on the number of parameters.
-  #define set_param(index, name, value) { \
-    int ret; \
-    khiter_t iter = kh_put(param_map, result.inputs[index].params, name, &ret);\
-    kh_value(result.inputs[index].params, iter) = value; \
-  }
+  // Here's a dispatch mechanism that maps the number of parameters to a
+  // a function that sifts them into an input.
+  static void (*assign_lattice_params[])(yaml_data_t, size_t, sw_input_t*) = {
+    NULL, assign_1_lattice_param, assign_2_lattice_params,
+    assign_3_lattice_params, assign_4_lattice_params, assign_5_lattice_params,
+    assign_6_lattice_params, assign_7_lattice_params
+  };
+
+  // Build a list of inputs corresponding to all the traversed parameters.
   result.inputs = malloc(sizeof(sw_input_t) * result.num_inputs);
   for (size_t l = 0; l < result.num_inputs; ++l) {
     result.inputs[l].params = kh_init(param_map);
-    if (num_params == 1) {
-      const char *name;
-      sw_real_vec_t values;
-      kh_foreach(yaml_data.params, name, values,
-        if (kv_size(values) > 1) break;
-      );
-      sw_input_set(&result.inputs[l], name, kv_A(values, l));
-    } else if (num_params == 2) {
-      const char *name1 = NULL, *name2 = NULL;
-      sw_real_vec_t values, values1, values2;
-      for (khiter_t iter = kh_begin(yaml_data.params);
-           iter != kh_end(yaml_data.params); ++iter) {
-        values = kh_value(yaml_data.params, iter);
-        if (kv_size(values) > 1) {
-          if (name1 == NULL) {
-            name1 = kh_key(yaml_data.params, iter);
-            values1 = values;
-          } else if (name2 == NULL) {
-            name2 = kh_key(yaml_data.params, iter);
-            values2 = values;
-            break;
-          }
-        }
-      }
-      size_t n2 = kv_size(values2);
-      size_t j1 = l / n2;
-      size_t j2 = l - n2 * j1;
-      sw_input_set(&result.inputs[l], name1, kv_A(values1, j1));
-      sw_input_set(&result.inputs[l], name2, kv_A(values2, j2));
-    } else if (num_params == 3) {
-      const char *name1 = NULL, *name2 = NULL, *name3 = NULL;
-      sw_real_vec_t values, values1, values2, values3;
-      for (khiter_t iter = kh_begin(yaml_data.params);
-           iter != kh_end(yaml_data.params); ++iter) {
-        values = kh_value(yaml_data.params, iter);
-        if (kv_size(values) > 1) {
-          if (name1 == NULL) {
-            name1 = kh_key(yaml_data.params, iter);
-            values1 = values;
-          } else if (name2 == NULL) {
-            name2 = kh_key(yaml_data.params, iter);
-            values2 = values;
-          } else if (name3 == NULL) {
-            name3 = kh_key(yaml_data.params, iter);
-            values3 = values;
-            break;
-          }
-        }
-      }
-      size_t n2 = kv_size(values2);
-      size_t n3 = kv_size(values3);
-      size_t j1 = l / (n2 * n3);
-      size_t j2 = (l - n2 * n3 * j1) / n3;
-      size_t j3 = l - n2 * n3 * j1 - n3 * j2;
-      sw_input_set(&result.inputs[l], name1, kv_A(values1, j1));
-      sw_input_set(&result.inputs[l], name2, kv_A(values2, j2));
-      sw_input_set(&result.inputs[l], name3, kv_A(values3, j3));
-    } else if (num_params == 4) {
-      const char *name1 = NULL, *name2 = NULL, *name3 = NULL, *name4 = NULL;
-      sw_real_vec_t values, values1, values2, values3, values4;
-      for (khiter_t iter = kh_begin(yaml_data.params);
-           iter != kh_end(yaml_data.params); ++iter) {
-        values = kh_value(yaml_data.params, iter);
-        if (kv_size(values) > 1) {
-          if (name1 == NULL) {
-            name1 = kh_key(yaml_data.params, iter);
-            values1 = values;
-          } else if (name2 == NULL) {
-            name2 = kh_key(yaml_data.params, iter);
-            values2 = values;
-          } else if (name3 == NULL) {
-            name3 = kh_key(yaml_data.params, iter);
-            values3 = values;
-          } else if (name4 == NULL) {
-            name4 = kh_key(yaml_data.params, iter);
-            values4 = values;
-            break;
-          }
-        }
-      }
-      size_t n2 = kv_size(values2);
-      size_t n3 = kv_size(values3);
-      size_t n4 = kv_size(values4);
-      size_t j1 = l / (n2 * n3 * n4);
-      size_t j2 = (l - n2 * n3 * n4 * j1) / (n3 * n4);
-      size_t j3 = (l - n2 * n3 * n4 * j1 - n3 * n4 * j2) / n4;
-      size_t j4 = l - n2 * n3 * n4 * j1 - n3 * n4 * j2 - n4 * j3;
-      sw_input_set(&result.inputs[l], name1, kv_A(values1, j1));
-      sw_input_set(&result.inputs[l], name2, kv_A(values2, j2));
-      sw_input_set(&result.inputs[l], name3, kv_A(values3, j3));
-      sw_input_set(&result.inputs[l], name4, kv_A(values4, j4));
-    } else if (num_params == 5) {
-      const char *name1 = NULL, *name2 = NULL, *name3 = NULL, *name4 = NULL,
-                 *name5 = NULL;
-      sw_real_vec_t values, values1, values2, values3, values4, values5;
-      for (khiter_t iter = kh_begin(yaml_data.params);
-           iter != kh_end(yaml_data.params); ++iter) {
-        values = kh_value(yaml_data.params, iter);
-        if (kv_size(values) > 1) {
-          if (name1 == NULL) {
-            name1 = kh_key(yaml_data.params, iter);
-            values1 = values;
-          } else if (name2 == NULL) {
-            name2 = kh_key(yaml_data.params, iter);
-            values2 = values;
-          } else if (name3 == NULL) {
-            name3 = kh_key(yaml_data.params, iter);
-            values3 = values;
-          } else if (name4 == NULL) {
-            name4 = kh_key(yaml_data.params, iter);
-            values4 = values;
-          } else if (name5 == NULL) {
-            name5 = kh_key(yaml_data.params, iter);
-            values5 = values;
-            break;
-          }
-        }
-      }
-      size_t n2 = kv_size(values2);
-      size_t n3 = kv_size(values3);
-      size_t n4 = kv_size(values4);
-      size_t n5 = kv_size(values5);
-      size_t j1 = l / (n2 * n3 * n4 * n5);
-      size_t j2 = (l - n2 * n3 * n4 * n5 * j1) / (n3 * n4 * n5);
-      size_t j3 = (l - n2 * n3 * n4 * n5 * j1 - n3 * n4 * n5 * j2) / (n4 * n5);
-      size_t j4 =
-          (l - n2 * n3 * n4 * n5 * j1 - n3 * n4 * n5 * j2 - n4 * n5 * j3) / n5;
-      size_t j5 = l - n2 * n3 * n4 * n5 * j1 - n3 * n4 * n5 * j2 -
-                  n4 * n5 * j3 - n5 * j4;
-      sw_input_set(&result.inputs[l], name1, kv_A(values1, j1));
-      sw_input_set(&result.inputs[l], name2, kv_A(values2, j2));
-      sw_input_set(&result.inputs[l], name3, kv_A(values3, j3));
-      sw_input_set(&result.inputs[l], name4, kv_A(values4, j4));
-      sw_input_set(&result.inputs[l], name5, kv_A(values5, j5));
-    } else if (num_params == 6) {
-      const char *name1 = NULL, *name2 = NULL, *name3 = NULL, *name4 = NULL,
-                 *name5 = NULL, *name6 = NULL;
-      sw_real_vec_t values, values1, values2, values3, values4, values5,
-                    values6;
-      for (khiter_t iter = kh_begin(yaml_data.params);
-           iter != kh_end(yaml_data.params); ++iter) {
-        values = kh_value(yaml_data.params, iter);
-        if (kv_size(values) > 1) {
-          if (name1 == NULL) {
-            name1 = kh_key(yaml_data.params, iter);
-            values1 = values;
-          } else if (name2 == NULL) {
-            name2 = kh_key(yaml_data.params, iter);
-            values2 = values;
-          } else if (name3 == NULL) {
-            name3 = kh_key(yaml_data.params, iter);
-            values3 = values;
-          } else if (name4 == NULL) {
-            name4 = kh_key(yaml_data.params, iter);
-            values4 = values;
-          } else if (name5 == NULL) {
-            name5 = kh_key(yaml_data.params, iter);
-            values5 = values;
-          } else if (name6 == NULL) {
-            name6 = kh_key(yaml_data.params, iter);
-            values6 = values;
-            break;
-          }
-        }
-      }
-      size_t n2 = kv_size(values2);
-      size_t n3 = kv_size(values3);
-      size_t n4 = kv_size(values4);
-      size_t n5 = kv_size(values5);
-      size_t n6 = kv_size(values6);
-      size_t j1 = l / (n2 * n3 * n4 * n5 * n6);
-      size_t j2 = (l - n2 * n3 * n4 * n5 * n6 * j1) / (n3 * n4 * n5 * n6);
-      size_t j3 = (l - n2 * n3 * n4 * n5 * n6 * j1 - n3 * n4 * n5 * n6 * j2) /
-                  (n4 * n5 * n6);
-      size_t j4 = (l - n2 * n3 * n4 * n5 * n6 * j1 - n3 * n4 * n5 * n6 * j2 -
-                   n4 * n5 * n6 * j3) /
-                  (n5 * n6);
-      size_t j5 = (l - n2 * n3 * n4 * n5 * n6 * j1 - n3 * n4 * n5 * n6 * j2 -
-                   n4 * n5 * n6 * j3 - n5 * n6 * j4) /
-                  n6;
-      size_t j6 = l - n2 * n3 * n4 * n5 * n6 * j1 - n3 * n4 * n5 * n6 * j2 -
-                  n4 * n5 * n6 * j3 - n5 * n6 * j4 - n6 * j5;
-      sw_input_set(&result.inputs[l], name1, kv_A(values1, j1));
-      sw_input_set(&result.inputs[l], name2, kv_A(values2, j2));
-      sw_input_set(&result.inputs[l], name3, kv_A(values3, j3));
-      sw_input_set(&result.inputs[l], name4, kv_A(values4, j4));
-      sw_input_set(&result.inputs[l], name5, kv_A(values5, j5));
-      sw_input_set(&result.inputs[l], name6, kv_A(values6, j6));
-    } else {  // if (num_params == 7)
-      const char *name1 = NULL, *name2 = NULL, *name3 = NULL, *name4 = NULL,
-                 *name5 = NULL, *name6 = NULL, *name7 = NULL;
-      sw_real_vec_t values, values1, values2, values3, values4, values5,
-                    values6, values7;
-      for (khiter_t iter = kh_begin(yaml_data.params);
-           iter != kh_end(yaml_data.params); ++iter) {
-        values = kh_value(yaml_data.params, iter);
-        if (kv_size(values) > 1) {
-          if (name1 == NULL) {
-            name1 = kh_key(yaml_data.params, iter);
-            values1 = values;
-          } else if (name2 == NULL) {
-            name2 = kh_key(yaml_data.params, iter);
-            values2 = values;
-          } else if (name3 == NULL) {
-            name3 = kh_key(yaml_data.params, iter);
-            values3 = values;
-          } else if (name4 == NULL) {
-            name4 = kh_key(yaml_data.params, iter);
-            values4 = values;
-          } else if (name5 == NULL) {
-            name5 = kh_key(yaml_data.params, iter);
-            values5 = values;
-          } else if (name6 == NULL) {
-            name6 = kh_key(yaml_data.params, iter);
-            values6 = values;
-          } else if (name7 == NULL) {
-            name7 = kh_key(yaml_data.params, iter);
-            values7 = values;
-            break;
-          }
-        }
-      }
-      size_t n2 = kv_size(values2);
-      size_t n3 = kv_size(values3);
-      size_t n4 = kv_size(values4);
-      size_t n5 = kv_size(values5);
-      size_t n6 = kv_size(values6);
-      size_t n7 = kv_size(values7);
-      size_t j1 = l / (n2 * n3 * n4 * n5 * n6 * n7);
-      size_t j2 =
-          (l - n2 * n3 * n4 * n5 * n6 * n7 * j1) / (n3 * n4 * n5 * n6 * n7);
-      size_t j3 =
-          (l - n2 * n3 * n4 * n5 * n6 * n7 * j1 - n3 * n4 * n5 * n6 * n7 * j2) /
-          (n4 * n5 * n6 * n7);
-      size_t j4 = (l - n2 * n3 * n4 * n5 * n6 * n7 * j1 -
-                   n3 * n4 * n5 * n6 * n7 * j2 - n4 * n5 * n6 * n7 * j3) /
-                  (n5 * n6 * n7);
-      size_t j5 =
-          (l - n2 * n3 * n4 * n5 * n6 * n7 * j1 - n3 * n4 * n5 * n6 * n7 * j2 -
-           n4 * n5 * n6 * n7 * j3 - n5 * n6 * n7 * j4) /
-          (n6 * n7);
-      size_t j6 =
-          (l - n2 * n3 * n4 * n5 * n6 * n7 * j1 - n3 * n4 * n5 * n6 * n7 * j2 -
-           n4 * n5 * n6 * n7 * j3 - n5 * n6 * n7 * j4 - n6 * n7 * j5) /
-          n7;
-      size_t j7 = l - n2 * n3 * n4 * n5 * n6 * n7 * j1 -
-                  n3 * n4 * n5 * n6 * n7 * j2 - n4 * n5 * n6 * n7 * j3 -
-                  n5 * n6 * n7 * j4 - n6 * n7 * j5 - n7 * j6;
-      sw_input_set(&result.inputs[l], name1, kv_A(values1, j1));
-      sw_input_set(&result.inputs[l], name2, kv_A(values2, j2));
-      sw_input_set(&result.inputs[l], name3, kv_A(values3, j3));
-      sw_input_set(&result.inputs[l], name4, kv_A(values4, j4));
-      sw_input_set(&result.inputs[l], name5, kv_A(values5, j5));
-      sw_input_set(&result.inputs[l], name6, kv_A(values6, j6));
-      sw_input_set(&result.inputs[l], name7, kv_A(values7, j7));
-    }
+    assign_lattice_params[num_params](yaml_data, l, &result.inputs[l]);
   }
 
   return result;
@@ -653,10 +814,13 @@ static sw_build_result_t build_enumeration_ensemble(yaml_data_t yaml_data) {
   sw_build_result_t result = {.error_code = SW_SUCCESS};
   size_t num_inputs = 0;
   const char *first_name;
-  for (khiter_t iter = kh_begin(yaml_data.params);
-       iter != kh_end(yaml_data.params); ++iter) {
-    const char *name = kh_key(yaml_data.params, iter);
-    sw_real_vec_t values = kh_value(yaml_data.params, iter);
+  for (khiter_t iter = kh_begin(yaml_data.input);
+       iter != kh_end(yaml_data.input); ++iter) {
+
+    if (!kh_exist(yaml_data.input, iter)) continue;
+
+    const char *name = kh_key(yaml_data.input, iter);
+    real_vec_t values = kh_value(yaml_data.input, iter);
 
     if ((num_inputs == 0) || (num_inputs == 1)) {
       num_inputs = kv_size(values);
@@ -679,14 +843,22 @@ static sw_build_result_t build_enumeration_ensemble(yaml_data_t yaml_data) {
   result.inputs = malloc(sizeof(sw_input_t) * result.num_inputs);
   for (size_t l = 0; l < num_inputs; ++l) {
     const char *name;
-    sw_real_vec_t values;
-    kh_foreach(yaml_data.params, name, values,
-      sw_input_set(&result.inputs[l], name, kv_A(values, l));
+    real_vec_t values;
+    result.inputs[l].params = kh_init(param_map);
+    kh_foreach(yaml_data.input, name, values,
+      if (kv_size(values) == 1)
+        sw_input_set(&result.inputs[l], name, kv_A(values, 0));
+      else
+        sw_input_set(&result.inputs[l], name, kv_A(values, l));
     );
   }
 
   return result;
 }
+
+//------------------------------------------------------------------------
+//                      Ensemble loading and writing
+//------------------------------------------------------------------------
 
 sw_ensemble_result_t sw_load_ensemble(const char* yaml_file,
                                       const char* settings_block) {
@@ -710,8 +882,10 @@ sw_ensemble_result_t sw_load_ensemble(const char* yaml_file,
     return result;
   }
 
+  // Parse the YAML file, populating a data container.
   yaml_data_t data = parse_yaml(file, settings_block);
   fclose(file);
+
   if (data.error_code == SW_SUCCESS) {
     result.settings = data.settings;
     result.type = data.ensemble_type;
@@ -721,26 +895,32 @@ sw_ensemble_result_t sw_load_ensemble(const char* yaml_file,
     } else {
       build_result = build_enumeration_ensemble(data);
     }
-    sw_ensemble_t *ensemble = malloc(sizeof(sw_ensemble_t));
-    ensemble->size = build_result.num_inputs;
-    ensemble->position = 0;
-    ensemble->inputs = build_result.inputs;
-    ensemble->outputs = malloc(ensemble->size*sizeof(sw_output_t));
-    for (size_t i = 0; i < ensemble->size; ++i) {
-      ensemble->outputs[i].metrics = kh_init(param_map);
+    if (build_result.error_code != SW_SUCCESS) {
+      result.error_code = build_result.error_code;
+      result.error_message = build_result.error_message;
+    } else {
+      sw_ensemble_t *ensemble = malloc(sizeof(sw_ensemble_t));
+      ensemble->size = build_result.num_inputs;
+      ensemble->position = 0;
+      ensemble->inputs = build_result.inputs;
+      ensemble->outputs = malloc(ensemble->size*sizeof(sw_output_t));
+      for (size_t i = 0; i < ensemble->size; ++i) {
+        ensemble->outputs[i].metrics = kh_init(param_map);
+      }
+      result.ensemble = ensemble;
     }
-    result.ensemble = ensemble;
   } else {
     result.error_code = data.error_code;
     result.error_message = data.error_message;
   }
 
   // Clean up YAML data.
-  sw_real_vec_t values;
-  kh_foreach_value(data.params, values,
+  real_vec_t values;
+  kh_foreach_value(data.input, values,
     kv_destroy(values);
   );
-  kh_destroy(yaml_param_map, data.params);
+  kh_destroy(yaml_param_map, data.input);
+  free_yaml_strings(); // delete YAML string pool
 
   return result;
 }
@@ -778,6 +958,9 @@ void sw_ensemble_write(sw_ensemble_t *ensemble, const char *module_filename) {
   if (ensemble->size > 0) {
     khash_t(param_map) *params_0 = ensemble->inputs[0].params;
     for (khiter_t iter = kh_begin(params_0); iter != kh_end(params_0); ++iter) {
+
+      if (!kh_exist(params_0, iter)) continue;
+
       const char *name = kh_key(params_0, iter);
       fprintf(file, "input.%s = [", name);
       for (size_t i = 0; i < ensemble->size; ++i) {
@@ -795,6 +978,9 @@ void sw_ensemble_write(sw_ensemble_t *ensemble, const char *module_filename) {
   if (ensemble->size > 0) {
     khash_t(param_map) *params_0 = ensemble->outputs[0].metrics;
     for (khiter_t iter = kh_begin(params_0); iter != kh_end(params_0); ++iter) {
+
+      if (!kh_exist(params_0, iter)) continue;
+
       const char *name = kh_key(params_0, iter);
       fprintf(file, "output.%s = [", name);
       for (size_t i = 0; i < ensemble->size; ++i) {

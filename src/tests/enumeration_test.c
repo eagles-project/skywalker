@@ -28,6 +28,9 @@ int main(int argc, char **argv) {
   // Load the ensemble. Any error encountered is fatal.
   fprintf(stderr, "enumeration_test: Loading ensemble from %s\n", input_file);
   sw_ensemble_result_t load_result = sw_load_ensemble(input_file, "settings");
+  if (load_result.error_code != SW_SUCCESS) {
+    printf("%s\n", load_result.error_message);
+  }
   assert(load_result.settings != NULL);
   assert(load_result.ensemble != NULL);
   assert(load_result.error_code == SW_SUCCESS);
@@ -58,6 +61,7 @@ int main(int argc, char **argv) {
 
   // Ensemble data
   sw_ensemble_t *ensemble = load_result.ensemble;
+  printf("%d\n", sw_ensemble_size(ensemble));
   assert(sw_ensemble_size(ensemble) == 11);
   sw_input_t *input;
   sw_output_t *output;

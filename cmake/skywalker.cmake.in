@@ -33,9 +33,9 @@ function(add_skywalker_driver driver_name)
   if (is_fortran)
     set_target_properties(${driver_name} PROPERTIES
                                          COMPILE_DEFINITIONS SKYWALKER_F90)
-    target_link_libraries(${driver_name} skywalker_f90)
+    target_link_libraries(${driver_name} skywalker_f90;m)
   else()
-    target_link_libraries(${driver_name} skywalker)
+    target_link_libraries(${driver_name} skywalker;m)
   endif()
 endfunction()
 

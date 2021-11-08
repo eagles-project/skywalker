@@ -1,10 +1,12 @@
 cmake_minimum_required (VERSION 3.12.0)
 
 enable_language(C)
+enable_language(CXX)
 enable_language(Fortran)
 project (skywalker)
 
 set(CMAKE_C_STANDARD 11)
+set(CMAKE_CXX_STANDARD 11)
 
 message(STATUS "Generating project files in build directory: ${PROJECT_BINARY_DIR}")
 message(STATUS "C compiler is ${CMAKE_C_COMPILER} (${CMAKE_C_COMPILER_ID} ${CMAKE_C_COMPILER_VERSION})")
@@ -47,11 +49,10 @@ else()
 endif ()
 
 # C compiler flags.
-set(CMAKE_C_FLAGS_RELEASE "-O2 -DNDEBUG")
-set(CMAKE_C_FLAGS_RelWithDebInfo "-g -O2 -DNDEBUG")
 if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-format-truncation -Wfloat-equal")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-format-truncation")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-unused")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-unknown-pragmas")
   if (HAVE_DOUBLE_PRECISION)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wfloat-conversion")
@@ -63,17 +64,19 @@ elseif (CMAKE_C_COMPILER_ID MATCHES "Clang")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-unknown-pragmas")
   # Clang proper behaves differently from Apple Clang, and requires
-  # more suppressions.
+  # some different flags.
   if (NOT CMAKE_C_COMPILER_ID MATCHES "AppleClang")
     # tolower() is a recursive macro, which causes issues.
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-disabled-macro-expansion")
   endif()
 elseif (CMAKE_C_COMPILER_ID MATCHES "Intel")
   set(CMAKE_C_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -mkl -static-intel")
   message(STATUS "Using Intel compilers and MKL linear algebra libraries")
 endif()
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${SYS_FLAGS}")
+
+# C++ compiler flags.
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 
 # Fortran compiler flags
 set(CMAKE_Fortran_FLAGS "-cpp -Dc_real=c_${SKYWALKER_REAL_TYPE}")
