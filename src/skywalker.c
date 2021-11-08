@@ -968,12 +968,13 @@ void sw_ensemble_write(sw_ensemble_t *ensemble, const char *module_filename) {
       fprintf(file, "input.%s = [", name);
       for (size_t i = 0; i < ensemble->size; ++i) {
         khash_t(param_map) *params_i = ensemble->inputs[i].params;
-        sw_real_t value = kh_get(param_map, params_i, name);
+        khiter_t iter = kh_get(param_map, params_i, name);
+        sw_real_t value = kh_val(params_i, iter);
         fprintf(file, "%g, ", value);
       }
+      fprintf(file, "]\n");
     }
   }
-  fprintf(file, "]\n");
 
   // Write output data.
   fprintf(file, "\n# Output data is stored here.\n");
@@ -988,7 +989,8 @@ void sw_ensemble_write(sw_ensemble_t *ensemble, const char *module_filename) {
       fprintf(file, "output.%s = [", name);
       for (size_t i = 0; i < ensemble->size; ++i) {
         khash_t(param_map) *params_i = ensemble->outputs[i].metrics;
-        sw_real_t value = kh_get(param_map, params_i, name);
+        khiter_t iter = kh_get(param_map, params_i, name);
+        sw_real_t value = kh_val(params_i, iter);
         if (isnan(value)) {
           fprintf(file, "nan, ");
         } else {
