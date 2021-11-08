@@ -8,7 +8,6 @@
 #include <assert.h>
 #include <math.h>
 #include <stdarg.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
@@ -16,6 +15,11 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+void sw_print_banner() {
+  fprintf(stderr, "Skywalker v%d.%d.%d\n", SKYWALKER_MAJOR_VERSION,
+          SKYWALKER_MINOR_VERSION, SKYWALKER_PATCH_VERSION);
+}
 
 // Some basic data structures.
 

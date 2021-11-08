@@ -2,11 +2,19 @@
 #define SKYWALKER_H
 
 #include <stdbool.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#define SKYWALKER_MAJOR_VERSION @SKYWALKER_MAJOR_VERSION@
+#define SKYWALKER_MINOR_VERSION @SKYWALKER_MINOR_VERSION@
+#define SKYWALKER_PATCH_VERSION @SKYWALKER_PATCH_VERSION@
+
+// Prints a banner containing Skywalker's version info to stderr.
+void sw_print_banner(void);
 
 // Error codes (treated as integers).
 typedef enum sw_error_code_t {

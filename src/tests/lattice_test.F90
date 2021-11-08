@@ -43,6 +43,17 @@ program lattice_test
   type(input_result_t)    :: in_result
   type(output_t)          :: output
 
+  if (command_argument_count() /= 1) then
+    print *, "lattice_test_f90: usage:"
+    print *, "lattice_test_f90: <input.yaml>"
+    stop
+  end if
+
+  call get_command_argument(1, input_file)
+
+  ! Print a banner with Skywalker's version info.
+  call print_banner()
+
   ! Load the ensemble. Any error encountered is fatal.
   print *, "lattice_test: Loading ensemble from ", trim(input_file)
   load_result = load_ensemble(trim(input_file), "settings")

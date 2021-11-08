@@ -24,6 +24,9 @@ int main(int argc, char **argv) {
   }
   const char* input_file = argv[1];
 
+  // Print a banner with Skywalker's version info.
+  sw_print_banner();
+
   // Load the ensemble. Any error encountered is fatal.
   fprintf(stderr, "lattice_test: Loading ensemble from %s\n", input_file);
   sw_ensemble_result_t load_result = sw_load_ensemble(input_file, "settings");

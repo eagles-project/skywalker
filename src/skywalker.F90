@@ -54,9 +54,9 @@ module skywalker
 
   ! This type stores the result of the attempt to fetch a setting.
   type :: settings_result_t
-    character(len=:), pointer :: value         ! fetched value (if error_code == 0)
-    integer                   :: error_code    ! error code indicating success or failure
-    character(len=:), pointer :: error_message ! text description of error
+    character(len=255) :: value         ! fetched value (if error_code == 0)
+    integer            :: error_code    ! error code indicating success or failure
+    character(len=255) :: error_message ! text description of error
   end type settings_result_t
 
   ! Input data for simulations. Opaque type.
@@ -72,7 +72,7 @@ module skywalker
   type :: input_result_t
     real(c_real)              :: value         ! fetched value (if error_code == 0)
     integer                   :: error_code    ! error code indicating success or failure
-    character(len=:), pointer :: error_message ! text description of error
+    character(len=255)        :: error_message ! text description of error
   end type input_result_t
 
   ! Output data for simulations. Opaque type.
@@ -85,8 +85,8 @@ module skywalker
 
   ! This type stores the result of an attempt to store an output metric.
   type :: output_result_t
-    integer                   :: error_code    ! error code indicating success or failure
-    character(len=:), pointer :: error_message ! text description of error
+    integer            :: error_code    ! error code indicating success or failure
+    character(len=255) :: error_message ! text description of error
   end type output_result_t
 
   ! This type contains all data loaded from an ensemble, including an error code
@@ -103,10 +103,13 @@ module skywalker
     ! (zero = success, non-zero = failure)
     integer :: error_code
     ! A string describing any error encountered, or NULL if error_code == 0.
-    character(len=:), pointer :: error_message
+    character(len=255) :: error_message
   end type ensemble_result_t
 
   interface
+
+    subroutine sw_print_banner() bind(c)
+    end subroutine
 
     subroutine sw_load_ensemble_f90(yaml_file, settings_block, &
                                     settings, ensemble, type, &
@@ -133,7 +136,8 @@ module skywalker
 
     logical(c_bool) function sw_ensemble_next(ensemble, input, output) bind(c)
       use iso_c_binding, only: c_ptr, c_bool
-      type(c_ptr), value, intent(in) :: ensemble, input, output
+      type(c_ptr), value, intent(in)  :: ensemble
+      type(c_ptr),        intent(out) :: input, output
     end function
 
     subroutine sw_input_get_f90(input, name, &
@@ -173,6 +177,11 @@ module skywalker
 
 contains
 
+  ! Prints a banner containing Skywalker's version info to stderr.
+    subroutine print_banner()
+      call sw_print_banner()
+    end subroutine
+
   ! Reads an ensemble from a YAML input file, returning a pointer to the ensemble
   ! (if the read was successful). The settings_block argument indicates the name
   ! of the YAML block to read to retrieve settings for the driver program using
@@ -191,12 +200,15 @@ contains
                               f_to_c_string(settings_block), &
                               e_result%settings%ptr, e_result%ensemble%ptr, &
                               e_result%type, e_result%error_code, c_err_msg)
-    e_result%ensemble%size = sw_ensemble_size(e_result%ensemble%ptr)
-    e_result%error_message = c_to_f_string(c_err_msg)
+    if (e_result%error_code == SW_SUCCESS) then
+      e_result%ensemble%size = sw_ensemble_size(e_result%ensemble%ptr)
+      ! Set the ensemble pointer on settings to allow proper destruction
+      ! using settings%get().
+      e_result%settings%ensemble_ptr = e_result%ensemble%ptr
+    else
+      e_result%error_message = c_to_f_string(c_err_msg)
+    end if
 
-    ! Set the ensemble pointer on settings to allow proper destruction
-    ! using settings%get().
-    e_result%settings%ensemble_ptr = e_result%ensemble%ptr
   end function
 
   ! Retrieves the setting with the given name, returning a result that can
@@ -213,8 +225,11 @@ contains
 
     call sw_settings_get_f90(settings%ptr, f_to_c_string(name), &
                              c_value, s_result%error_code, c_err_msg)
-    s_result%value = c_to_f_string(c_value)
-    s_result%error_message = c_to_f_string(c_err_msg)
+    if (s_result%error_code == SW_SUCCESS) then
+      s_result%value = c_to_f_string(c_value)
+    else
+      s_result%error_message = c_to_f_string(c_err_msg)
+    end if
   end function
 
   ! Retrieves the setting with the given name, halting the program if an
@@ -227,7 +242,7 @@ contains
     character(len=*), intent(in)  :: name
 
     type(settings_result_t) :: s_result
-    character(len=128) :: str
+    character(len=255) :: str
 
     s_result = settings%get_param(name)
     if (s_result%error_code /= SW_SUCCESS) then
@@ -253,7 +268,9 @@ contains
     call sw_input_get_f90(input%ptr, f_to_c_string(name), &
                           i_result%value, i_result%error_code, &
                           c_err_msg)
-    i_result%error_message = c_to_f_string(c_err_msg)
+    if (i_result%error_code /= SW_SUCCESS) then
+      i_result%error_message = c_to_f_string(c_err_msg)
+    end if
   end function
 
   ! Retrieves the input parameter with the given name.
@@ -332,8 +349,8 @@ contains
     implicit none
     type(c_ptr), value, intent(in) :: c_string
     character(len=:), pointer      :: f_ptr
-    character(len=:), allocatable  :: f_string
     integer(c_size_t)              :: c_string_len
+    character(len=255)             :: f_string
 
     interface
         function c_strlen(str_ptr) bind (c, name = "strlen" ) result(len)
@@ -343,11 +360,11 @@ contains
         end function c_strlen
     end interface
 
-    call c_f_pointer(c_string, f_ptr )
+    call c_f_pointer(c_string, f_ptr)
     c_string_len = c_strlen(c_string)
-
     f_string = f_ptr(1:c_string_len)
-  end function c_to_f_string
+
+  end function
 
   ! This helper function converts the given Fortran string to a C string.
   function f_to_c_string(f_string) result(c_string)
@@ -368,6 +385,6 @@ contains
 
     f_ptr => f_string
     c_string = sw_new_c_string(c_loc(f_ptr), len(f_string))
-  end function f_to_c_string
+  end function
 
 end module

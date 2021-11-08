@@ -35,7 +35,7 @@ program enumeration_test
 
   implicit none
 
-  character(len=255)      :: input_file = "enumeration_test.yaml"
+  character(len=255)      :: input_file
   type(ensemble_result_t) :: load_result
   type(settings_t)        :: settings
   type(ensemble_t)        :: ensemble
@@ -43,13 +43,24 @@ program enumeration_test
   type(input_t)           :: input
   type(output_t)          :: output
 
+  if (command_argument_count() /= 1) then
+    print *, "enumeration_test_f90: usage:"
+    print *, "enumeration_test_f90: <input.yaml>"
+    stop
+  end if
+
+  call get_command_argument(1, input_file)
+
+  ! Print a banner with Skywalker's version info.
+  call print_banner()
+
   ! Load the ensemble. Any error encountered is fatal.
-  print *, "enumeration_test: Loading ensemble from ", trim(input_file)
+  print *, "enumeration_test_f90: Loading ensemble from ", trim(input_file)
   load_result = load_ensemble(trim(input_file), "settings")
 
   ! Make sure everything is as it should be.
-  if (load_result%error_code /= 0) then
-    print *, "enumeration_test: ", trim(load_result%error_message)
+  if (load_result%error_code /= SW_SUCCESS) then
+    print *, "enumeration_test_f90: ", trim(load_result%error_message)
     stop
   end if
   assert(load_result%type == sw_enumeration)
