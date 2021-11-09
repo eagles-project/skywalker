@@ -22,10 +22,6 @@ jobs:
         build-type: [Debug, Release]
         fp-precision: [single, double]
 
-    # Environment variables
-    env:
-      FC: gfortran
-
     # Steps for building and running tests.
     steps:
 
@@ -49,7 +45,7 @@ jobs:
           -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} \
           -DCMAKE_C_COMPILER=cc \
           -DCMAKE_CXX_COMPILER=c++ \
-          -DCMAKE_Fortran_COMPILER=gfortran \
+          -DCMAKE_Fortran_COMPILER=gfortran-10 \
           -DSKYWALKER_PRECISION=${{ matrix.fp-precision }} \
           -G "Unix Makefiles" \
           ..
