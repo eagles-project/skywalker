@@ -1,0 +1,67 @@
+name: auto_test
+
+# This action is triggered:
+# 1. when someone creates a pull request for a merge to the main branch
+# 2. when changes are merged into the main branch (via a pull request)
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+# Below are jobs, each of which runs sequentially.
+jobs:
+  # This job builds the box model and runs our test suite.
+  build:
+    runs-on: ${{ matrix.os }}
+
+    # A build matrix storing all desired configurations.
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        build-type: [Debug, Release]
+        fp-precision: [single, double]
+
+    # Environment variables
+    env:
+      FC: gfortran
+
+    # Steps for building and running tests.
+    steps:
+
+    - name: Installing GFortran
+      if: contains(matrix.os, 'ubuntu')
+      run: sudo apt-get install gfortran
+
+    - name: Checking out repository
+      uses: actions/checkout@v2
+
+    - name: Configuring Skywalker (${{ matrix.build-type }}, ${{ matrix.fp-precision }} precision)
+      run: |
+        mkdir build
+        cd build
+        cmake \
+          -DCMAKE_INSTALL_PREFIX=`pwd`/build \
+          -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} \
+          -DCMAKE_Fortran_COMPILER=gfortran \
+          -DCMAKE_C_COMPILER=cc \
+          -DCMAKE_CXX_COMPILER=c++ \
+          -DSKYWALKER_PRECISION=${{ matrix.fp-precision }} \
+          -G "Unix Makefiles" \
+          ..
+
+    - name: Building Skywalker (${{ matrix.build-type }}, ${{ matrix.fp-precision }} precision)
+      run: |
+        cd build
+        make -j
+
+    - name: Running tests (${{ matrix.build-type }}, ${{ matrix.fp-precision }} precision)
+      run: |
+        cd build
+        ctest -V
+
+    - name: Installing the box model (${{ matrix.build-type }}, ${{ matrix.fp-precision }} precision)
+      run: |
+        cd build
+        make install
+
