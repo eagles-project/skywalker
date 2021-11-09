@@ -4,6 +4,7 @@
 #include <skywalker.h>
 
 #include <exception>
+#include <functional>
 #include <string>
 
 namespace skywalker {
