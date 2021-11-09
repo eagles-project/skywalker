@@ -39,3 +39,13 @@ Above we've used the three most useful configuration options:
 * `SKYWALKER_PRECISION` can be set to `single` or `double` (default) to control
   the precision of floating point numbers.
 
+## External (third-party libraries)
+
+Skywalker uses the following libraries, which are provided as submodules in the
+`ext` directory:
+
+* [klib](https://github.com/attractivechaos/klib) - a library of C data
+  structures
+* [libyaml](https://github.com/yaml/libyaml) - a simple YAML parser
+
+The source code for each library is covered by its license.
