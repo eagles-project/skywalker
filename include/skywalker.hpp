@@ -23,7 +23,9 @@ class Exception : public std::exception {
 };
 
 // Prints a banner containing Skywalker's version info to stderr.
-void print_banner();
+void printBanner() {
+  sw_print_banner();
+}
 
 // Precision of real numbers
 using Real = sw_real_t;
@@ -68,8 +70,7 @@ class Settings final {
 // ensemble member.
 class Input final {
  public:
-  // Not directly constructible, copy constructible, or assignable.
-  Input() = delete;
+  Input() = default;;
   Input(const Input& rhs): input_(rhs.input_) {}
   Input& operator=(const Input& rhs) {
     if (&rhs != this) {
@@ -102,7 +103,7 @@ class Input final {
 class Output final {
  public:
   // Not directly constructible.
-  Output() = delete;
+  Output() = default;
   Output(const Output& rhs): output_(rhs.output_) {}
   Output& operator=(const Output& rhs) {
     if (&rhs != this) {
@@ -146,73 +147,15 @@ class Ensemble final {
   // Returns the settings associated with this ensemble.
   const Settings& settings() const { return settings_; }
 
-  //---------------------------------
-  // Iteration over ensemble members
-  //---------------------------------
-
-  // Here's an ensemble member. This is what you get when you dereference an
-  // Iterator.
-  struct Member {
-    Member(Input input, Output output):
-      input(input), output(output) {}
-    Input input;
-    Output output;
-  };
-
-  // Iterator type.
-  class Iterator {
-   public:
-
-   Iterator() = delete;
-   Iterator(const Iterator& iter):
-     ensemble_(iter.ensemble_), member_(iter.member_) {}
-   Iterator& operator=(const Iterator iter) {
-     if (&iter != this) {
-       ensemble_ = iter.ensemble_;
-       member_ = iter.member_;
-     }
-     return *this;
-   }
-   ~Iterator() = default;
-
-   // Dereferencing operators.
-   const Member& operator*() const { return member_; }
-   const Member* operator->() const { return &member_; }
-
-   // Incrementing operator.
-   Iterator operator++() {
-     if (sw_ensemble_next(ensemble_, &member_.input.input_, &member_.output.output_)) {
-       return *this;
-     } else {
-       return Iterator(nullptr, nullptr, nullptr);
-     }
-   }
-
-   // Equality comparison(s)
-   bool operator==(const Iterator& iter) const {
-    return ((ensemble_ == iter.ensemble_) and
-            (member_.input.input_ == iter.member_.input.input_) and
-            (member_.output.output_ == iter.member_.output.output_));
-   }
-   bool operator!=(const Iterator& iter) const {
-    return ((ensemble_ != iter.ensemble_) or
-            (member_.input.input_ != iter.member_.input.input_) or
-            (member_.output.output_ != iter.member_.output.output_));
-   }
-
-   private:
-    Iterator(sw_ensemble_t *ensemble, sw_input_t *input, sw_output_t *output):
-      ensemble_(ensemble), member_(Input(input), Output(output)) {}
-
-    friend class Ensemble;
-
-    sw_ensemble_t *ensemble_;
-    Member member_;
-  };
-
-  // Iterators allowing traversal of ensemble members.
-  Iterator begin() const { return Iterator(ensemble_, nullptr, nullptr); }
-  Iterator end() const { return Iterator(nullptr, nullptr, nullptr); }
+  // Iterates over all ensemble members, applying the given function f to
+  // each input/output pair.
+  void process(std::function<void(const Input&, Output&)> f) {
+    Input i;
+    Output o;
+    while (sw_ensemble_next(ensemble_, &(i.input_), &(o.output_))) {
+      f(i, o);
+    }
+  }
 
   // Returns the size of the ensemble (number of members).
   size_t size() const { return sw_ensemble_size(ensemble_); }

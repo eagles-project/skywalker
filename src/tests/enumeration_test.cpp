@@ -28,7 +28,7 @@ int main(int argc, char **argv) {
   std::string input_file = argv[1];
 
   // Print a banner with Skywalker's version info.
-  print_banner();
+  printBanner();
 
   // Load the ensemble. Any error encountered is fatal.
   std::cerr << "enumeration_test: Loading ensemble from " << input_file << std::endl;
@@ -47,23 +47,23 @@ int main(int argc, char **argv) {
 
   // Ensemble data
   assert(ensemble->size() == 11);
-  for (auto& iter: ensemble) {
+  ensemble->process([](const Input& input, Output& output) {
     // Fixed parameters
-    assert(approx_equal(iter->input.get("p1"), 1.0));
-    assert(approx_equal(iter->input.get("p2"), 2.0));
-    assert(approx_equal(iter->input.get("p3"), 3.0));
+    assert(approx_equal(input.get("p1"), 1.0));
+    assert(approx_equal(input.get("p2"), 2.0));
+    assert(approx_equal(input.get("p3"), 3.0));
 
     // Ensemble parameters
-    assert(iter->input.get("tick") >= 0.0);
-    assert(iter->input.get("tick") <= 10.0);
+    assert(input.get("tick") >= 0.0);
+    assert(input.get("tick") <= 10.0);
 
-    assert(iter->input.get("tock") >= 1e1);
-    assert(iter->input.get("tock") <= 1e11);
+    assert(input.get("tock") >= 1e1);
+    assert(input.get("tock") <= 1e11);
 
     // Look for a parameter that doesn't exist.
     bool caught = false;
     try {
-      auto nope = iter->input.get("invalid_param");
+      input.get("invalid_param");
     }
     catch (Exception&) {
       caught = true;
@@ -71,8 +71,8 @@ int main(int argc, char **argv) {
     assert(caught);
 
     // Add a "qoi" metric set to 4.
-    iter->output.set("qoi", 4.0);
-  }
+    output.set("qoi", 4.0);
+  });
 
   // Write out a Python module.
   ensemble->write("enumeration_test_cpp.py");
