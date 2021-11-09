@@ -23,13 +23,13 @@ endforeach()
 # Here we build the skywalker C library.
 add_library(skywalker skywalker.c ${LIBYAML_SOURCES})
 set_target_properties(skywalker PROPERTIES
-                                OUTPUT_NAME skywalker_${SKYWALKER_REAL_TYPE}
+                                OUTPUT_NAME skywalker_${SKYWALKER_PRECISION}
                                 COMPILE_DEFINITIONS "HAVE_CONFIG_H=1")
 
 # The Fortran library is just like the C library, but with Fortran!
 add_library(skywalker_f90 skywalker.c skywalker.F90 ${LIBYAML_SOURCES})
 set_target_properties(skywalker_f90 PROPERTIES
-                                    OUTPUT_NAME skywalker_f90_${SKYWALKER_REAL_TYPE}
+                                    OUTPUT_NAME skywalker_f90_${SKYWALKER_PRECISION}
                                     COMPILE_DEFINITIONS "SKYWALKER_F90=1;HAVE_CONFIG_H=1")
 
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/skywalker.mod
