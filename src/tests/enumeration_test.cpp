@@ -41,29 +41,29 @@ int main(int argc, char **argv) {
 
   // Settings
   Settings settings = ensemble->settings();
-  assert(settings["param1"] == "hello");
-  assert(settings["param2"] == "81");
-  assert(settings["param3"] == "3.14159265357");
+  assert(settings.get("param1") == "hello");
+  assert(settings.get("param2") == "81");
+  assert(settings.get("param3") == "3.14159265357");
 
   // Ensemble data
   assert(ensemble->size() == 11);
   for (auto& iter: ensemble) {
     // Fixed parameters
-    assert(approx_equal(iter->input["p1"], 1.0));
-    assert(approx_equal(iter->input["p2"], 2.0));
-    assert(approx_equal(iter->input["p3"], 3.0));
+    assert(approx_equal(iter->input.get("p1"), 1.0));
+    assert(approx_equal(iter->input.get("p2"), 2.0));
+    assert(approx_equal(iter->input.get("p3"), 3.0));
 
     // Ensemble parameters
-    assert(iter->input["tick"] >= 0.0);
-    assert(iter->input["tick"] <= 10.0);
+    assert(iter->input.get("tick") >= 0.0);
+    assert(iter->input.get("tick") <= 10.0);
 
-    assert(iter->input["tock"] >= 1e1);
-    assert(iter->input["tock"] <= 1e11);
+    assert(iter->input.get("tock") >= 1e1);
+    assert(iter->input.get("tock") <= 1e11);
 
     // Look for a parameter that doesn't exist.
     bool caught = false;
     try {
-      auto nope = iter->input["invalid_param"];
+      auto nope = iter->input.get("invalid_param");
     }
     catch (Exception&) {
       caught = true;

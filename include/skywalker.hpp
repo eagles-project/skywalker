@@ -48,7 +48,7 @@ class Settings final {
 
   // Retrieves a (string-valued) setting with the given name, throwing an
   // exception if it doesn't exist.
-  std::string operator[](const std::string& name) const {
+  std::string get(const std::string& name) const {
     auto result = sw_settings_get(settings_, name.c_str());
     if (result.error_code == SW_SUCCESS) {
       return std::string(result.value);
@@ -82,7 +82,7 @@ class Input final {
 
   // Retrieves a (real-valued) parameter with the given name, throwing an
   // exception if it doesn't exist.
-  Real operator[](const std::string& name) const {
+  Real get(const std::string& name) const {
     auto result = sw_input_get(input_, name.c_str());
     if (result.error_code == SW_SUCCESS) {
       return result.value;

@@ -341,7 +341,6 @@ void postprocess_input_data(yaml_data_t *yaml_data) {
 
     if (!kh_exist(yaml_data->input, iter)) continue;
 
-    const char *param_name = kh_key(yaml_data->input, iter);
     real_vec_t values = kh_value(yaml_data->input, iter);
 
     if (kv_size(values) == 3) {
