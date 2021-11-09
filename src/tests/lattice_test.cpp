@@ -27,7 +27,7 @@ int main(int argc, char **argv) {
   std::string input_file = argv[1];
 
   // Print a banner with Skywalker's version info.
-  printBanner();
+  print_banner();
 
   // Load the ensemble. Any error encountered is fatal.
   std::cerr << "lattice_test: Loading ensemble from " << input_file << std::endl;

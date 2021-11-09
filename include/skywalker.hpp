@@ -23,12 +23,15 @@ class Exception : public std::exception {
 };
 
 // Prints a banner containing Skywalker's version info to stderr.
-void printBanner() {
+void print_banner() {
   sw_print_banner();
 }
 
 // Precision of real numbers
 using Real = sw_real_t;
+
+// Ensemble type (SW_LATTICE or SW_ENUMERATION).
+using EnsembleType = sw_ens_type_t;
 
 // A table of string-valued settings, read from a settings block in a YAML
 // file.
@@ -142,7 +145,7 @@ class Ensemble final {
   }
 
   // Returns the type of the ensemble (SW_LATTICE or SW_ENUMERATION).
-  sw_ens_type_t type() const { return type_; }
+  EnsembleType type() const { return type_; }
 
   // Returns the settings associated with this ensemble.
   const Settings& settings() const { return settings_; }
