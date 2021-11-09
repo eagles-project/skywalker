@@ -31,6 +31,8 @@ elseif(SKYWALKER_PRECISION STREQUAL "double" OR NOT SKYWALKER_PRECISION)
   set(SKYWALKER_REAL_TYPE "double")
   set(SKYWALKER_REAL_KIND "dp")
   set(SKYWALKER_DOUBLE_PRECISION 1)
+else()
+  message(FATAL_ERROR "Invalid precision: ${SKYWALKER_PRECISION} (must be single or double)")
 endif()
 message(STATUS "Using ${SKYWALKER_PRECISION} precision floating point numbers")
 
