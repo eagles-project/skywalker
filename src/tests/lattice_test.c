@@ -3,7 +3,6 @@
 #include <skywalker.h>
 
 #include <assert.h>
-#include <stdio.h>
 #include <string.h>
 #include <tgmath.h>
 

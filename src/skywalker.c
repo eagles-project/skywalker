@@ -950,6 +950,8 @@ bool sw_ensemble_next(sw_ensemble_t *ensemble,
                       sw_input_t **input,
                       sw_output_t **output) {
   if (ensemble->position >= (int)ensemble->size) {
+    *input = NULL;
+    *output = NULL;
     return false;
   }
 

@@ -4,7 +4,6 @@
 #include <skywalker.h>
 
 #include <assert.h>
-#include <stdio.h>
 #include <string.h>
 #include <tgmath.h>
 
@@ -64,7 +63,6 @@ int main(int argc, char **argv) {
 
   // Ensemble data
   sw_ensemble_t *ensemble = load_result.ensemble;
-  printf("%d\n", sw_ensemble_size(ensemble));
   assert(sw_ensemble_size(ensemble) == 11);
   sw_input_t *input;
   sw_output_t *output;

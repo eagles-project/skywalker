@@ -10,6 +10,7 @@ set(CMAKE_CXX_STANDARD 11)
 
 message(STATUS "Generating project files in build directory: ${PROJECT_BINARY_DIR}")
 message(STATUS "C compiler is ${CMAKE_C_COMPILER} (${CMAKE_C_COMPILER_ID} ${CMAKE_C_COMPILER_VERSION})")
+message(STATUS "C++ compiler is ${CMAKE_CXX_COMPILER} (${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION})")
 message(STATUS "Fortran compiler is ${CMAKE_Fortran_COMPILER} (${CMAKE_Fortran_COMPILER_ID} ${CMAKE_Fortran_COMPILER_VERSION})")
 
 # Version numbers.
@@ -114,7 +115,9 @@ configure_file(
   @ONLY
 )
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/skywalker.h
-        DESTINATION include/skywalker)
+        DESTINATION include)
+install(FILES ${PROJECT_SOURCE_DIR}/include/skywalker.hpp
+        DESTINATION include)
 
 # Generate skywalker.cmake with installation information
 configure_file(

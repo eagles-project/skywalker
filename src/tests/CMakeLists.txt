@@ -1,3 +1,4 @@
+include_directories(${PROJECT_SOURCE_DIR}/include) # for skywalker.hpp
 include_directories(${PROJECT_BINARY_DIR}/src) # for skywalker.mod
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_BINARY_DIR}/share/")
@@ -15,6 +16,8 @@ endforeach()
 foreach(test lattice_test enumeration_test)
   add_skywalker_driver(${test} ${test}.c)
   add_test(${test} ${test} ${test}.yaml)
+  add_skywalker_driver(${test}_cpp ${test}.cpp)
+  add_test(${test}_cpp ${test}_cpp ${test}.yaml)
   add_skywalker_driver(${test}_f90 ${test}.F90)
   add_test(${test}_f90 ${test}_f90 ${test}.yaml)
 endforeach()
