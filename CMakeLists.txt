@@ -115,7 +115,7 @@ configure_file(
   ${CMAKE_CURRENT_BINARY_DIR}/include/skywalker.h
   @ONLY
 )
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/skywalker.h
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/include/skywalker.h
         DESTINATION include)
 install(FILES ${PROJECT_SOURCE_DIR}/include/skywalker.hpp
         DESTINATION include)

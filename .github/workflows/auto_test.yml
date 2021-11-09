@@ -45,7 +45,7 @@ jobs:
         mkdir build
         cd build
         cmake \
-          -DCMAKE_INSTALL_PREFIX=`pwd`/build \
+          -DCMAKE_INSTALL_PREFIX=`pwd`/../install \
           -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} \
           -DCMAKE_C_COMPILER=cc \
           -DCMAKE_CXX_COMPILER=c++ \
