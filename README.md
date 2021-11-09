@@ -34,7 +34,7 @@ Above we've used the three most useful configuration options:
 * `CMAKE_INSTALL_PREFIX` sets the path to which the Skywalker C, C++, and
   Fortran headers/module and libraries are installed. This is often something
   like `/usr/local` by default.
-* `CMAKE_BUILD_TYPE` controls whether optimizatin is on (`Release`) or whether
+* `CMAKE_BUILD_TYPE` controls whether optimization is on (`Release`) or whether
   the build is instrumented for a debugger (`Debug`).
 * `SKYWALKER_PRECISION` can be set to `single` or `double` (default) to control
   the precision of floating point numbers.
