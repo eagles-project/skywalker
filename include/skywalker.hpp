@@ -97,7 +97,7 @@ class Input final {
   }
 
  private:
-  Input(sw_input_t *i): input_(i) {}
+  explicit Input(sw_input_t *i): input_(i) {}
   sw_input_t *input_;
   friend class Ensemble;
 };
@@ -106,7 +106,6 @@ class Input final {
 // ensemble member.
 class Output final {
  public:
-  // Not directly constructible.
   Output() = default;
   Output(const Output& rhs): output_(rhs.output_) {}
   Output& operator=(const Output& rhs) {
@@ -128,7 +127,7 @@ class Output final {
   }
 
  private:
-  Output(sw_output_t *o): output_(o) {}
+  explicit Output(sw_output_t *o): output_(o) {}
   sw_output_t *output_;
   friend class Ensemble;
 };
@@ -171,7 +170,7 @@ class Ensemble final {
   }
 
  private:
-  explicit Ensemble(sw_ens_type_t t, sw_ensemble_t *e, sw_settings_t* s):
+  Ensemble(sw_ens_type_t t, sw_ensemble_t *e, sw_settings_t* s):
     type_(t), ensemble_(e), settings_(Settings(s)) {}
 
   sw_ens_type_t type_;
