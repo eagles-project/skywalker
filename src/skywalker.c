@@ -168,6 +168,11 @@ static sw_output_result_t sw_settings_set(sw_settings_t *settings,
   return result;
 }
 
+bool sw_settings_has(sw_settings_t *settings, const char* name) {
+  khiter_t iter = kh_get(string_map, settings->params, name);
+  return (iter != kh_end(settings->params));
+}
+
 sw_settings_result_t sw_settings_get(sw_settings_t *settings,
                                     const char* name) {
   khiter_t iter = kh_get(string_map, settings->params, name);
@@ -198,8 +203,12 @@ static sw_output_result_t sw_input_set(sw_input_t *input,
   return result;
 }
 
-sw_input_result_t sw_input_get(sw_input_t *input,
-                               const char *name) {
+bool sw_input_has(sw_input_t *input, const char *name) {
+  khiter_t iter = kh_get(param_map, input->params, name);
+  return (iter != kh_end(input->params));
+}
+
+sw_input_result_t sw_input_get(sw_input_t *input, const char *name) {
   khiter_t iter = kh_get(param_map, input->params, name);
   sw_input_result_t result = {.error_code = SW_SUCCESS};
   if (iter != kh_end(input->params)) {

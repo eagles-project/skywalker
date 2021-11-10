@@ -125,9 +125,12 @@ typedef struct sw_setting_result_t {
   const char* error_message; // text description of error
 } sw_settings_result_t;
 
+// Returns true if the setting with the given name exists within the given
+// settings instance, false otherwise.
+bool sw_settings_has(sw_settings_t *settings, const char* name);
+
 // Retrieves the setting with the given name.
-sw_settings_result_t sw_settings_get(sw_settings_t *settings,
-                                     const char *name);
+sw_settings_result_t sw_settings_get(sw_settings_t *settings, const char *name);
 
 // Returns the size of the given ensemble.
 size_t sw_ensemble_size(sw_ensemble_t* ensemble);
@@ -148,9 +151,12 @@ typedef struct sw_input_result_t {
   const char* error_message; // text description of error
 } sw_input_result_t;
 
+// Returns true if the input parameter with the given name exists within the
+// given input instance, false otherwise.
+bool sw_input_has(sw_input_t *input, const char* name);
+
 // Retrieves the input parameter with the given name.
-sw_input_result_t sw_input_get(sw_input_t *input,
-                               const char *name);
+sw_input_result_t sw_input_get(sw_input_t *input, const char *name);
 
 // This type stores the result of an attempt to store an output metric.
 typedef struct sw_output_result_t {

@@ -85,6 +85,7 @@ module skywalker
     type(c_ptr) :: ptr, ensemble_ptr
   contains
     ! Fetches a user-defined parameter.
+    procedure :: has => settings_has
     procedure :: get => settings_get
     procedure :: get_param => settings_get_param
   end type
@@ -101,6 +102,7 @@ module skywalker
     type(c_ptr) :: ptr, ensemble_ptr
   contains
     ! Fetches a user-defined parameter.
+    procedure :: has => input_has
     procedure :: get => input_get
     procedure :: get_param => input_get_param
   end type input_t
@@ -157,6 +159,11 @@ module skywalker
       integer(c_int), intent(out) :: type, error_code
     end subroutine
 
+    logical(c_bool) function sw_settings_has(settings, name) bind(c)
+      use iso_c_binding, only: c_ptr, c_bool
+      type(c_ptr), value, intent(in) :: settings, name
+    end function
+
     subroutine sw_settings_get_f90(settings, name, &
                                    value, error_code, error_message) bind(c)
       use iso_c_binding, only: c_ptr, c_int, c_double, c_float
@@ -175,6 +182,11 @@ module skywalker
       use iso_c_binding, only: c_ptr, c_bool
       type(c_ptr), value, intent(in)  :: ensemble
       type(c_ptr),        intent(out) :: input, output
+    end function
+
+    logical(c_bool) function sw_input_has(input, name) bind(c)
+      use iso_c_binding, only: c_ptr, c_bool
+      type(c_ptr), value, intent(in) :: input, name
     end function
 
     subroutine sw_input_get_f90(input, name, &
@@ -248,6 +260,19 @@ contains
 
   end function
 
+  ! Returns .true. if the setting with the given name exists within the given
+  ! settings instance, false otherwise.
+  function settings_has(settings, name) result(has)
+    use iso_c_binding, only: c_ptr
+    implicit none
+
+    class(settings_t), intent(in) :: settings
+    character(len=*), intent(in)  :: name
+    logical(c_bool) :: has
+
+    has = sw_settings_has(settings%ptr, f_to_c_string(name))
+  end function
+
   ! Retrieves the setting with the given name, returning a result that can
   ! be checked for errors that occur.
   function settings_get_param(settings, name) result(s_result)
@@ -289,6 +314,19 @@ contains
     else
       str = s_result%value
     end if
+  end function
+
+  ! Returns .true. if the input parameter with the given name exists within the
+  ! given input instance, false otherwise.
+  function input_has(input, name) result(has)
+    use iso_c_binding, only: c_ptr
+    implicit none
+
+    class(input_t), intent(in) :: input
+    character(len=*), intent(in)  :: name
+    logical(c_bool) :: has
+
+    has = sw_input_has(input%ptr, f_to_c_string(name))
   end function
 
   ! Retrieves the input parameter with the given name, halting on errors.

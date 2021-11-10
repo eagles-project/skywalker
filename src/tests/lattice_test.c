@@ -79,20 +79,26 @@ int main(int argc, char **argv) {
   // Settings
   sw_settings_t *settings = load_result.settings;
   sw_settings_result_t settings_result;
+
+  assert(sw_settings_has(settings, "param1"));
   settings_result = sw_settings_get(settings, "param1");
   assert(settings_result.error_code == 0);
   assert(strcmp(settings_result.value, "hello") == 0);
   assert(settings_result.error_message == NULL);
 
+  assert(sw_settings_has(settings, "param2"));
   settings_result = sw_settings_get(settings, "param2");
   assert(settings_result.error_code == 0);
   assert(strcmp(settings_result.value, "81") == 0);
   assert(settings_result.error_message == NULL);
 
+  assert(sw_settings_has(settings, "param3"));
   settings_result = sw_settings_get(settings, "param3");
   assert(settings_result.error_code == 0);
   assert(strcmp(settings_result.value, "3.14159265357") == 0);
   assert(settings_result.error_message == NULL);
+
+  assert(!sw_settings_has(settings, "nonexistent_param"));
 
   // Ensemble data
   sw_ensemble_t *ensemble = load_result.ensemble;
@@ -103,58 +109,68 @@ int main(int argc, char **argv) {
     sw_input_result_t in_result;
 
     // Fixed parameters
+    assert(sw_input_has(input, "p1"));
     in_result = sw_input_get(input, "p1");
     assert(in_result.error_code == SW_SUCCESS);
     assert(approx_equal(in_result.value, 1.0));
     assert(in_result.error_message == NULL);
 
+    assert(sw_input_has(input, "p2"));
     in_result = sw_input_get(input, "p2");
     assert(in_result.error_code == SW_SUCCESS);
     assert(approx_equal(in_result.value, 2.0));
     assert(in_result.error_message == NULL);
 
+    assert(sw_input_has(input, "p3"));
     in_result = sw_input_get(input, "p3");
     assert(in_result.error_code == SW_SUCCESS);
     assert(approx_equal(in_result.value, 3.0));
     assert(in_result.error_message == NULL);
 
     // Ensemble parameters
+    assert(sw_input_has(input, "tick"));
     in_result = sw_input_get(input, "tick");
     assert(in_result.error_code == SW_SUCCESS);
     assert(in_result.value >= 0.0);
     assert(in_result.value <= 10.0);
     assert(in_result.error_message == NULL);
 
+    assert(sw_input_has(input, "tock"));
     in_result = sw_input_get(input, "tock");
     assert(in_result.error_code == SW_SUCCESS);
     assert(in_result.value >= 1e1);
     assert(in_result.value <= 1e4);
     assert(in_result.error_message == NULL);
 
+    assert(sw_input_has(input, "pair"));
     in_result = sw_input_get(input, "pair");
     assert(in_result.error_code == SW_SUCCESS);
     assert(in_result.value >= 1.0);
     assert(in_result.value <= 2.0);
     assert(in_result.error_message == NULL);
 
+    assert(sw_input_has(input, "triple"));
     in_result = sw_input_get(input, "triple");
     assert(in_result.error_code == SW_SUCCESS);
     assert(in_result.value >= 1.0);
     assert(in_result.value <= 3.0);
     assert(in_result.error_message == NULL);
 
+    assert(sw_input_has(input, "quartet"));
     in_result = sw_input_get(input, "quartet");
     assert(in_result.error_code == SW_SUCCESS);
     assert(in_result.value >= 1.0);
     assert(in_result.value <= 4.0);
     assert(in_result.error_message == NULL);
 
+    assert(sw_input_has(input, "quintet"));
     in_result = sw_input_get(input, "quintet");
     assert(in_result.error_code == SW_SUCCESS);
     assert(in_result.value >= 1.0);
     assert(in_result.value <= 5.0);
     assert(in_result.error_message == NULL);
 
+    assert(sw_input_has(input, "sextet"));
     in_result = sw_input_get(input, "sextet");
     assert(in_result.error_code == SW_SUCCESS);
     assert(in_result.value >= 1.0);
@@ -162,6 +178,7 @@ int main(int argc, char **argv) {
     assert(in_result.error_message == NULL);
 
     // Look for a parameter that doesn't exist.
+    assert(!sw_input_has(input, "invalid_param"));
     in_result = sw_input_get(input, "invalid_param");
     assert(in_result.error_code == SW_PARAM_NOT_FOUND);
     assert(in_result.error_message != NULL);

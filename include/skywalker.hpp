@@ -89,6 +89,12 @@ class Settings final {
 
   ~Settings() = default;
 
+  // Returns true if the setting with the given name exists within the given
+  // settings instance, false otherwise.
+  bool has(const std::string& name) const {
+    return sw_settings_has(settings_, name.c_str());
+  }
+
   // Retrieves a (string-valued) setting with the given name, throwing an
   // exception if it doesn't exist.
   std::string get(const std::string& name) const {
@@ -121,6 +127,12 @@ class Input final {
   }
 
   ~Input() = default;
+
+  // Returns true if the input parameter with the given name exists within the
+  // given input instance, false otherwise.
+  bool has(const std::string& name) const {
+    return sw_input_has(input_, name.c_str());
+  }
 
   // Retrieves a (real-valued) parameter with the given name, throwing an
   // exception if it doesn't exist.

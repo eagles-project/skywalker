@@ -104,24 +104,40 @@ program enumeration_test
 
   ! check settings
   settings = load_result%settings
+
+  assert(settings%has("param1"));
   assert(trim(settings%get("param1")) == "hello")
+  assert(settings%has("param2"));
   assert(trim(settings%get("param2")) == "81")
+  assert(settings%has("param3"));
   assert(trim(settings%get("param3")) == "3.14159265357")
+
+  assert(.not. settings%has("nonexistent_param"));
 
   ! ensemble information
   ensemble = load_result%ensemble
   assert(ensemble%size == 11)
   do while (ensemble%next(input, output))
+    assert(input%has("p1"));
     assert(approx_equal(input%get("p1"), 1.0_wp))
+
+    assert(input%has("p2"));
     assert(approx_equal(input%get("p2"), 2.0_wp))
+
+    assert(input%has("p3"));
     assert(approx_equal(input%get("p3"), 3.0_wp))
+
+    assert(input%has("tick"));
     assert(input%get("tick") >= 0.0_wp)
     assert(input%get("tick") <= 10.0_wp)
+
+    assert(input%has("tock"));
     assert(input%get("tock") >= 1e1_wp)
     assert(input%get("tock") <= 1e11_wp)
 
     ! Look for a parameter that doesn't exist, checking its result by calling
     ! get_param() instead of get().
+    assert(.not. input%has("invalid_param"));
     in_result = input%get_param("invalid_param")
     assert(in_result%error_code == SW_PARAM_NOT_FOUND)
 
