@@ -21,7 +21,7 @@ a debuggable build of Skywalker that uses double precision, do the following:
 ```
 mkdir build
 cd build
-cmake -CMAKE_INSTALL_PREFIX=/path/to/install \
+cmake -DCMAKE_INSTALL_PREFIX=/path/to/install \
       -DCMAKE_BUILD_TYPE=Debug \
       -DSKYWALKER_PRECISION=double \
       ..
