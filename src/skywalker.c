@@ -254,7 +254,10 @@ static klist_t(string_list)* yaml_strings_ = NULL;
 
 // This function cleans up all maintained strings at the end of a process.
 static void free_yaml_strings() {
-  kl_destroy(string_list, yaml_strings_);
+  if (yaml_strings_) {
+    kl_destroy(string_list, yaml_strings_);
+    yaml_strings_ = NULL;
+  }
 }
 
 // This function creates a copy of a string encountered in the YAML parser,
