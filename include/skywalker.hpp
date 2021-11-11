@@ -43,6 +43,7 @@
 #include <exception>
 #include <functional>
 #include <string>
+#include <vector>
 
 namespace skywalker {
 
@@ -140,6 +141,23 @@ class Input final {
     auto result = sw_input_get(input_, name.c_str());
     if (result.error_code == SW_SUCCESS) {
       return result.value;
+    } else {
+      throw Exception(result.error_message);
+    }
+  }
+
+  // Returns true if an input array parameter with the given name exists within
+  // the given input instance, false otherwise.
+  bool has_array(const std::string& name) const {
+    return sw_input_has_array(input_, name.c_str());
+  }
+
+  // Retrieves a (real-valued) array parameter with the given name, throwing an
+  // exception if it doesn't exist.
+  std::vector<Real> get_array(const std::string& name) const {
+    auto result = sw_input_get_array(input_, name.c_str());
+    if (result.error_code == SW_SUCCESS) {
+      return std::vector<Real>(result.values, result.values + result.size);
     } else {
       throw Exception(result.error_message);
     }

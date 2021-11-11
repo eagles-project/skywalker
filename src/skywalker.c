@@ -70,6 +70,10 @@ KHASH_MAP_INIT_STR(string_map, const char*)
 // A hash table whose keys are C strings and whose values are real numbers.
 KHASH_MAP_INIT_STR(param_map, sw_real_t)
 
+// A hash table whose keys are C strings and whose values are real number arrays.
+typedef kvec_t(sw_real_t) real_vec_t;
+KHASH_MAP_INIT_STR(array_param_map, real_vec_t)
+
 // A list of strings to be deallocated by skywalker.
 static klist_t(string_list)* sw_strings_ = NULL;
 
@@ -189,6 +193,7 @@ sw_settings_result_t sw_settings_get(sw_settings_t *settings,
 
 struct sw_input_t {
   khash_t(param_map) *params;
+  khash_t(array_param_map) *array_params;
 };
 
 static sw_output_result_t sw_input_set(sw_input_t *input,
@@ -200,6 +205,18 @@ static sw_output_result_t sw_input_set(sw_input_t *input,
   khiter_t iter = kh_put(param_map, input->params, n, &ret);
   assert(ret == 1);
   kh_value(input->params, iter) = value;
+  return result;
+}
+
+static sw_output_result_t sw_input_set_array(sw_input_t *input,
+                                             const char *name,
+                                             real_vec_t values) {
+  sw_output_result_t result = {.error_code = SW_SUCCESS};
+  const char* n = dup_string(name);
+  int ret;
+  khiter_t iter = kh_put(array_param_map, input->array_params, n, &ret);
+  assert(ret == 1);
+  kh_value(input->array_params, iter) = values;
   return result;
 }
 
@@ -216,6 +233,28 @@ sw_input_result_t sw_input_get(sw_input_t *input, const char *name) {
   } else {
     result.error_code = SW_PARAM_NOT_FOUND;
     const char *s = new_string("The input parameter '%s' was not found.", name);
+    result.error_message = s;
+  }
+  return result;
+}
+
+bool sw_input_has_array(sw_input_t *input, const char *name) {
+  khiter_t iter = kh_get(array_param_map, input->array_params, name);
+  return (iter != kh_end(input->array_params));
+}
+
+sw_input_array_result_t sw_input_get_array(sw_input_t *input, const char *name) {
+  khiter_t iter = kh_get(array_param_map, input->array_params, name);
+  sw_input_array_result_t result = {.error_code = SW_SUCCESS};
+  if (iter != kh_end(input->array_params)) {
+    real_vec_t values = kh_val(input->array_params, iter);
+    result.size = kv_size(values);
+    result.values = malloc(sizeof(sw_real_t) * result.size);
+    memcpy(result.values, values.a, sizeof(sw_real_t) * result.size);
+  } else {
+    result.error_code = SW_PARAM_NOT_FOUND;
+    const char *s = new_string("The input array parameter '%s' was not found.",
+                               name);
     result.error_message = s;
   }
   return result;
@@ -279,7 +318,6 @@ static const char* dup_yaml_string(const char *s) {
 }
 
 // A hash table whose keys are C strings and whose values are arrays of numbers.
-typedef kvec_t(sw_real_t) real_vec_t;
 KHASH_MAP_INIT_STR(yaml_param_map, real_vec_t)
 
 // This type stores data parsed from YAML.
@@ -867,6 +905,7 @@ static sw_build_result_t build_lattice_ensemble(yaml_data_t yaml_data) {
   result.inputs = malloc(sizeof(sw_input_t) * result.num_inputs);
   for (size_t l = 0; l < result.num_inputs; ++l) {
     result.inputs[l].params = kh_init(param_map);
+    result.inputs[l].array_params = kh_init(array_param_map);
     assign_single_valued_params(yaml_data, &result.inputs[l]);
     assign_lattice_params[num_params](yaml_data, l, &result.inputs[l]);
   }
@@ -909,6 +948,7 @@ static sw_build_result_t build_enumeration_ensemble(yaml_data_t yaml_data) {
     const char *name;
     real_vec_t values;
     result.inputs[l].params = kh_init(param_map);
+    result.inputs[l].array_params = kh_init(array_param_map);
     kh_foreach(yaml_data.input, name, values,
       if (kv_size(values) == 1)
         sw_input_set(&result.inputs[l], name, kv_A(values, 0));
