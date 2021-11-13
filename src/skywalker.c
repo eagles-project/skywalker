@@ -1164,6 +1164,18 @@ void sw_input_get_f90(sw_input_t *input, const char *name, sw_real_t *value,
   *error_message = result.error_message;
 }
 
+void sw_input_get_array_f90(sw_input_t *input, const char *name,
+                            sw_real_t **values, size_t *size,
+                            int *error_code, const char **error_message) {
+  sw_input_array_result_t result = sw_input_get_array(input, name);
+  if (result.error_code == SW_SUCCESS) {
+    *values = result.values;
+    *size = result.size;
+  }
+  *error_code = result.error_code;
+  *error_message = result.error_message;
+}
+
 // Returns a newly-allocated C string for the given Fortran string pointer with
 // the given length. Strings of this sort are freed at program exit.
 const char* sw_new_c_string(char* f_str_ptr, int f_str_len) {
