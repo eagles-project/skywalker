@@ -636,8 +636,8 @@ static yaml_data_t parse_yaml(FILE* file, const char* settings_block) {
     goto return_data;
   }
 
-  // Postprocess the input parameters, expanding 3-element lists if needed, and
-  // applying log10 operations.
+  // Postprocess the scalar input parameters, expanding 3-element lists if
+  // needed, and applying log10 operations.
   postprocess_input_data(&data);
 
 return_data:
@@ -655,6 +655,17 @@ static void assign_single_valued_params(yaml_data_t yaml_data,
   kh_foreach(yaml_data.input, name, values,
     if (kv_size(values) == 1) {
       sw_input_set(input, name, kv_A(values, 0));
+    }
+  );
+}
+
+static void assign_single_valued_array_params(yaml_data_t yaml_data,
+                                              sw_input_t *input) {
+  const char *name;
+  real_vec_vec_t array_values;
+  kh_foreach(yaml_data.array_input, name, array_values,
+    if (kv_size(array_values) == 1) {
+      sw_input_set_array(input, name, kv_A(array_values, 0));
     }
   );
 }
@@ -1001,6 +1012,7 @@ static sw_build_result_t build_lattice_ensemble(yaml_data_t yaml_data) {
     result.inputs[l].params = kh_init(param_map);
     result.inputs[l].array_params = kh_init(array_param_map);
     assign_single_valued_params(yaml_data, &result.inputs[l]);
+    assign_single_valued_array_params(yaml_data, &result.inputs[l]);
     assign_lattice_params[num_params](yaml_data, l, &result.inputs[l]);
   }
 
@@ -1040,14 +1052,23 @@ static sw_build_result_t build_enumeration_ensemble(yaml_data_t yaml_data) {
   result.inputs = malloc(sizeof(sw_input_t) * result.num_inputs);
   for (size_t l = 0; l < num_inputs; ++l) {
     const char *name;
-    real_vec_t values;
     result.inputs[l].params = kh_init(param_map);
     result.inputs[l].array_params = kh_init(array_param_map);
+
+    real_vec_t values;
     kh_foreach(yaml_data.input, name, values,
       if (kv_size(values) == 1)
         sw_input_set(&result.inputs[l], name, kv_A(values, 0));
       else
         sw_input_set(&result.inputs[l], name, kv_A(values, l));
+    );
+
+    real_vec_vec_t array_values;
+    kh_foreach(yaml_data.array_input, name, array_values,
+      if (kv_size(array_values) == 1)
+        sw_input_set_array(&result.inputs[l], name, kv_A(array_values, 0));
+      else
+        sw_input_set_array(&result.inputs[l], name, kv_A(array_values, l));
     );
   }
 
