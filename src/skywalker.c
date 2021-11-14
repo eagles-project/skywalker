@@ -371,8 +371,6 @@ static bool is_valid_input_name(const char *name, bool is_array_value) {
   bool log10_opened = false;
   for (size_t i = 1; i < len; ++i) {
     if (!isalnum(name[i])) {
-      return false;
-      /*
       if (is_array_value) { // array values can't have non-alphanumerics
         return false;
       } else {
@@ -387,7 +385,6 @@ static bool is_valid_input_name(const char *name, bool is_array_value) {
           return false;
         }
       }
-      */
     }
   }
 
@@ -615,7 +612,7 @@ static yaml_data_t parse_yaml(FILE* file, const char* settings_block) {
       data.error_code = SW_INVALID_YAML;
       data.error_message = dup_string(parser.problem);
       yaml_parser_delete(&parser);
-      goto error_encountered;
+      goto return_data;
     }
 
     // Process the event, using it to populate our YAML data, and handle
@@ -624,7 +621,7 @@ static yaml_data_t parse_yaml(FILE* file, const char* settings_block) {
     handle_yaml_event(&event, &state, &data);
     if (data.error_code != SW_SUCCESS) {
       yaml_parser_delete(&parser);
-      goto error_encountered;
+      goto return_data;
     }
     event_type = event.type;
     yaml_event_delete(&event);
@@ -636,17 +633,14 @@ static yaml_data_t parse_yaml(FILE* file, const char* settings_block) {
     data.error_code = SW_SETTINGS_NOT_FOUND;
     data.error_message = new_string("The settings block '%s' was not found.",
                                     settings_block);
-    goto error_encountered;
+    goto return_data;
   }
 
   // Postprocess the input parameters, expanding 3-element lists if needed, and
   // applying log10 operations.
   postprocess_input_data(&data);
 
-  return data;
-
-error_encountered:
-  free_yaml_data(data);
+return_data:
   return data;
 }
 
