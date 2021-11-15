@@ -64,7 +64,7 @@ typedef enum sw_error_code_t {
   SW_SETTINGS_NOT_FOUND,     // the specified YAML settings block was not found
   SW_INVALID_PARAM_NAME,     // the specified parameter name is invalid
   SW_PARAM_NOT_FOUND,        // the specified setting/input parameter was not found
-  SW_TOO_MANY_PARAMS,        // the specified lattice ensemble has > 7 parameters
+  SW_TOO_MANY_LATTICE_PARAMS,// the specified lattice ensemble has > 7 parameters
   SW_INVALID_ENUMERATION,    // the specified enumeration ensemble has an invalid
                              // enumeration
   SW_EMPTY_ENSEMBLE          // the specified ensemble has no members

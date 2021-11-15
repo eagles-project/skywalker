@@ -416,6 +416,7 @@ static void handle_yaml_event(yaml_event_t *event,
     } else if (!state->parsing_settings &&
                strcmp(value, state->settings_block) == 0) {
       assert(!state->current_setting);
+      data->settings = sw_settings_new();
       state->parsing_settings = true;
     } else if (state->parsing_settings) {
       if (!state->current_setting) {
@@ -603,7 +604,6 @@ static yaml_data_t parse_yaml(FILE* file, const char* settings_block) {
 
   data.input = kh_init(yaml_param_map);
   data.array_input = kh_init(yaml_array_param_map);
-  data.settings = sw_settings_new();
 
   yaml_parser_t parser;
   yaml_parser_initialize(&parser);
@@ -615,7 +615,8 @@ static yaml_data_t parse_yaml(FILE* file, const char* settings_block) {
     yaml_event_t event;
 
     // Parse the next YAML "event" and handle any errors encountered.
-    if (!yaml_parser_parse(&parser, &event)) {
+    yaml_parser_parse(&parser, &event);
+    if (parser.error != YAML_NO_ERROR) {
       data.error_code = SW_INVALID_YAML;
       data.error_message = dup_string(parser.problem);
       yaml_parser_delete(&parser);
@@ -998,7 +999,7 @@ static sw_build_result_t build_lattice_ensemble(yaml_data_t yaml_data) {
     result.error_message = new_string("Ensemble has no members!");
     return result;
   } else if (num_params > 7) {
-    result.error_code = SW_TOO_MANY_PARAMS;
+    result.error_code = SW_TOO_MANY_LATTICE_PARAMS;
     result.error_message =
       new_string("The given lattice ensemble has %d traversed parameters "
                  "(must be <= 7).", num_params);

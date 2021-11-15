@@ -21,3 +21,7 @@ foreach(test lattice_test enumeration_test array_param_test)
   add_skywalker_driver(${test}_f90 ${test}.F90)
   add_test(${test}_f90 ${test}_f90 ${test}.yaml)
 endforeach()
+
+# Validation tests (currently C only).
+add_skywalker_driver(validation_test validation_test.c)
+add_test(validation_test validation_test)
