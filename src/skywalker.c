@@ -370,7 +370,7 @@ static bool is_valid_input_name(const char *name, bool is_array_value) {
   size_t len = strlen(name);
   bool log10_opened = false;
   for (size_t i = 1; i < len; ++i) {
-    if (!isalnum(name[i])) {
+    if (!isalnum(name[i]) && (name[i] != '_')) {
       if (is_array_value) { // array values can't have non-alphanumerics
         return false;
       } else {
