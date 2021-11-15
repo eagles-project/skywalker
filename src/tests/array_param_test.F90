@@ -104,28 +104,28 @@ program enumeration_test
   ensemble = load_result%ensemble
   assert(ensemble%size == 11)
   do while (ensemble%next(input, output))
-    assert(input%has_array("p1"));
+    assert(input%has_array("p1"))
     call input%get_array("p1", values)
     assert(size(values) == 3)
     assert(approx_equal(values(1), 1.0_wp))
     assert(approx_equal(values(2), 2.0_wp))
     assert(approx_equal(values(3), 3.0_wp))
 
-    assert(input%has_array("p2"));
+    assert(input%has_array("p2"))
     call input%get_array("p2", values)
     assert(size(values) == 3)
     assert(approx_equal(values(1), 4.0_wp))
     assert(approx_equal(values(2), 5.0_wp))
     assert(approx_equal(values(3), 6.0_wp))
 
-    assert(input%has("p3"));
+    assert(input%has("p3"))
     assert(approx_equal(input%get("p3"), 3.0_wp))
 
-    assert(input%has("tick"));
+    assert(input%has("tick"))
     assert(input%get("tick") >= 0.0_wp)
     assert(input%get("tick") <= 10.0_wp)
 
-    assert(input%has("tock"));
+    assert(input%has("tock"))
     assert(input%get("tock") >= 1e1_wp)
     assert(input%get("tock") <= 1e11_wp)
 
