@@ -38,7 +38,7 @@
 ! This program tests Skywalker's Fortran 90 interface and its support for
 ! array parameters.
 
-module enumeration_test_mod
+module array_param_test_mod
   implicit none
 contains
   subroutine fatal_error(message, line)
@@ -60,14 +60,14 @@ contains
       equal = .false.
     end if
   end function
-end module enumeration_test_mod
+end module array_param_test_mod
 
 ! This macro halts the program if the predicate x isn't true.
 #define assert(x) if (.not. (x)) call fatal_error("Assertion failed at line", __LINE__)
 
 program enumeration_test
 
-  use enumeration_test_mod
+  use array_param_test_mod
   use skywalker
 
   implicit none
