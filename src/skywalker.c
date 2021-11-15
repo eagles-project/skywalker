@@ -43,6 +43,7 @@
 #include <yaml.h>
 
 #include <assert.h>
+#include <ctype.h>
 #include <math.h>
 #include <stdarg.h>
 #include <stdlib.h>
@@ -69,6 +70,10 @@ KHASH_MAP_INIT_STR(string_map, const char*)
 
 // A hash table whose keys are C strings and whose values are real numbers.
 KHASH_MAP_INIT_STR(param_map, sw_real_t)
+
+// A hash table whose keys are C strings and whose values are real number arrays.
+typedef kvec_t(sw_real_t) real_vec_t;
+KHASH_MAP_INIT_STR(array_param_map, real_vec_t)
 
 // A list of strings to be deallocated by skywalker.
 static klist_t(string_list)* sw_strings_ = NULL;
@@ -189,6 +194,7 @@ sw_settings_result_t sw_settings_get(sw_settings_t *settings,
 
 struct sw_input_t {
   khash_t(param_map) *params;
+  khash_t(array_param_map) *array_params;
 };
 
 static sw_output_result_t sw_input_set(sw_input_t *input,
@@ -200,6 +206,18 @@ static sw_output_result_t sw_input_set(sw_input_t *input,
   khiter_t iter = kh_put(param_map, input->params, n, &ret);
   assert(ret == 1);
   kh_value(input->params, iter) = value;
+  return result;
+}
+
+static sw_output_result_t sw_input_set_array(sw_input_t *input,
+                                             const char *name,
+                                             real_vec_t values) {
+  sw_output_result_t result = {.error_code = SW_SUCCESS};
+  const char* n = dup_string(name);
+  int ret;
+  khiter_t iter = kh_put(array_param_map, input->array_params, n, &ret);
+  assert(ret == 1);
+  kh_value(input->array_params, iter) = values;
   return result;
 }
 
@@ -216,6 +234,28 @@ sw_input_result_t sw_input_get(sw_input_t *input, const char *name) {
   } else {
     result.error_code = SW_PARAM_NOT_FOUND;
     const char *s = new_string("The input parameter '%s' was not found.", name);
+    result.error_message = s;
+  }
+  return result;
+}
+
+bool sw_input_has_array(sw_input_t *input, const char *name) {
+  khiter_t iter = kh_get(array_param_map, input->array_params, name);
+  return (iter != kh_end(input->array_params));
+}
+
+sw_input_array_result_t sw_input_get_array(sw_input_t *input, const char *name) {
+  khiter_t iter = kh_get(array_param_map, input->array_params, name);
+  sw_input_array_result_t result = {.error_code = SW_SUCCESS};
+  if (iter != kh_end(input->array_params)) {
+    real_vec_t values = kh_val(input->array_params, iter);
+    result.size = kv_size(values);
+    result.values = malloc(sizeof(sw_real_t) * result.size);
+    memcpy(result.values, values.a, sizeof(sw_real_t) * result.size);
+  } else {
+    result.error_code = SW_PARAM_NOT_FOUND;
+    const char *s = new_string("The input array parameter '%s' was not found.",
+                               name);
     result.error_message = s;
   }
   return result;
@@ -279,17 +319,30 @@ static const char* dup_yaml_string(const char *s) {
 }
 
 // A hash table whose keys are C strings and whose values are arrays of numbers.
-typedef kvec_t(sw_real_t) real_vec_t;
 KHASH_MAP_INIT_STR(yaml_param_map, real_vec_t)
+typedef kvec_t(real_vec_t) real_vec_vec_t;
+KHASH_MAP_INIT_STR(yaml_array_param_map, real_vec_vec_t)
 
 // This type stores data parsed from YAML.
 typedef struct yaml_data_t {
   sw_ens_type_t ensemble_type;
   sw_settings_t *settings;
   khash_t(yaml_param_map) *input;
+  khash_t(yaml_array_param_map) *array_input;
   int error_code;
   const char *error_message;
 } yaml_data_t;
+
+// This frees any resources allocated for the yaml data struct.
+static void free_yaml_data(yaml_data_t data) {
+  real_vec_t values;
+  kh_foreach_value(data.input, values,
+    kv_destroy(values);
+  );
+  kh_destroy(yaml_param_map, data.input);
+  kh_destroy(yaml_array_param_map, data.array_input);
+  if (data.settings) sw_settings_free(data.settings);
+}
 
 // This type keeps track of the state of the YAML parser.
 typedef struct parser_state_t {
@@ -299,8 +352,44 @@ typedef struct parser_state_t {
   const char *current_setting;
   bool parsing_input;
   bool parsing_input_sequence;
+  bool parsing_input_array_sequence;
   const char *current_input;
 } parser_state_t;
+
+// Returns true if the given input parameter name is valid, false otherwise,
+// based on whether the parameter is an array or a scalar.
+static bool is_valid_input_name(const char *name, bool is_array_value) {
+  assert(name != NULL);
+
+  // Names must begin with alphabetical characters.
+  if (!isalpha(name[0]))
+    return false;
+
+  // All other characters must be alphanumeric OR must be one of the
+  // allowed substrings.
+  size_t len = strlen(name);
+  bool log10_opened = false;
+  for (size_t i = 1; i < len; ++i) {
+    if (!isalnum(name[i])) {
+      if (is_array_value) { // array values can't have non-alphanumerics
+        return false;
+      } else {
+        // Is this from a log10(x) expression?
+        if (!log10_opened && (name[i] == '(')) {
+          const char* log10 = strstr(name, "log10(");
+          if (log10 && ((log10 - name) < i)) // yes, it's a log10 expression
+            log10_opened = true;
+          else // nope
+            return false;
+        } else if (!(log10_opened && name[i] == ')')) {
+          return false;
+        }
+      }
+    }
+  }
+
+  return true;
+}
 
 // Handles a YAML event, populating our data instance.
 static void handle_yaml_event(yaml_event_t *event,
@@ -327,6 +416,7 @@ static void handle_yaml_event(yaml_event_t *event,
     } else if (!state->parsing_settings &&
                strcmp(value, state->settings_block) == 0) {
       assert(!state->current_setting);
+      data->settings = sw_settings_new();
       state->parsing_settings = true;
     } else if (state->parsing_settings) {
       if (!state->current_setting) {
@@ -340,10 +430,16 @@ static void handle_yaml_event(yaml_event_t *event,
     } else if (!state->parsing_input && strcmp(value, "input") == 0) {
       state->parsing_input = true;
     } else if (state->parsing_input) {
-      if (!state->current_input) {
+      if (!state->current_input) { // parse the input value
+        if (!is_valid_input_name(value, state->parsing_input_array_sequence)) {
+          data->error_code = SW_INVALID_PARAM_NAME;
+          data->error_message = new_string(
+            "Invalid input parameter name: %s", value);
+          return;
+        }
         state->current_input = dup_yaml_string(value);
-      } else {
-        // Try to interpret the value as a real number.
+      } else { // stash the input value
+        // First, try to interpret the value as a real number.
         char *endp;
         sw_real_t real_value = strtod(value, &endp);
         if (endp == value) { // invalid value!
@@ -351,32 +447,82 @@ static void handle_yaml_event(yaml_event_t *event,
           data->error_message = new_string(
             "Invalid input value for parameter %s: %s", state->current_input,
             value);
+          return;
         } else {
-          // Append the (valid) value to the list of inputs with this name.
-          khiter_t iter = kh_get(yaml_param_map, data->input,
-                                 state->current_input);
-          if (iter == kh_end(data->input)) {
-            int ret;
-            iter = kh_put(yaml_param_map, data->input, state->current_input, &ret);
-            assert(ret == 1);
-            kv_init(kh_value(data->input, iter));
+          // If we're in the middle of an array input, append this value to it.
+          if (state->parsing_input_array_sequence) {
+            khiter_t iter = kh_get(yaml_array_param_map, data->array_input,
+                                   state->current_input);
+            if (iter == kh_end(data->array_input)) { // name not yet encountered
+              // Create an array of arrays containing one empty array.
+              real_vec_vec_t arrays;
+              kv_init(arrays);
+              real_vec_t array;
+              kv_init(array);
+              kv_push(real_vec_t, arrays, array);
+
+              // Add it to the array parameter map.
+              int ret;
+              iter = kh_put(yaml_array_param_map, data->array_input,
+                            state->current_input, &ret);
+              assert(ret == 1);
+              kh_value(data->array_input, iter) = arrays;
+            }
+            // Append this value to the last array in the list of arrays for
+            // this input.
+            real_vec_vec_t arrays = kh_value(data->array_input, iter);
+            size_t index = kv_size(arrays)-1;
+            real_vec_t current_array = kv_A(arrays, index);
+            kv_push(sw_real_t, current_array, real_value);
+            kv_A(arrays, index) = current_array;
+            kh_value(data->array_input, iter) = arrays;
+          } else {
+            // Otherwise, append the value to the list of inputs with this name.
+            khiter_t iter = kh_get(yaml_param_map, data->input,
+                                   state->current_input);
+            if (iter == kh_end(data->input)) { // name not yet encountered
+              int ret;
+              iter = kh_put(yaml_param_map, data->input, state->current_input, &ret);
+              assert(ret == 1);
+              kv_init(kh_value(data->input, iter));
+            }
+            kv_push(sw_real_t, kh_value(data->input, iter), real_value);
           }
-          kv_push(sw_real_t, kh_value(data->input, iter), real_value);
         }
+        // Clear the current input if we're parsing a scalar.
         if (!state->parsing_input_sequence) {
           state->current_input = NULL;
         }
       }
+    }
+
+  // validation for mappings
+  } else if (event->type == YAML_MAPPING_START_EVENT) {
+    if (state->current_input) { // we're already parsing an input value
+      data->error_code = SW_INVALID_PARAM_VALUE;
+      data->error_message = new_string(
+        "Mapping encountered in input parameter %s", state->current_input);
     }
   } else if (event->type == YAML_MAPPING_END_EVENT) {
     state->parsing_type = false;
     state->parsing_input = false;
     state->parsing_settings = false;
   } else if (event->type == YAML_SEQUENCE_START_EVENT) {
-    if (state->parsing_input) state->parsing_input_sequence = true;
+    if (state->parsing_input_array_sequence) {
+      data->error_code = SW_INVALID_PARAM_VALUE;
+      data->error_message = new_string(
+        "Cannot parse a sequence of array sequences for input parameter %s",
+        state->current_input);
+    } else if (state->parsing_input_sequence) {
+      state->parsing_input_array_sequence = true;
+    } else if (state->parsing_input) {
+      state->parsing_input_sequence = true;
+    }
   } else if (event->type == YAML_SEQUENCE_END_EVENT) {
-    state->parsing_input_sequence = false;
-    if (state->current_input) {
+    if (state->parsing_input_array_sequence) {
+      state->parsing_input_array_sequence = false;
+    } else { // sequence of scalar or array inputs
+      state->parsing_input_sequence = false;
       state->current_input = NULL;
     }
   }
@@ -426,7 +572,6 @@ void postprocess_input_data(yaml_data_t *yaml_data) {
         yaml_data->error_code = SW_INVALID_PARAM_NAME;
         yaml_data->error_message = new_string("Unclosed parens in parameter %s.",
           param_name);
-        kh_destroy(yaml_param_map, yaml_data->input);
         return;
       }
       if (!renamed_input)
@@ -458,7 +603,7 @@ static yaml_data_t parse_yaml(FILE* file, const char* settings_block) {
   yaml_data_t data = {.error_code = 0};
 
   data.input = kh_init(yaml_param_map);
-  data.settings = sw_settings_new();
+  data.array_input = kh_init(yaml_array_param_map);
 
   yaml_parser_t parser;
   yaml_parser_initialize(&parser);
@@ -470,14 +615,12 @@ static yaml_data_t parse_yaml(FILE* file, const char* settings_block) {
     yaml_event_t event;
 
     // Parse the next YAML "event" and handle any errors encountered.
-    if (!yaml_parser_parse(&parser, &event)) {
-      kh_destroy(yaml_param_map, data.input);
-      sw_settings_free(data.settings);
+    yaml_parser_parse(&parser, &event);
+    if (parser.error != YAML_NO_ERROR) {
       data.error_code = SW_INVALID_YAML;
       data.error_message = dup_string(parser.problem);
       yaml_parser_delete(&parser);
-      fclose(file);
-      return data;
+      goto return_data;
     }
 
     // Process the event, using it to populate our YAML data, and handle
@@ -485,11 +628,8 @@ static yaml_data_t parse_yaml(FILE* file, const char* settings_block) {
     // to Skywalker's spec.
     handle_yaml_event(&event, &state, &data);
     if (data.error_code != SW_SUCCESS) {
-      kh_destroy(yaml_param_map, data.input);
-      sw_settings_free(data.settings);
       yaml_parser_delete(&parser);
-      fclose(file);
-      return data;
+      goto return_data;
     }
     event_type = event.type;
     yaml_event_delete(&event);
@@ -498,17 +638,17 @@ static yaml_data_t parse_yaml(FILE* file, const char* settings_block) {
 
   // Did we find a settings block?
   if (data.settings == NULL) {
-    kh_destroy(yaml_param_map, data.input);
     data.error_code = SW_SETTINGS_NOT_FOUND;
     data.error_message = new_string("The settings block '%s' was not found.",
                                     settings_block);
+    goto return_data;
   }
 
-  // Postprocess the input parameters, expanding 3-element lists if needed, and
-  // applying log10 operations.
-  if (data.error_code == SW_SUCCESS)
-    postprocess_input_data(&data);
+  // Postprocess the scalar input parameters, expanding 3-element lists if
+  // needed, and applying log10 operations.
+  postprocess_input_data(&data);
 
+return_data:
   return data;
 }
 
@@ -523,6 +663,17 @@ static void assign_single_valued_params(yaml_data_t yaml_data,
   kh_foreach(yaml_data.input, name, values,
     if (kv_size(values) == 1) {
       sw_input_set(input, name, kv_A(values, 0));
+    }
+  );
+}
+
+static void assign_single_valued_array_params(yaml_data_t yaml_data,
+                                              sw_input_t *input) {
+  const char *name;
+  real_vec_vec_t array_values;
+  kh_foreach(yaml_data.array_input, name, array_values,
+    if (kv_size(array_values) == 1) {
+      sw_input_set_array(input, name, kv_A(array_values, 0));
     }
   );
 }
@@ -848,7 +999,7 @@ static sw_build_result_t build_lattice_ensemble(yaml_data_t yaml_data) {
     result.error_message = new_string("Ensemble has no members!");
     return result;
   } else if (num_params > 7) {
-    result.error_code = SW_TOO_MANY_PARAMS;
+    result.error_code = SW_TOO_MANY_LATTICE_PARAMS;
     result.error_message =
       new_string("The given lattice ensemble has %d traversed parameters "
                  "(must be <= 7).", num_params);
@@ -867,7 +1018,9 @@ static sw_build_result_t build_lattice_ensemble(yaml_data_t yaml_data) {
   result.inputs = malloc(sizeof(sw_input_t) * result.num_inputs);
   for (size_t l = 0; l < result.num_inputs; ++l) {
     result.inputs[l].params = kh_init(param_map);
+    result.inputs[l].array_params = kh_init(array_param_map);
     assign_single_valued_params(yaml_data, &result.inputs[l]);
+    assign_single_valued_array_params(yaml_data, &result.inputs[l]);
     assign_lattice_params[num_params](yaml_data, l, &result.inputs[l]);
   }
 
@@ -907,13 +1060,23 @@ static sw_build_result_t build_enumeration_ensemble(yaml_data_t yaml_data) {
   result.inputs = malloc(sizeof(sw_input_t) * result.num_inputs);
   for (size_t l = 0; l < num_inputs; ++l) {
     const char *name;
-    real_vec_t values;
     result.inputs[l].params = kh_init(param_map);
+    result.inputs[l].array_params = kh_init(array_param_map);
+
+    real_vec_t values;
     kh_foreach(yaml_data.input, name, values,
       if (kv_size(values) == 1)
         sw_input_set(&result.inputs[l], name, kv_A(values, 0));
       else
         sw_input_set(&result.inputs[l], name, kv_A(values, l));
+    );
+
+    real_vec_vec_t array_values;
+    kh_foreach(yaml_data.array_input, name, array_values,
+      if (kv_size(array_values) == 1)
+        sw_input_set_array(&result.inputs[l], name, kv_A(array_values, 0));
+      else
+        sw_input_set_array(&result.inputs[l], name, kv_A(array_values, l));
     );
   }
 
@@ -971,6 +1134,7 @@ sw_ensemble_result_t sw_load_ensemble(const char* yaml_file,
         ensemble->outputs[i].metrics = kh_init(param_map);
       }
       result.settings = data.settings;
+      data.settings = NULL;
       ensemble->settings = result.settings;
       result.ensemble = ensemble;
     }
@@ -979,12 +1143,8 @@ sw_ensemble_result_t sw_load_ensemble(const char* yaml_file,
     result.error_message = data.error_message;
   }
 
-  // Clean up YAML data.
-  real_vec_t values;
-  kh_foreach_value(data.input, values,
-    kv_destroy(values);
-  );
-  kh_destroy(yaml_param_map, data.input);
+  // Clean up.
+  free_yaml_data(data);
   free_yaml_strings(); // delete YAML string pool
 
   return result;
@@ -1119,6 +1279,18 @@ void sw_input_get_f90(sw_input_t *input, const char *name, sw_real_t *value,
   sw_input_result_t result = sw_input_get(input, name);
   if (result.error_code == SW_SUCCESS) {
     *value = result.value;
+  }
+  *error_code = result.error_code;
+  *error_message = result.error_message;
+}
+
+void sw_input_get_array_f90(sw_input_t *input, const char *name,
+                            sw_real_t **values, size_t *size,
+                            int *error_code, const char **error_message) {
+  sw_input_array_result_t result = sw_input_get_array(input, name);
+  if (result.error_code == SW_SUCCESS) {
+    *values = result.values;
+    *size = result.size;
   }
   *error_code = result.error_code;
   *error_message = result.error_message;

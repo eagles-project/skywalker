@@ -64,7 +64,7 @@ typedef enum sw_error_code_t {
   SW_SETTINGS_NOT_FOUND,     // the specified YAML settings block was not found
   SW_INVALID_PARAM_NAME,     // the specified parameter name is invalid
   SW_PARAM_NOT_FOUND,        // the specified setting/input parameter was not found
-  SW_TOO_MANY_PARAMS,        // the specified lattice ensemble has > 7 parameters
+  SW_TOO_MANY_LATTICE_PARAMS,// the specified lattice ensemble has > 7 parameters
   SW_INVALID_ENUMERATION,    // the specified enumeration ensemble has an invalid
                              // enumeration
   SW_EMPTY_ENSEMBLE          // the specified ensemble has no members
@@ -144,19 +144,34 @@ bool sw_ensemble_next(sw_ensemble_t *ensemble,
                       sw_input_t **input,
                       sw_output_t **output);
 
-// This type stores the result of the attempt to fetch an input parameter.
+// This type stores the result of the attempt to fetch a scalar input parameter.
 typedef struct sw_input_result_t {
   sw_real_t value;           // fetched value (if error_code == 0)
   int error_code;            // error code indicating success or failure
   const char* error_message; // text description of error
 } sw_input_result_t;
 
-// Returns true if the input parameter with the given name exists within the
-// given input instance, false otherwise.
+// Returns true if a (scalar) input parameter with the given name exists within
+// the given input instance, false otherwise.
 bool sw_input_has(sw_input_t *input, const char* name);
 
-// Retrieves the input parameter with the given name.
+// Retrieves the (scalar) input parameter with the given name.
 sw_input_result_t sw_input_get(sw_input_t *input, const char *name);
+
+// Returns true if an input array parameter with the given name exists within
+// the given input instance, false otherwise.
+bool sw_input_has_array(sw_input_t *input, const char* name);
+
+// This type stores the result of the attempt to fetch a scalar input parameter.
+typedef struct sw_input_array_result_t {
+  sw_real_t *values;         // fetched values (if error_code == 0)
+  size_t size;               // number of values (if error_code == 0)
+  int error_code;            // error code indicating success or failure
+  const char* error_message; // text description of error
+} sw_input_array_result_t;
+
+// Retrieves the (scalar) input parameter with the given name.
+sw_input_array_result_t sw_input_get_array(sw_input_t *input, const char *name);
 
 // This type stores the result of an attempt to store an output metric.
 typedef struct sw_output_result_t {

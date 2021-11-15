@@ -35,10 +35,10 @@
 ! Questions? Contact Jeffrey Johnson (jeff@cohere-llc.com)
 ! ************************************************************************
 
-! This program tests Skywalker's Fortran 90 interface with a user-defined
-! configuration that uses an "enumeration" ensemble.
+! This program tests Skywalker's Fortran 90 interface and its support for
+! array parameters.
 
-module enumeration_test_mod
+module array_param_test_mod
   implicit none
 contains
   subroutine fatal_error(message, line)
@@ -60,25 +60,24 @@ contains
       equal = .false.
     end if
   end function
-end module enumeration_test_mod
+end module array_param_test_mod
 
 ! This macro halts the program if the predicate x isn't true.
 #define assert(x) if (.not. (x)) call fatal_error("Assertion failed at line", __LINE__)
 
 program enumeration_test
 
-  use enumeration_test_mod
+  use array_param_test_mod
   use skywalker
 
   implicit none
 
-  character(len=255)      :: input_file
-  type(ensemble_result_t) :: load_result
-  type(settings_t)        :: settings
-  type(ensemble_t)        :: ensemble
-  type(input_result_t)    :: in_result
-  type(input_t)           :: input
-  type(output_t)          :: output
+  character(len=255)                  :: input_file
+  type(ensemble_result_t)             :: load_result
+  type(ensemble_t)                    :: ensemble
+  real(wp), allocatable, dimension(:) :: values
+  type(input_t)                       :: input
+  type(output_t)                      :: output
 
   if (command_argument_count() /= 1) then
     print *, "enumeration_test_f90: usage:"
@@ -92,37 +91,32 @@ program enumeration_test
   call print_banner()
 
   ! Load the ensemble. Any error encountered is fatal.
-  print *, "enumeration_test_f90: Loading ensemble from ", trim(input_file)
+  print *, "array_param_test_f90: Loading ensemble from ", trim(input_file)
   load_result = load_ensemble(trim(input_file), "settings")
 
   ! Make sure everything is as it should be.
   if (load_result%error_code /= SW_SUCCESS) then
-    print *, "enumeration_test_f90: ", trim(load_result%error_message)
+    print *, "array_param_test_f90: ", trim(load_result%error_message)
     stop
   end if
-  assert(load_result%type == sw_enumeration)
-
-  ! check settings
-  settings = load_result%settings
-
-  assert(settings%has("param1"))
-  assert(trim(settings%get("param1")) == "hello")
-  assert(settings%has("param2"))
-  assert(trim(settings%get("param2")) == "81")
-  assert(settings%has("param3"))
-  assert(trim(settings%get("param3")) == "3.14159265357")
-
-  assert(.not. settings%has("nonexistent_param"))
 
   ! ensemble information
   ensemble = load_result%ensemble
   assert(ensemble%size == 11)
   do while (ensemble%next(input, output))
-    assert(input%has("p1"))
-    assert(approx_equal(input%get("p1"), 1.0_wp))
+    assert(input%has_array("p1"))
+    call input%get_array("p1", values)
+    assert(size(values) == 3)
+    assert(approx_equal(values(1), 1.0_wp))
+    assert(approx_equal(values(2), 2.0_wp))
+    assert(approx_equal(values(3), 3.0_wp))
 
-    assert(input%has("p2"))
-    assert(approx_equal(input%get("p2"), 2.0_wp))
+    assert(input%has_array("p2"))
+    call input%get_array("p2", values)
+    assert(size(values) == 3)
+    assert(approx_equal(values(1), 4.0_wp))
+    assert(approx_equal(values(2), 5.0_wp))
+    assert(approx_equal(values(3), 6.0_wp))
 
     assert(input%has("p3"))
     assert(approx_equal(input%get("p3"), 3.0_wp))
@@ -135,18 +129,12 @@ program enumeration_test
     assert(input%get("tock") >= 1e1_wp)
     assert(input%get("tock") <= 1e11_wp)
 
-    ! Look for a parameter that doesn't exist, checking its result by calling
-    ! get_param() instead of get().
-    assert(.not. input%has("invalid_param"))
-    in_result = input%get_param("invalid_param")
-    assert(in_result%error_code == SW_PARAM_NOT_FOUND)
-
     ! Add a "qoi" metric set to 4.
     call output%set("qoi", 4.0_wp)
   end do
 
   ! Now we write out a Python module containing the output data.
-  call ensemble%write("enumeration_test_f90.py")
+  call ensemble%write("array_param_test_f90.py")
 
   ! Clean up.
   call ensemble%free()

@@ -105,14 +105,26 @@ module skywalker
     procedure :: has => input_has
     procedure :: get => input_get
     procedure :: get_param => input_get_param
+    procedure :: has_array => input_has_array
+    procedure :: get_array => input_get_array
+    procedure :: get_array_param => input_get_array_param
   end type input_t
 
-  ! This type stores the result of the attempt to fetch an input parameter.
+  ! This type stores the result of the attempt to fetch a (scalar) input
+  ! parameter.
   type :: input_result_t
     real(c_real)              :: value         ! fetched value (if error_code == 0)
-    integer                   :: error_code    ! error code indicating success or failure
+    integer(c_int)            :: error_code    ! error code indicating success or failure
     character(len=255)        :: error_message ! text description of error
   end type input_result_t
+
+  ! This type stores the result of the attempt to fetch a input array parameter.
+  type :: input_array_result_t
+    real(c_real), dimension(:), pointer :: values ! fetched values (if error_code == 0)
+    integer(c_size_t)                   :: size   ! number of values (if error_code == 0)
+    integer(c_int)                      :: error_code    ! error code indicating success or failure
+    character(len=255)                  :: error_message ! text description of error
+  end type input_array_result_t
 
   ! Output data for simulations. Opaque type.
   type :: output_t
@@ -189,11 +201,26 @@ module skywalker
       type(c_ptr), value, intent(in) :: input, name
     end function
 
+    logical(c_bool) function sw_input_has_array(input, name) bind(c)
+      use iso_c_binding, only: c_ptr, c_bool
+      type(c_ptr), value, intent(in) :: input, name
+    end function
+
     subroutine sw_input_get_f90(input, name, &
                                 value, error_code, error_message) bind(c)
       use iso_c_binding, only: c_ptr, c_int, c_double, c_float
       type(c_ptr), value, intent(in) :: input, name
       real(c_real), intent(out) :: value
+      integer(c_int), intent(out) :: error_code
+      type(c_ptr), intent(out) :: error_message
+    end subroutine
+
+    subroutine sw_input_get_array_f90(input, name, values, size, &
+                                      error_code, error_message) bind(c)
+      use iso_c_binding, only: c_ptr, c_int, c_size_t, c_double, c_float
+      type(c_ptr), value, intent(in) :: input, name
+      type(c_ptr), intent(out) :: values
+      integer(c_size_t), intent(out) :: size
       integer(c_int), intent(out) :: error_code
       type(c_ptr), intent(out) :: error_message
     end subroutine
@@ -368,6 +395,65 @@ contains
       val = i_result%value
     end if
   end function
+
+  ! Returns .true. if an input array parameter with the given name exists within
+  ! the given input instance, false otherwise.
+  function input_has_array(input, name) result(has)
+    use iso_c_binding, only: c_ptr
+    implicit none
+
+    class(input_t), intent(in) :: input
+    character(len=*), intent(in)  :: name
+    logical(c_bool) :: has
+
+    has = sw_input_has_array(input%ptr, f_to_c_string(name))
+  end function
+
+  ! Retrieves the input array parameter with the given name, halting on errors.
+  function input_get_array_param(input, name) result(i_result)
+    use iso_c_binding, only: c_ptr
+    implicit none
+
+    class(input_t), intent(in)   :: input
+    character(len=*), intent(in) :: name
+
+    type(input_array_result_t) :: i_result
+    type(c_ptr) :: c_values, c_err_msg
+
+    call sw_input_get_array_f90(input%ptr, f_to_c_string(name), &
+                                c_values, i_result%size, &
+                                i_result%error_code, c_err_msg)
+    if (i_result%error_code == SW_SUCCESS) then
+      call c_f_pointer(c_values, i_result%values, [i_result%size])
+    else
+      i_result%error_message = c_to_f_string(c_err_msg)
+    end if
+  end function
+
+  ! Retrieves the input array parameter with the given name.
+  subroutine input_get_array(input, name, values)
+    use iso_c_binding, only: c_ptr, c_real
+    implicit none
+
+    class(input_t), intent(in)   :: input
+    character(len=*), intent(in) :: name
+    real(c_real), allocatable, dimension(:), intent(inout) :: values
+
+    type(input_array_result_t) :: i_result
+
+    i_result = input%get_array_param(name)
+    if (i_result%error_code /= SW_SUCCESS) then
+      print *, i_result%error_message
+      call sw_ensemble_free(input%ensemble_ptr)
+      stop
+    else
+      if (allocated(values)) then
+        deallocate(values)
+      end if
+      allocate(values(i_result%size))
+      values(:) = i_result%values(:)
+    end if
+  end subroutine
 
   ! This function sets a quantity with the given name and value to the given
   ! output instance, returning a result that indicates success or failure.
