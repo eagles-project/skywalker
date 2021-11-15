@@ -5,7 +5,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_BINARY_DIR}/share/")
 include(skywalker) # for add_skywalker_driver function
 
 # Copy all the input files into place.
-foreach (yaml lattice_test.yaml enumeration_test.yaml)
+foreach (yaml lattice_test.yaml enumeration_test.yaml array_param_test.yaml)
   configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/${yaml}
     ${CMAKE_CURRENT_BINARY_DIR}/${yaml}
@@ -13,7 +13,7 @@ foreach (yaml lattice_test.yaml enumeration_test.yaml)
 endforeach()
 
 # Now create the tests for each of these inputs.
-foreach(test lattice_test enumeration_test)
+foreach(test lattice_test enumeration_test array_param_test)
   add_skywalker_driver(${test} ${test}.c)
   add_test(${test} ${test} ${test}.yaml)
   add_skywalker_driver(${test}_cpp ${test}.cpp)

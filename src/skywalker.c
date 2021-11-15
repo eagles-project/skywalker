@@ -452,22 +452,29 @@ static void handle_yaml_event(yaml_event_t *event,
           if (state->parsing_input_array_sequence) {
             khiter_t iter = kh_get(yaml_array_param_map, data->array_input,
                                    state->current_input);
-            if (iter == kh_end(data->input)) { // name not yet encountered
-              int ret;
-              iter = kh_put(yaml_array_param_map, data->array_input, state->current_input, &ret);
-              assert(ret == 1);
-              kv_init(kh_value(data->array_input, iter));
-
-              // Stick an empty array into this list.
+            if (iter == kh_end(data->array_input)) { // name not yet encountered
+              // Create an array of arrays containing one empty array.
+              real_vec_vec_t arrays;
+              kv_init(arrays);
               real_vec_t array;
               kv_init(array);
-              kv_push(real_vec_t, kh_value(data->array_input, iter), array);
+              kv_push(real_vec_t, arrays, array);
+
+              // Add it to the array parameter map.
+              int ret;
+              iter = kh_put(yaml_array_param_map, data->array_input,
+                            state->current_input, &ret);
+              assert(ret == 1);
+              kh_value(data->array_input, iter) = arrays;
             }
             // Append this value to the last array in the list of arrays for
             // this input.
             real_vec_vec_t arrays = kh_value(data->array_input, iter);
-            real_vec_t current_array = kv_A(arrays, kv_size(arrays)-1);
+            size_t index = kv_size(arrays)-1;
+            real_vec_t current_array = kv_A(arrays, index);
             kv_push(sw_real_t, current_array, real_value);
+            kv_A(arrays, index) = current_array;
+            kh_value(data->array_input, iter) = arrays;
           } else {
             // Otherwise, append the value to the list of inputs with this name.
             khiter_t iter = kh_get(yaml_param_map, data->input,

@@ -1,4 +1,4 @@
-# This input file tests Skywalker's Fortran 90 module with a lattice ensemble.
+# This input file tests Skywalker with a lattice ensemble.
 
 type: lattice
 
