@@ -361,12 +361,12 @@ typedef struct parser_state_t {
 static bool is_valid_input_name(const char *name, bool is_array_value) {
   assert(name != NULL);
 
-  // Names must begin with alphabetical characters.
-  if (!isalpha(name[0]))
+  // A name must begin with an alphabetical character or an underscore.
+  if (!isalpha(name[0]) && (name[0] != '_'))
     return false;
 
-  // All other characters must be alphanumeric OR must be one of the
-  // allowed substrings.
+  // All other characters must be alphanumeric (or underscores) OR must be one
+  // of the allowed substrings.
   size_t len = strlen(name);
   bool log10_opened = false;
   for (size_t i = 1; i < len; ++i) {
@@ -985,20 +985,21 @@ typedef struct sw_build_result_t {
 static sw_build_result_t build_lattice_ensemble(yaml_data_t yaml_data) {
   sw_build_result_t result = {.num_inputs = 1, .error_code = SW_SUCCESS};
   // Count up the number of inputs and parameters.
-  size_t num_params = 0;
+  size_t num_params = 0, num_lattice_params = 0;
   {
     real_vec_t values;
     kh_foreach_value(yaml_data.input, values,
       result.num_inputs *= kv_size(values);
-      if (kv_size(values) > 1) // exclude single-valued parameters
-        num_params++;
+      ++num_params;
+      if (kv_size(values) > 1) // lattice params have > 1 value
+        ++num_lattice_params;
     );
   }
   if (num_params == 0) {
     result.error_code = SW_EMPTY_ENSEMBLE;
     result.error_message = new_string("Ensemble has no members!");
     return result;
-  } else if (num_params > 7) {
+  } else if (num_lattice_params > 7) {
     result.error_code = SW_TOO_MANY_LATTICE_PARAMS;
     result.error_message =
       new_string("The given lattice ensemble has %d traversed parameters "
@@ -1021,7 +1022,9 @@ static sw_build_result_t build_lattice_ensemble(yaml_data_t yaml_data) {
     result.inputs[l].array_params = kh_init(array_param_map);
     assign_single_valued_params(yaml_data, &result.inputs[l]);
     assign_single_valued_array_params(yaml_data, &result.inputs[l]);
-    assign_lattice_params[num_params](yaml_data, l, &result.inputs[l]);
+    if (num_lattice_params > 0) {
+      assign_lattice_params[num_lattice_params](yaml_data, l, &result.inputs[l]);
+    }
   }
 
   return result;
