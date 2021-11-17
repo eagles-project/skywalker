@@ -100,15 +100,38 @@ static void test_missing_settings_block() {
 }
 
 static void test_invalid_param_name() {
-  const char* bad_yaml =
+  sw_ensemble_result_t load_result;
+
+  // No names with dots.
+  const char* name_with_dot_yaml =
     "type: lattice\n\n"
     "settings:\n  a: 1\n\n"
     "input:\n  x.y: 1\n  y: 2\n  z: 3\n";
-  write_test_input(bad_yaml, "invalid_param_name.yaml");
-  sw_ensemble_result_t load_result =
-    sw_load_ensemble("invalid_param_name.yaml", "settings");
+  write_test_input(name_with_dot_yaml, "name_with_dot.yaml");
+  load_result = sw_load_ensemble("name_with_dot.yaml", "settings");
   assert(load_result.error_code == SW_INVALID_PARAM_NAME);
   assert(load_result.error_message != NULL);
+
+  // No names starting with numbers.
+  const char* leading_number_name_yaml =
+    "type: lattice\n\n"
+    "settings:\n  a: 1\n\n"
+    "input:\n  2x: 1\n  y: 2\n  z: 3\n";
+  write_test_input(leading_number_name_yaml, "leading_number_name.yaml");
+  load_result = sw_load_ensemble("leading_number_name.yaml", "settings");
+  assert(load_result.error_code == SW_INVALID_PARAM_NAME);
+  assert(load_result.error_message != NULL);
+
+  // Names containing underscores are cool, though.
+  const char* underscored_names_yaml =
+    "type: lattice\n\n"
+    "settings:\n  a: 1\n\n"
+    "input:\n  _x: 1\n  y_0: 2\n  _z_: 3\n";
+  write_test_input(underscored_names_yaml, "underscored_names.yaml");
+  load_result = sw_load_ensemble("underscored_names.yaml", "settings");
+  assert(load_result.error_code == SW_SUCCESS);
+  assert(load_result.error_message == NULL);
+  sw_ensemble_free(load_result.ensemble);
 }
 
 static void test_too_many_lattice_params() {
