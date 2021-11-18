@@ -1202,6 +1202,25 @@ void sw_ensemble_write(sw_ensemble_t *ensemble, const char *module_filename) {
       }
       fprintf(file, "]\n");
     }
+    khash_t(array_param_map) *array_params_0 = ensemble->inputs[0].array_params;
+    for (khiter_t iter = kh_begin(array_params_0); iter != kh_end(array_params_0); ++iter) {
+
+      if (!kh_exist(array_params_0, iter)) continue;
+
+      const char *name = kh_key(array_params_0, iter);
+      fprintf(file, "input.%s = [", name);
+      for (size_t i = 0; i < ensemble->size; ++i) {
+        khash_t(array_param_map) *array_params_i = ensemble->inputs[i].array_params;
+        khiter_t iter = kh_get(array_param_map, array_params_i, name);
+        real_vec_t arrays = kh_val(array_params_i, iter);
+        size_t size = kv_size(arrays);
+        fprintf(file, "[");
+        for (size_t i=0; i<size; ++i)
+          fprintf(file, "%g, ", kv_A(arrays, i));
+        fprintf(file, "],");
+      }
+      fprintf(file, "]\n");
+    }
   }
 
   // Write output data.
