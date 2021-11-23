@@ -185,6 +185,13 @@ sw_output_result_t sw_output_set(sw_output_t *output,
                                  const char *name,
                                  sw_real_t value);
 
+// This function sets size number of quantities with the given name and values
+// to the given output instance, returning a result that indicates success or failure.
+sw_output_result_t sw_output_set_array(sw_output_t *output,
+                                 const char *name,
+                                 const sw_real_t *values,
+                                 const size_t *size);
+
 // Writes input and output data within the ensemble to a Python module stored
 // in the file with the given name.
 void sw_ensemble_write(sw_ensemble_t *ensemble, const char *module_filename);

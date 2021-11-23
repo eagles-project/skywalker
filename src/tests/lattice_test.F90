@@ -79,6 +79,8 @@ program lattice_test
   type(input_t)           :: input
   type(input_result_t)    :: in_result
   type(output_t)          :: output
+  real(c_real), dimension(:), allocatable :: array_val
+  integer                 :: i
 
   if (command_argument_count() /= 1) then
     print *, "lattice_test_f90: usage:"
@@ -86,6 +88,7 @@ program lattice_test
     stop
   end if
 
+  allocate(array_val(10))
   call get_command_argument(1, input_file)
 
   ! Print a banner with Skywalker's version info.
@@ -97,10 +100,10 @@ program lattice_test
 
   ! Make sure everything is as it should be.
   if (load_result%error_code /= 0) then
-    print *, "enumeration_test: ", trim(load_result%error_message)
+    print *, "lattice_test: ", trim(load_result%error_message)
     stop
   end if
-  assert(load_result%type == sw_enumeration)
+  assert(load_result%type == sw_lattice)
 
   ! check settings
   settings = load_result%settings
@@ -162,6 +165,10 @@ program lattice_test
 
     ! Add a "qoi" metric set to 4.
     call output%set("qoi", 4.0_wp)
+    do i = 1,10
+      array_val(i) = i
+    end do
+    call output%set_array("qoi_array", array_val)
   end do
 
   ! Now we write out a Python module containing the output data.
@@ -169,4 +176,5 @@ program lattice_test
 
   ! Clean up.
   call ensemble%free()
+  deallocate(array_val)
 end program

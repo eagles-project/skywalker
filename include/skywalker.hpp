@@ -193,6 +193,16 @@ class Output final {
     }
   }
 
+  // Sets (real-valued) parameters with the given name, throwing an
+  // exception if not successful.
+  void set(const std::string& name, const std::vector<Real> &values) const {
+    const size_t n = values.size();
+    auto result = sw_output_set_array(output_, name.c_str(), values.data(), &n);
+    if (result.error_code != SW_SUCCESS) {
+      throw Exception(result.error_message);
+    }
+  }
+
  private:
   explicit Output(sw_output_t *o): output_(o) {}
   sw_output_t *output_;
