@@ -263,6 +263,7 @@ sw_input_array_result_t sw_input_get_array(sw_input_t *input, const char *name) 
 
 struct sw_output_t {
   khash_t(param_map) *metrics;
+  khash_t(array_param_map) *array_metrics;
 };
 
 sw_output_result_t sw_output_set(sw_output_t *output,
@@ -274,6 +275,23 @@ sw_output_result_t sw_output_set(sw_output_t *output,
   khiter_t iter = kh_put(param_map, output->metrics, n, &ret);
   assert(ret == 1);
   kh_value(output->metrics, iter) = value;
+  return result;
+}
+
+sw_output_result_t sw_output_set_array(sw_output_t *output,
+                                       const char *name,
+                                       const sw_real_t* values,
+                                       const size_t *size) {
+  sw_output_result_t result = {.error_code = SW_SUCCESS};
+  const char* n = dup_string(name);
+  int ret;
+  khiter_t iter = kh_put(array_param_map, output->array_metrics, n, &ret);
+  assert(ret == 1);
+  real_vec_t array;
+  kv_init(array);
+  for (size_t i=0; i<*size; ++i)
+    kv_push(sw_real_t, array, values[i]); // append
+  kh_value(output->array_metrics, iter) = array;
   return result;
 }
 
@@ -1135,6 +1153,7 @@ sw_ensemble_result_t sw_load_ensemble(const char* yaml_file,
       ensemble->outputs = malloc(ensemble->size*sizeof(sw_output_t));
       for (size_t i = 0; i < ensemble->size; ++i) {
         ensemble->outputs[i].metrics = kh_init(param_map);
+        ensemble->outputs[i].array_metrics = kh_init(array_param_map);
       }
       result.settings = data.settings;
       data.settings = NULL;
@@ -1246,6 +1265,30 @@ void sw_ensemble_write(sw_ensemble_t *ensemble, const char *module_filename) {
       }
       fprintf(file, "]\n");
     }
+    khash_t(array_param_map) *array_params_0 = ensemble->outputs[0].array_metrics;
+    for (khiter_t iter = kh_begin(array_params_0); iter != kh_end(array_params_0); ++iter) {
+
+      if (!kh_exist(array_params_0, iter)) continue;
+
+      const char *name = kh_key(array_params_0, iter);
+      fprintf(file, "output.%s = [", name);
+      for (size_t i = 0; i < ensemble->size; ++i) {
+        khash_t(array_param_map) *array_params_i = ensemble->outputs[i].array_metrics;
+        khiter_t iter = kh_get(array_param_map, array_params_i, name);
+        real_vec_t arrays = kh_val(array_params_i, iter);
+        size_t size = kv_size(arrays);
+        fprintf(file, "[");
+        for (size_t i=0; i<size; ++i) {
+          if (isnan(kv_A(arrays, i))) {
+            fprintf(file, "nan, ");
+          } else {
+            fprintf(file, "%g, ", kv_A(arrays, i));
+          }
+        }
+        fprintf(file, "],");
+      }
+      fprintf(file, "]\n");
+    }
   }
 
   fclose(file);
@@ -1258,6 +1301,7 @@ void sw_ensemble_free(sw_ensemble_t *ensemble) {
     for (size_t i = 0; i < ensemble->size; ++i) {
       kh_destroy(param_map, ensemble->inputs[i].params);
       kh_destroy(param_map, ensemble->outputs[i].metrics);
+      kh_destroy(array_param_map, ensemble->outputs[i].array_metrics);
     }
     free(ensemble->inputs);
     free(ensemble->outputs);

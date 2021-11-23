@@ -132,6 +132,8 @@ module skywalker
   contains
     ! Adds a named metric to the output data.
     procedure :: set => output_set
+    ! Adds a vector of named metric to the output data.
+    procedure :: set_array => output_set_array
   end type output_t
 
   ! This type stores the result of an attempt to store an output metric.
@@ -230,6 +232,14 @@ module skywalker
       type(c_ptr), value, intent(in) :: output
       type(c_ptr), value, intent(in) :: name
       real(c_real), value, intent(in) :: value
+    end subroutine
+
+    subroutine sw_output_set_array(output, name, values, size) bind(c)
+      use iso_c_binding, only: c_ptr, c_size_t
+      type(c_ptr), value, intent(in) :: output
+      type(c_ptr), value, intent(in) :: name
+      type(c_ptr), value, intent(in) :: values
+      integer(c_size_t),  intent(in) :: size
     end subroutine
 
     logical(c_bool) function sw_ensemble_ext(ensemble, input, output) bind(c)
@@ -466,6 +476,21 @@ contains
     real(c_real), intent(in)     :: value
 
     call sw_output_set(output%ptr, f_to_c_string(name), value)
+  end subroutine
+
+  ! This function sets quantities with the given name and values to the given
+  ! output instance, returning a result that indicates success or failure.
+  subroutine output_set_array(output, name, values)
+    use iso_c_binding, only: c_double, c_float
+    implicit none
+
+    class(output_t), intent(in)  :: output
+    character(len=*), intent(in) :: name
+    real(c_real), target, intent(in), dimension(:) :: values
+    integer(c_size_t)              :: c_values_len
+    c_values_len = size(values)
+    call sw_output_set_array(output%ptr, f_to_c_string(name), &
+      c_loc(values), c_values_len)
   end subroutine
 
   ! Iterates over the members of the ensemble, returning the input and output
