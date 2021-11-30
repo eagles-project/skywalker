@@ -13,5 +13,6 @@ output for the entire ensemble into a Python module in a way that allows
 postprocessing to be easily performed for the ensemble.
 
 You can write a Skywalker program in C, C++, or Fortran. The [API](api.md) is
-very similar in each of these languages.
+very similar in each of these languages, and you can study [examples](examples.md)
+to see how to solve your own problems with a Skywalker program.
 
