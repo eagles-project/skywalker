@@ -133,3 +133,6 @@ install(FILES ${PROJECT_BINARY_DIR}/share/skywalker.cmake
 
 # Source directory.
 add_subdirectory(src)
+
+# Examples.
+add_subdirectory(examples)

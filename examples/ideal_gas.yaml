@@ -1,0 +1,5 @@
+type: lattice
+
+input:
+  V: [0.1, 10, 0.1]
+  log10(p): [1, 6, 1]
