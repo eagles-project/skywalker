@@ -430,6 +430,7 @@ static void handle_yaml_event(yaml_event_t *event,
 
     // settings block
     } else if (!state->parsing_settings &&
+               state->settings_block &&
                strcmp(value, state->settings_block) == 0) {
       assert(!state->current_setting);
       data->settings = sw_settings_new();
@@ -653,7 +654,7 @@ static yaml_data_t parse_yaml(FILE* file, const char* settings_block) {
   yaml_parser_delete(&parser);
 
   // Did we find a settings block?
-  if (data.settings == NULL) {
+  if (settings_block && !data.settings) {
     data.error_code = SW_SETTINGS_NOT_FOUND;
     data.error_message = new_string("The settings block '%s' was not found.",
                                     settings_block);
@@ -1118,8 +1119,9 @@ sw_ensemble_result_t sw_load_ensemble(const char* yaml_file,
   sw_ensemble_result_t result = {.error_code = 0};
 
   // Validate inputs.
-  if ((strcmp(settings_block, "type") == 0) ||
-      (strcmp(settings_block, "input") == 0)) {
+  if (settings_block &&
+      ((strcmp(settings_block, "type") == 0) ||
+       (strcmp(settings_block, "input") == 0))) {
     result.error_code = SW_INVALID_SETTINGS_BLOCK;
     result.error_message = new_string("Invalid settings block name: '%s'"
                                       " (cannot be 'type' or 'input')",
