@@ -89,7 +89,7 @@ int main(int argc, char **argv) {
   const char *input_file = argv[1];
 
   // Load the ensemble. Any error encountered is fatal.
-  fprintf(stderr, "T_gas: Loading ensemble from %s\n", input_file);
+  printf("T_gas: Loading ensemble from %s...\n", input_file);
   sw_ensemble_result_t load_result = sw_load_ensemble(input_file, NULL);
   if (load_result.error_code != SW_SUCCESS) {
     fprintf(stderr, "T_gas: %s", load_result.error_message);
@@ -98,6 +98,7 @@ int main(int argc, char **argv) {
 
   // Ensemble data
   sw_ensemble_t *ensemble = load_result.ensemble;
+  printf("T_gas: found %ld ensemble members.\n", sw_ensemble_size(ensemble));
   sw_input_t *input;
   sw_output_t *output;
   while (sw_ensemble_next(ensemble, &input, &output)) {
@@ -110,12 +111,12 @@ int main(int argc, char **argv) {
       a = get_value(input, "a");
     }
     if (sw_input_has(input, "b")) {
-      a = get_value(input, "b");
+      b = get_value(input, "b");
     }
 
     // Compute the gas temperature using the Van der Waals equation.
     static const double R = 8.31446261815324;
-    double T = ((p - a/(V*V)) * (V - b)) / R;
+    double T = (p + a/(V*V)) * (V - b) / R;
 
     // Stash it.
     put_value(output, "T", T);
@@ -123,6 +124,7 @@ int main(int argc, char **argv) {
 
   // Write out a Python module.
   const char *output_file = output_file_name(input_file);
+  printf("T_gas: Writing data to %s...\n", output_file);
   sw_ensemble_write(ensemble, output_file);
 
   // Clean up.
