@@ -67,6 +67,7 @@ typedef enum sw_error_code_t {
   SW_TOO_MANY_LATTICE_PARAMS,// the specified lattice ensemble has > 7 parameters
   SW_INVALID_ENUMERATION,    // the specified enumeration ensemble has an invalid
                              // enumeration
+  SW_ENSEMBLE_TOO_LARGE,     // the specified ensemble doesn't fit into memory
   SW_EMPTY_ENSEMBLE          // the specified ensemble has no members
 } sw_error_code_t;
 

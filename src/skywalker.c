@@ -1035,13 +1035,20 @@ static sw_build_result_t build_lattice_ensemble(yaml_data_t yaml_data) {
 
   // Build a list of inputs corresponding to all the traversed parameters.
   result.inputs = malloc(sizeof(sw_input_t) * result.num_inputs);
-  for (size_t l = 0; l < result.num_inputs; ++l) {
-    result.inputs[l].params = kh_init(param_map);
-    result.inputs[l].array_params = kh_init(array_param_map);
-    assign_single_valued_params(yaml_data, &result.inputs[l]);
-    assign_single_valued_array_params(yaml_data, &result.inputs[l]);
-    if (num_lattice_params > 0) {
-      assign_lattice_params[num_lattice_params](yaml_data, l, &result.inputs[l]);
+  if (!result.inputs) {
+    result.error_code = SW_ENSEMBLE_TOO_LARGE;
+    result.error_message =
+      new_string("The given lattice ensemble (%d members) is too large to fit "
+                 "into memory.\n", result.num_inputs);
+  } else {
+    for (size_t l = 0; l < result.num_inputs; ++l) {
+      result.inputs[l].params = kh_init(param_map);
+      result.inputs[l].array_params = kh_init(array_param_map);
+      assign_single_valued_params(yaml_data, &result.inputs[l]);
+      assign_single_valued_array_params(yaml_data, &result.inputs[l]);
+      if (num_lattice_params > 0) {
+        assign_lattice_params[num_lattice_params](yaml_data, l, &result.inputs[l]);
+      }
     }
   }
 
