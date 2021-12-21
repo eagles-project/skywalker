@@ -96,7 +96,7 @@ int main(int argc, char **argv) {
 
   // Ensemble data
   sw_ensemble_t *ensemble = load_result.ensemble;
-  printf("T_gas: found %ld ensemble members.\n", sw_ensemble_size(ensemble));
+  printf("T_gas: found %zd ensemble members.\n", sw_ensemble_size(ensemble));
   sw_input_t *input;
   sw_output_t *output;
   while (sw_ensemble_next(ensemble, &input, &output)) {
