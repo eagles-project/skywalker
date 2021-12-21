@@ -1,9 +1,9 @@
-// ************************************************************************
-// Skywalker: Copyright 2021, Cohere Consulting, LLC and
-//            National Technology & Engineering Solutions of Sandia, LLC (NTESS)
+//-------------------------------------------------------------------------
+// Copyright (c) 2021,
+// National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 //
-// Copyright pending. Under provisional terms of Contract DE-NA0003525 with
-// NTESS, the U.S. Government retains certain rights in this software.
+// Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government
+// retains certain rights in this software.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
@@ -31,9 +31,7 @@
 // LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Jeffrey Johnson (jeff@cohere-llc.com)
-// ************************************************************************
+//-------------------------------------------------------------------------
 
 #include <skywalker.h>
 
@@ -1035,13 +1033,20 @@ static sw_build_result_t build_lattice_ensemble(yaml_data_t yaml_data) {
 
   // Build a list of inputs corresponding to all the traversed parameters.
   result.inputs = malloc(sizeof(sw_input_t) * result.num_inputs);
-  for (size_t l = 0; l < result.num_inputs; ++l) {
-    result.inputs[l].params = kh_init(param_map);
-    result.inputs[l].array_params = kh_init(array_param_map);
-    assign_single_valued_params(yaml_data, &result.inputs[l]);
-    assign_single_valued_array_params(yaml_data, &result.inputs[l]);
-    if (num_lattice_params > 0) {
-      assign_lattice_params[num_lattice_params](yaml_data, l, &result.inputs[l]);
+  if (!result.inputs) {
+    result.error_code = SW_ENSEMBLE_TOO_LARGE;
+    result.error_message =
+      new_string("The given lattice ensemble (%zd members) is too large to fit "
+                 "into memory.\n", result.num_inputs);
+  } else {
+    for (size_t l = 0; l < result.num_inputs; ++l) {
+      result.inputs[l].params = kh_init(param_map);
+      result.inputs[l].array_params = kh_init(array_param_map);
+      assign_single_valued_params(yaml_data, &result.inputs[l]);
+      assign_single_valued_array_params(yaml_data, &result.inputs[l]);
+      if (num_lattice_params > 0) {
+        assign_lattice_params[num_lattice_params](yaml_data, l, &result.inputs[l]);
+      }
     }
   }
 
