@@ -1,9 +1,9 @@
-// ************************************************************************
-// Skywalker: Copyright 2021, Cohere Consulting, LLC and
-//            National Technology & Engineering Solutions of Sandia, LLC (NTESS)
+//-------------------------------------------------------------------------
+// Copyright (c) 2021,
+// National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 //
-// Copyright pending. Under provisional terms of Contract DE-NA0003525 with
-// NTESS, the U.S. Government retains certain rights in this software.
+// Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government
+// retains certain rights in this software.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
@@ -31,9 +31,7 @@
 // LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Jeffrey Johnson (jeff@cohere-llc.com)
-// ************************************************************************
+//-------------------------------------------------------------------------
 
 #ifndef SKYWALKER_HPP
 #define SKYWALKER_HPP
