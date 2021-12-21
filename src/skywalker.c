@@ -1038,7 +1038,7 @@ static sw_build_result_t build_lattice_ensemble(yaml_data_t yaml_data) {
   if (!result.inputs) {
     result.error_code = SW_ENSEMBLE_TOO_LARGE;
     result.error_message =
-      new_string("The given lattice ensemble (%d members) is too large to fit "
+      new_string("The given lattice ensemble (%zd members) is too large to fit "
                  "into memory.\n", result.num_inputs);
   } else {
     for (size_t l = 0; l < result.num_inputs; ++l) {
