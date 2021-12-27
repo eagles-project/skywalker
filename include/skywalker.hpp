@@ -182,23 +182,17 @@ class Output final {
 
   ~Output() = default;
 
-  // Sets a (real-valued) parameter with the given name, throwing an
-  // exception if not successful.
+  // Sets a (real-valued) parameter with the given name. This operation cannot
+  // fail under normal circumstances.
   void set(const std::string& name, Real value) const {
-    auto result = sw_output_set(output_, name.c_str(), value);
-    if (result.error_code != SW_SUCCESS) {
-      throw Exception(result.error_message);
-    }
+    sw_output_set(output_, name.c_str(), value);
   }
 
-  // Sets (real-valued) parameters with the given name, throwing an
-  // exception if not successful.
+  // Sets (real-valued) parameters in an array with the given name. This
+  // operation cannot fail under normal circumstances.
   void set(const std::string& name, const std::vector<Real> &values) const {
     const size_t n = values.size();
-    auto result = sw_output_set_array(output_, name.c_str(), values.data(), &n);
-    if (result.error_code != SW_SUCCESS) {
-      throw Exception(result.error_message);
-    }
+    sw_output_set_array(output_, name.c_str(), values.data(), &n);
   }
 
  private:
@@ -241,7 +235,10 @@ class Ensemble final {
   // Writes input and output data within the ensemble to a Python module stored
   // in the file with the given name.
   void write(const std::string& module_filename) const {
-    sw_ensemble_write(ensemble_, module_filename.c_str());
+    auto result = sw_ensemble_write(ensemble_, module_filename.c_str());
+    if (result.error_code != SW_SUCCESS) {
+      throw Exception(result.error_message);
+    }
   }
 
  private:

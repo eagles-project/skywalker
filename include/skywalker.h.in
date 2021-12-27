@@ -66,7 +66,9 @@ typedef enum sw_error_code_t {
   SW_INVALID_ENUMERATION,    // the specified enumeration ensemble has an invalid
                              // enumeration
   SW_ENSEMBLE_TOO_LARGE,     // the specified ensemble doesn't fit into memory
-  SW_EMPTY_ENSEMBLE          // the specified ensemble has no members
+  SW_EMPTY_ENSEMBLE,         // the specified ensemble has no members
+  SW_WRITE_FAILURE           // an attempt to write the ensemble to a Python
+                             // module failed
 } sw_error_code_t;
 
 // Precision of real numbers
@@ -161,7 +163,8 @@ sw_input_result_t sw_input_get(sw_input_t *input, const char *name);
 // the given input instance, false otherwise.
 bool sw_input_has_array(sw_input_t *input, const char* name);
 
-// This type stores the result of the attempt to fetch a scalar input parameter.
+// This type stores the result of an attempt to fetch an array-valued input
+// parameter.
 typedef struct sw_input_array_result_t {
   sw_real_t *values;         // fetched values (if error_code == 0)
   size_t size;               // number of values (if error_code == 0)
@@ -169,31 +172,31 @@ typedef struct sw_input_array_result_t {
   const char* error_message; // text description of error
 } sw_input_array_result_t;
 
-// Retrieves the (scalar) input parameter with the given name.
+// Retrieves the (array-valued) input parameter with the given name.
 sw_input_array_result_t sw_input_get_array(sw_input_t *input, const char *name);
 
-// This type stores the result of an attempt to store an output metric.
-typedef struct sw_output_result_t {
+// This function sets a quantity with the given name and value within the given
+// output instance. This operation cannot fail under normal circumstances.
+void sw_output_set(sw_output_t *output, const char *name, sw_real_t value);
+
+// This function sets an array of quantities with the given name and values
+// within the given output instance. This operation cannot fail under normal
+// circumstances.
+void sw_output_set_array(sw_output_t *output, const char *name,
+                         const sw_real_t *values, const size_t *size);
+
+// This type stores the result of an attempt to write ensemble data to a
+// Python module.
+typedef struct sw_write_result_t {
   int error_code;            // error code indicating success or failure
   const char* error_message; // text description of error
-} sw_output_result_t;
-
-// This function sets a quantity with the given name and value to the given
-// output instance, returning a result that indicates success or failure.
-sw_output_result_t sw_output_set(sw_output_t *output,
-                                 const char *name,
-                                 sw_real_t value);
-
-// This function sets size number of quantities with the given name and values
-// to the given output instance, returning a result that indicates success or failure.
-sw_output_result_t sw_output_set_array(sw_output_t *output,
-                                 const char *name,
-                                 const sw_real_t *values,
-                                 const size_t *size);
+} sw_write_result_t;
 
 // Writes input and output data within the ensemble to a Python module stored
-// in the file with the given name.
-void sw_ensemble_write(sw_ensemble_t *ensemble, const char *module_filename);
+// in the file with the given name, returning information about any failures
+// that occur.
+sw_write_result_t sw_ensemble_write(sw_ensemble_t *ensemble,
+                                    const char *module_filename);
 
 // Destroys an ensemble, freeing its allocated resources. Use this at the end
 // of your driver program, or when a fatal error has been encountered.

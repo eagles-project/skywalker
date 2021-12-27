@@ -55,16 +55,6 @@ double get_value(sw_input_t *input, const char *name) {
   return in_result.value;
 }
 
-// Places the value with the given name into the given output, exiting
-// on failure.
-void put_value(sw_output_t *output, const char *name, double value) {
-  sw_output_result_t out_result = sw_output_set(output, name, value);
-  if (out_result.error_code != SW_SUCCESS) {
-    fprintf(stderr, "T_gas: %s", out_result.error_message);
-    exit(-1);
-  }
-}
-
 // Determines the output_file name corresponding to the given name of the
 // input file.
 const char* output_file_name(const char *input_file) {
@@ -117,13 +107,17 @@ int main(int argc, char **argv) {
     double T = (p + a/(V*V)) * (V - b) / R;
 
     // Stash it.
-    put_value(output, "T", T);
+    sw_output_set(output, "T", T);
   }
 
   // Write out a Python module.
   const char *output_file = output_file_name(input_file);
   printf("T_gas: Writing data to %s...\n", output_file);
-  sw_ensemble_write(ensemble, output_file);
+  sw_write_result_t w_result = sw_ensemble_write(ensemble, output_file);
+  if (w_result.error_code != SW_SUCCESS) {
+    fprintf(stderr, "T_gas: %s\n", w_result.error_message);
+    exit(-1);
+  }
 
   // Clean up.
   sw_ensemble_free(ensemble);

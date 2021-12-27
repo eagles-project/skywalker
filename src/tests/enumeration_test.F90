@@ -37,7 +37,12 @@
 ! configuration that uses an "enumeration" ensemble.
 
 module enumeration_test_mod
+  use iso_c_binding, only: c_float, c_double
   implicit none
+
+  ! Working precision real kind
+  integer, parameter :: wp = c_real
+
 contains
   subroutine fatal_error(message, line)
     character(len=*), intent(in) :: message
@@ -48,7 +53,6 @@ contains
   end subroutine
 
   function approx_equal(x, y) result(equal)
-    use iso_c_binding, only: c_float, c_double
     real(c_real), intent(in) :: x, y
     logical :: equal
 

@@ -43,9 +43,6 @@ module skywalker
 
   implicit none
 
-  ! Working precision real kind
-  integer, parameter :: wp = c_real
-
   ! Error codes -- see skywalker.h.in for descriptions
   integer, parameter :: sw_success = 0
   integer, parameter :: sw_yaml_file_not_found = 1
@@ -56,9 +53,11 @@ module skywalker
   integer, parameter :: sw_settings_not_found = 6
   integer, parameter :: sw_invalid_param_name = 7
   integer, parameter :: sw_param_not_found = 8
-  integer, parameter :: sw_too_many_params = 9
+  integer, parameter :: sw_too_many_lattice_params = 9
   integer, parameter :: sw_invalid_enumeration = 10
-  integer, parameter :: sw_empty_ensemble = 11
+  integer, parameter :: sw_ensemble_too_large = 11
+  integer, parameter :: sw_empty_ensemble = 12
+  integer, parameter :: sw_write_failure = 13
 
   ! Ensemble types
   integer, parameter :: sw_lattice     = 0
@@ -72,8 +71,11 @@ module skywalker
   contains
     ! Iterates over ensemble members
     procedure :: next => ensemble_next
-    ! Writes a Python module containing input/output data to a file
+    ! Writes a Python module containing input/output data to a file, halting
+    ! on failure
     procedure :: write => ensemble_write
+    ! Writes a Python module containing input/output data to a file
+    procedure :: write_module => ensemble_write_module
     ! Destroys an ensemble, freeing all allocated resources. Use at the end of
     ! a driver program, or when a fatal error has occurred.
     procedure :: free => ensemble_free
@@ -90,7 +92,7 @@ module skywalker
     procedure :: get_param => settings_get_param
   end type
 
-  ! This type stores the result of the attempt to fetch a setting.
+  ! This type stores the result of an attempt to fetch a setting.
   type :: settings_result_t
     character(len=255) :: value         ! fetched value (if error_code == 0)
     integer            :: error_code    ! error code indicating success or failure
@@ -110,15 +112,15 @@ module skywalker
     procedure :: get_array_param => input_get_array_param
   end type input_t
 
-  ! This type stores the result of the attempt to fetch a (scalar) input
+  ! This type stores the result of an attempt to fetch a (scalar) input
   ! parameter.
   type :: input_result_t
-    real(c_real)              :: value         ! fetched value (if error_code == 0)
-    integer(c_int)            :: error_code    ! error code indicating success or failure
-    character(len=255)        :: error_message ! text description of error
+    real(c_real)       :: value         ! fetched value (if error_code == 0)
+    integer(c_int)     :: error_code    ! error code indicating success or failure
+    character(len=255) :: error_message ! text description of error
   end type input_result_t
 
-  ! This type stores the result of the attempt to fetch a input array parameter.
+  ! This type stores the result of an attempt to fetch a input array parameter.
   type :: input_array_result_t
     real(c_real), dimension(:), pointer :: values ! fetched values (if error_code == 0)
     integer(c_size_t)                   :: size   ! number of values (if error_code == 0)
@@ -158,6 +160,13 @@ module skywalker
     ! A string describing any error encountered, or NULL if error_code == 0.
     character(len=255) :: error_message
   end type ensemble_result_t
+
+  ! This type stores the result of an attempt to write an ensemble's data to
+  ! a Python module.
+  type :: write_result_t
+    integer(c_int)     :: error_code    ! error code indicating success or failure
+    character(len=255) :: error_message ! text description of error
+  end type write_result_t
 
   interface
 
@@ -248,10 +257,13 @@ module skywalker
       type(c_ptr), intent(out) :: input, output
     end function
 
-    subroutine sw_ensemble_write(ensemble, filename) bind(c)
-      use iso_c_binding, only: c_ptr
+    subroutine sw_ensemble_write_f90(ensemble, filename, error_code, &
+                                     error_message) bind(c)
+      use iso_c_binding, only: c_ptr, c_int
       type(c_ptr), value, intent(in) :: ensemble
       type(c_ptr), value, intent(in) :: filename
+      integer(c_int), intent(out) :: error_code
+      type(c_ptr), intent(out) :: error_message
     end subroutine
 
     subroutine sw_ensemble_free(ensemble) bind(c)
@@ -264,9 +276,9 @@ module skywalker
 contains
 
   ! Prints a banner containing Skywalker's version info to stderr.
-    subroutine print_banner()
-      call sw_print_banner()
-    end subroutine
+  subroutine print_banner()
+    call sw_print_banner()
+  end subroutine
 
   ! Reads an ensemble from a YAML input file, returning a pointer to the ensemble
   ! (if the read was successful). The settings_block argument indicates the name
@@ -366,13 +378,13 @@ contains
     has = sw_input_has(input%ptr, f_to_c_string(name))
   end function
 
-  ! Retrieves the input parameter with the given name, halting on errors.
+  ! Retrieves the input parameter with the given name.
   function input_get_param(input, name) result(i_result)
     use iso_c_binding, only: c_ptr
     implicit none
 
     class(input_t), intent(in)   :: input
-      character(len=*), intent(in) :: name
+    character(len=*), intent(in) :: name
 
     type(input_result_t) :: i_result
     type(c_ptr) :: c_err_msg
@@ -385,7 +397,8 @@ contains
     end if
   end function
 
-  ! Retrieves the input parameter with the given name.
+  ! Retrieves the input parameter with the given name, halting the program
+  ! on failure.
   function input_get(input, name) result(val)
     use iso_c_binding, only: c_ptr, c_real
     implicit none
@@ -419,7 +432,7 @@ contains
     has = sw_input_has_array(input%ptr, f_to_c_string(name))
   end function
 
-  ! Retrieves the input array parameter with the given name, halting on errors.
+  ! Retrieves the input array parameter with the given name.
   function input_get_array_param(input, name) result(i_result)
     use iso_c_binding, only: c_ptr
     implicit none
@@ -440,7 +453,7 @@ contains
     end if
   end function
 
-  ! Retrieves the input array parameter with the given name.
+  ! Retrieves the input array parameter with the given name, halting on failure.
   subroutine input_get_array(input, name, values)
     use iso_c_binding, only: c_ptr, c_real
     implicit none
@@ -466,7 +479,7 @@ contains
   end subroutine
 
   ! This function sets a quantity with the given name and value to the given
-  ! output instance, returning a result that indicates success or failure.
+  ! output instance. This operation cannot fail under normal circumstances.
   subroutine output_set(output, name, value)
     use iso_c_binding, only: c_double, c_float
     implicit none
@@ -478,8 +491,8 @@ contains
     call sw_output_set(output%ptr, f_to_c_string(name), value)
   end subroutine
 
-  ! This function sets quantities with the given name and values to the given
-  ! output instance, returning a result that indicates success or failure.
+  ! Sets an array of quantities with the given name and values to the given
+  ! output instance. This operation cannot fail under normal circumstances.
   subroutine output_set_array(output, name, values)
     use iso_c_binding, only: c_double, c_float
     implicit none
@@ -511,13 +524,41 @@ contains
 
   ! Writes input and output data within the ensemble to a Python module stored
   ! in the file with the given name.
+  function ensemble_write_module(ensemble, module_filename) result(w_result)
+    implicit none
+
+    class(ensemble_t), intent(in) :: ensemble
+    character(len=*), intent(in)  :: module_filename
+
+    type(write_result_t) :: w_result
+    type(c_ptr) :: c_err_msg
+
+    call sw_ensemble_write_f90(ensemble%ptr, f_to_c_string(module_filename), &
+                               w_result%error_code, c_err_msg)
+    if (w_result%error_code /= SW_SUCCESS) then
+      w_result%error_message = c_to_f_string(c_err_msg)
+    end if
+  end function
+
+  ! Writes input and output data within the ensemble to a Python module stored
+  ! in the file with the given name, halting on failure.
   subroutine ensemble_write(ensemble, module_filename)
     implicit none
 
     class(ensemble_t), intent(in) :: ensemble
     character(len=*), intent(in)  :: module_filename
 
-    call sw_ensemble_write(ensemble%ptr, f_to_c_string(module_filename))
+    type(write_result_t) :: w_result
+    type(c_ptr) :: c_err_msg
+
+    call sw_ensemble_write_f90(ensemble%ptr, f_to_c_string(module_filename), &
+                               w_result%error_code, c_err_msg)
+    if (w_result%error_code /= SW_SUCCESS) then
+      w_result%error_message = c_to_f_string(c_err_msg)
+      print *, w_result%error_message
+      call sw_ensemble_free(ensemble%ptr)
+      stop
+    end if
   end subroutine
 
   ! Destroys an ensemble, freeing all allocated resources.

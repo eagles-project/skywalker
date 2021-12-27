@@ -37,8 +37,14 @@
 ! configuration.
 
 module lattice_test_mod
+  use iso_c_binding, only: c_float, c_double
   implicit none
+
+  ! Working precision real kind
+  integer, parameter :: wp = c_real
+
 contains
+
   subroutine fatal_error(message, line)
     character(len=*), intent(in) :: message
     integer :: line
@@ -48,8 +54,7 @@ contains
   end subroutine
 
   function approx_equal(x, y) result(equal)
-    use iso_c_binding, only: c_float, c_double
-    real(c_real), intent(in) :: x, y
+    real(wp), intent(in) :: x, y
     logical :: equal
 
     if (abs(x - y) < 1e-14) then
@@ -77,7 +82,7 @@ program lattice_test
   type(input_t)           :: input
   type(input_result_t)    :: in_result
   type(output_t)          :: output
-  real(c_real), dimension(:), allocatable :: array_val
+  real(wp), dimension(:), allocatable :: array_val
   integer                 :: i
 
   if (command_argument_count() /= 1) then
