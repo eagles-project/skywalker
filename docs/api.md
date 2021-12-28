@@ -393,9 +393,9 @@ with the given name is found and false otherwise.
     ! Returns .true. if the setting with the given name exists within the given
     ! settings instance, false otherwise.
     function settings_has(settings, name) result(has)
-    class(settings_t), intent(in) :: settings
-    character(len=*), intent(in)  :: name
-    logical(c_bool) :: has
+      class(settings_t), intent(in) :: settings
+      character(len=*), intent(in)  :: name
+      logical(c_bool) :: has
     end function
     ```
 
@@ -495,8 +495,11 @@ output parameters for each member, terminating when there are no members left.
     ```
 === "Fortran"
     ```
-    ! Iterates over the members of the ensemble, returning the input and output
-    ! data structures for the next member.
+    ! Iterates over the inputs and outputs in an ensemble, making them available
+    ! one at a time for computation. This function returns true once for each
+    ! member of an ensemble and false once the ensemble's members have been
+    ! traversed. Use it as a predicate in a do while loop in which inputs and
+    ! outputs are processed.
     function ensemble_next(ensemble, input, output) result(next)
       class(ensemble_t), intent(in) :: ensemble
       type(input_t), intent(out)    :: input
@@ -661,8 +664,8 @@ parameter exists within an ensemble member.
     end function
     ```
 
-The process of retrieving input array parameters also works the same way as it
-does for scalar input parameters.
+The process of retrieving input array parameters works the same way as it does
+for scalar input parameters.
 
 === "C"
     ```

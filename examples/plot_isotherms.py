@@ -38,6 +38,7 @@ def usage():
     print('usage: python3 plot_isotherms.py <module_name>')
     print('Here, <module_name> is the name of a Python data module generated')
     print('by Skywalker, excluding the .py suffix (e.g. \'n2_gas\').')
+    exit(0)
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:

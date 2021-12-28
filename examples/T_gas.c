@@ -46,7 +46,7 @@ void usage(const char *prog_name) {
 
 // Retrieves the value with the given name from the given input, exiting
 // on failure.
-double get_value(sw_input_t *input, const char *name) {
+sw_real_t get_value(sw_input_t *input, const char *name) {
   sw_input_result_t in_result = sw_input_get(input, name);
   if (in_result.error_code != SW_SUCCESS) {
     fprintf(stderr, "T_gas: %s", in_result.error_message);
@@ -91,10 +91,10 @@ int main(int argc, char **argv) {
   sw_output_t *output;
   while (sw_ensemble_next(ensemble, &input, &output)) {
     // Fetch inputs.
-    double V = get_value(input, "V"); // gas volume
-    double p = get_value(input, "p"); // gas pressure
+    sw_real_t V = get_value(input, "V"); // gas volume
+    sw_real_t p = get_value(input, "p"); // gas pressure
 
-    double a = 0.0, b = 0.0;
+    sw_real_t a = 0.0, b = 0.0;
     if (sw_input_has(input, "a")) {
       a = get_value(input, "a");
     }
@@ -103,8 +103,8 @@ int main(int argc, char **argv) {
     }
 
     // Compute the gas temperature using the Van der Waals equation.
-    static const double R = 8.31446261815324;
-    double T = (p + a/(V*V)) * (V - b) / R;
+    static const sw_real_t R = 8.31446261815324;
+    sw_real_t T = (p + a/(V*V)) * (V - b) / R;
 
     // Stash it.
     sw_output_set(output, "T", T);
