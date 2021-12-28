@@ -6,20 +6,27 @@ import numpy as np
 # Look for data in whatever directory we're running in.
 sys.path.append(os.getcwd())
 
+def approx_equal(x, y):
+    return abs(x - y) < 1e-6
+
 def plot_isotherms(data_module):
-    """Plot the contours of the temperature as a function of volume and pressure."""
+    """Plot isothermal processes on a V-p diagram."""
 
     data = importlib.import_module(data_module)
-    V, p, T = data.input.V, data.input.p, data.output.T
+    V, T, p = data.input.V, data.input.T, data.output.p
 
-    # Plot interpolated contours at specific temperatures and annotate them.
-    levels = [273, 373, 473, 573, 673]
-    cs = plt.tricontour(V, p, T, levels)
-    plt.clabel(cs, inline=1, fontsize=10)
-
+    temps = [273, 373, 473, 573, 673]
+    for temp in temps:
+        # extract points that match the desired temperature
+        indices = [i for i in range(0, len(V)) if approx_equal(T[i], temp)]
+        Vi = [V[i] for i in indices]
+        pi = [p[i] for i in indices]
+        plt.plot(Vi, pi, label='T = %g K'%temp)
+    plt.legend(fontsize='x-small')
     plt.xlabel('Volume [m^3]')
     plt.ylabel('Pressure [Pa]')
-    plt.title('Temperature [K]')
+    plt.ylim(0, 1e7)
+    plt.title('Isotherms (%s)'%data_module)
     plt.savefig(data_module + '.png')
     plt.clf()
 

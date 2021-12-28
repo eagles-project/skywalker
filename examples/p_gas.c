@@ -39,6 +39,8 @@
 #include <tgmath.h>
 
 void usage(const char *prog_name) {
+  fprintf(stderr, "%s: calculates the pressure of a Van der Waals gas given "
+                  "its volume and temperature.\n", prog_name);
   fprintf(stderr, "%s: usage:\n", prog_name);
   fprintf(stderr, "%s <input.yaml>\n", prog_name);
   exit(-1);
@@ -49,7 +51,7 @@ void usage(const char *prog_name) {
 sw_real_t get_value(sw_input_t *input, const char *name) {
   sw_input_result_t in_result = sw_input_get(input, name);
   if (in_result.error_code != SW_SUCCESS) {
-    fprintf(stderr, "T_gas: %s", in_result.error_message);
+    fprintf(stderr, "p_gas: %s", in_result.error_message);
     exit(-1);
   }
   return in_result.value;
@@ -66,6 +68,7 @@ const char* output_file_name(const char *input_file) {
   }
   memcpy(output_file_, input_file, sizeof(char) * dot_index);
   memcpy(&output_file_[dot_index], ".py", sizeof(char) * 3);
+  output_file_[dot_index+3] = '\0';
   return (const char*)output_file_;
 }
 
@@ -77,22 +80,22 @@ int main(int argc, char **argv) {
   const char *input_file = argv[1];
 
   // Load the ensemble. Any error encountered is fatal.
-  printf("T_gas: Loading ensemble from %s...\n", input_file);
+  printf("p_gas: Loading ensemble from %s...\n", input_file);
   sw_ensemble_result_t load_result = sw_load_ensemble(input_file, NULL);
   if (load_result.error_code != SW_SUCCESS) {
-    fprintf(stderr, "T_gas: %s", load_result.error_message);
+    fprintf(stderr, "p_gas: %s", load_result.error_message);
     exit(-1);
   }
 
   // Ensemble data
   sw_ensemble_t *ensemble = load_result.ensemble;
-  printf("T_gas: found %zd ensemble members.\n", sw_ensemble_size(ensemble));
+  printf("p_gas: found %zd ensemble members.\n", sw_ensemble_size(ensemble));
   sw_input_t *input;
   sw_output_t *output;
   while (sw_ensemble_next(ensemble, &input, &output)) {
     // Fetch inputs.
-    sw_real_t V = get_value(input, "V"); // gas (molar) volume
-    sw_real_t p = get_value(input, "p"); // gas pressure
+    sw_real_t V = get_value(input, "V"); // gas (molar) volume [m3]
+    sw_real_t T = get_value(input, "T"); // gas temperature [K]
 
     sw_real_t a = 0.0, b = 0.0;
     if (sw_input_has(input, "a")) {
@@ -104,18 +107,18 @@ int main(int argc, char **argv) {
 
     // Compute the gas temperature using the Van der Waals equation.
     static const sw_real_t R = 8.31446261815324;
-    sw_real_t T = (p + a/(V*V)) * (V - b) / R;
+    sw_real_t p = R * T / (V - b) - a/(V*V);
 
     // Stash it.
-    sw_output_set(output, "T", T);
+    sw_output_set(output, "p", p);
   }
 
   // Write out a Python module.
   const char *output_file = output_file_name(input_file);
-  printf("T_gas: Writing data to %s...\n", output_file);
+  printf("p_gas: Writing data to %s...\n", output_file);
   sw_write_result_t w_result = sw_ensemble_write(ensemble, output_file);
   if (w_result.error_code != SW_SUCCESS) {
-    fprintf(stderr, "T_gas: %s\n", w_result.error_message);
+    fprintf(stderr, "p_gas: %s\n", w_result.error_message);
     exit(-1);
   }
 
