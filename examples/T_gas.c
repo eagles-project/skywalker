@@ -91,7 +91,7 @@ int main(int argc, char **argv) {
   sw_output_t *output;
   while (sw_ensemble_next(ensemble, &input, &output)) {
     // Fetch inputs.
-    sw_real_t V = get_value(input, "V"); // gas volume
+    sw_real_t V = get_value(input, "V"); // gas (molar) volume
     sw_real_t p = get_value(input, "p"); // gas pressure
 
     sw_real_t a = 0.0, b = 0.0;

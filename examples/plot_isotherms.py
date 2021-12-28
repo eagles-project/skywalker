@@ -10,21 +10,11 @@ def plot_isotherms(data_module):
     """Plot the contours of the temperature as a function of volume and pressure."""
 
     data = importlib.import_module(data_module)
-    p, V, T = data.input.p, data.input.V, data.output.T
+    V, p, T = data.input.V, data.input.p, data.output.T
 
-    # Interpolate the data onto a triangulated grid.
-    nx, ny = 100, 100
-    Vi = np.linspace(min(V), max(V), nx)
-    pi = np.linspace(min(p), max(p), ny)
-    triang = tri.Triangulation(V, p)
-    interpolator = tri.CubicTriInterpolator(triang, T)
-    Xi, Yi = np.meshgrid(Vi, pi)
-    Ti = interpolator(Xi, Yi)
-
-    # Plot contours. We get a little fancy in order to explicitly set log levels
-    # because the ticker.LogLocator doesn't "get it."
+    # Plot interpolated contours at specific temperatures and annotate them.
     levels = [273, 373, 473, 573, 673]
-    cs = plt.contour(Vi, pi, Ti, levels)
+    cs = plt.tricontour(V, p, T, levels)
     plt.clabel(cs, inline=1, fontsize=10)
 
     plt.xlabel('Volume [m^3]')
@@ -45,5 +35,5 @@ if __name__ == '__main__':
         usage()
     else:
         data_module = sys.argv[1]
-    plot_isotherms(data_module)
+        plot_isotherms(data_module)
 

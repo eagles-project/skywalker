@@ -42,8 +42,8 @@ belongs in its own block:
 
 * an **ensemble type** block that defines the method used to construct an
   ensemble
-* a **settings** block that conveys information from the user to a Skywalker
-  program
+* an optional **settings** block that conveys information from the user to a
+  Skywalker program
 * an **input** block that defines the members of the ensemble using the method
   selected in the **ensemble type** block.
 
@@ -120,6 +120,8 @@ consist of simple named variables, each with a single value. Skywalker settings
 are always interpreted as strings, so if your program needs an integer or
 floating point value to configure itself, it must convert the relevant setting
 to the correct type.
+
+Settings blocks are entirely optional and can be omitted if you don't need them.
 
 ## Input
 

@@ -413,6 +413,7 @@ static void handle_yaml_event(yaml_event_t *event,
     // settings block
     } else if (!state->parsing_settings &&
                state->settings_block &&
+               (state->settings_block[0] != '\0') && // exclude blank strings
                strcmp(value, state->settings_block) == 0) {
       assert(!state->current_setting);
       data->settings = sw_settings_new();
