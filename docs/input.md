@@ -198,7 +198,7 @@ The above list assigns values to the parameter `c_h2so4` between $10^{10}$ and
 $10^{12}$, using $(12 - 10)/0.05 = 40$ uniformly-spaced points on a logarithmic
 scale.
 
-You can use this logarithmic option for parameters with explicitly list values
+You can use this logarithmic option for parameters with explicitly listed values
 as well, but it's most uѕeful when combined with the uniform spacing above.
 
 ### Single-Valued Parameters

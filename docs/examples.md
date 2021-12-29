@@ -313,8 +313,8 @@ $$
 p = \frac{RT}{V - b} - \frac{a}{V^2}
 $$
 
-All we need to do is add the two parameters $a$ and $b$ as input. Here's a YAML
-input file that sets these parameters for diatomic nitrogen gas:
+First, we must add the two parameters $a$ and $b$ as input. Here's a YAML input
+file that sets these parameters for diatomic nitrogen gas:
 
 === "n2_gas_isotherms.yaml"
     ```
@@ -391,31 +391,32 @@ changes:
     ```
 
 With these changes, the program can now build the ensembles indicated in the
-`n2_gas_isotherms.yaml` and `co2_gas_isotherms.yaml` files. Here's the resulting
-plot for nitrogen:
+`n2_gas_isotherms.yaml` and `co2_gas_isotherms.yaml` files. Here are all of the
+resulting plots (including our ideal gas for comparison):
 
-![N2 gas law isotherms](n2_gas_isotherms_c.png)
-
-And for carbon dioxide:
-
-![CO2 gas law isotherms](co2_gas_isotherms_c.png)
+=== "Ideal gas"
+    ![Ideal gas law isotherms](ideal_gas_isotherms_c.png)
+=== "N2 gas"
+    ![N2 gas law isotherms](n2_gas_isotherms_c.png)
+=== "CO2 gas"
+    ![CO2 gas law isotherms](co2_gas_isotherms_c.png)
 
 ## Example 2: Vapor Saturation Pressure in Carbon Dioxide Gas
 
-If you are familiar with thermodynamics, you may be alarmed at the blue curve
-representing the isotherm for $T = 273$ K for carbon dioxide. If you follow the
-curve starting from the right, the process represents the compression of the gas
-at a constant temperature. Somewhere around $V = 2 \times 10^{-4}$ m$^3$, something
+You may be curious about what's happening with the blue curve representing the
+isotherm for $T = 273$ K for carbon dioxide. If you follow the curve starting
+from the right, the curve represents a compression process for the gas at a
+constant temperature. Somewhere around $V = 2 \times 10^{-4}$ m$^3$, something
 funny happens: the gas pressure *decreases* under compression. This simply
 doesn't happen in reality. What's going on?
 
-What's happening is a phase change: carbon dioxide condenses to liquid form
+What's going on is a phase change: carbon dioxide condenses to liquid form
 under these conditions. Therefore the gas is no longer in a homogeneous state,
 and the Van der Waals equation of state isn't satisfied for the gas/liquid
 mixture. Rather, the pressure (called the **saturation vapor pressure**) remains
 constant alongside the temperature over the course of the phase change. One way
 to understand this is that under a phase change, the system reconfigures itself
-in a way taht affects its binding energy and not its kinetic energy, and the
+in a way that affects its binding energy and not its kinetic energy, and the
 pressure in a Van der Waals gas only depends on its kinetic energy.
 
 In other words, the saturation vapor pressure is a horizontal line over the
