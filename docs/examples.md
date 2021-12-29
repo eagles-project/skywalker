@@ -307,8 +307,14 @@ python3 plot_isotherms.py ideal_gas_isotherms_c
 
 Now that we've successfully used Skywalker to plot the isotherms of an ideal
 gas at several temperatures, we can generalize our program(s) to handle Van der
-Waals gases. All we need to do is add the two parameters $a$ and $b$ as input.
-Here's a YAML input file that sets these parameters for diatomic nitrogen gas:
+Waals gases. The expression for the gas pressure is
+
+$$
+p = \frac{RT}{V - b} - \frac{a}{V^2}
+$$
+
+All we need to do is add the two parameters $a$ and $b$ as input. Here's a YAML
+input file that sets these parameters for diatomic nitrogen gas:
 
 === "n2_gas_isotherms.yaml"
     ```

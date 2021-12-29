@@ -1,4 +1,4 @@
-# Skywalker's API
+# The Skywalker API
 
 Skywalker offers a simple interface for writing programs that operate on entire
 ensembles. You can access everything in this interface by including the correct
