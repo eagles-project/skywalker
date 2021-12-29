@@ -242,8 +242,10 @@ Each of the essential concepts in the library has an associated type.
 Notice that many of the Fortran types are actually classes with bound
 procedures with implementations, indicated by the `procedure => implementation`
 ѕyntax. Below, we refer to the functions and subroutines that implement the
-procedures. The examples and tests illustrate how these procedures are invoked,
-as this syntax is unfortunately not very clear.
+procedures. The [examples](https://github.com/eagles-project/skywalker/tree/main/examples)
+and [tests](https://github.com/eagles-project/skywalker/tree/main/src/tests)
+illustrate how these procedures are invoked, as this syntax is unfortunately not
+very clear.
 
 ### Result types
 
@@ -272,8 +274,10 @@ The C++ interface does not define types to store the results of its functions.
 Instead, it directly returns the data requested, throwing an exception
 containing a string description if any issue occurs.
 
-The unit tests and examples in the repository demonstrate how these error
-handling mechanisms work in their respective languages.
+The [examples](https://github.com/eagles-project/skywalker/tree/main/examples)
+and [tests](https://github.com/eagles-project/skywalker/tree/main/src/tests)
+in the repository demonstrate how these error handling mechanisms work in
+their respective languages.
 
 ## Loading an Ensemble and Settings
 
@@ -525,7 +529,9 @@ on the input and output data for each member. The function you define takes a
     };
     ```
 
-The examples and tests illustrate how this is done.
+The [examples](https://github.com/eagles-project/skywalker/tree/main/examples)
+and [tests](https://github.com/eagles-project/skywalker/tree/main/src/tests)
+illustrate how this is done.
 
 ### Reading input parameters
 

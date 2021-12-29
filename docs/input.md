@@ -194,8 +194,9 @@ input:
   ...
 ```
 
-The above list assigns logarithmically spaced values to the parameter `c_h2so4`
-between $10^10$ and $10^12$ in steps of $10^0.05$.
+The above list assigns values to the parameter `c_h2so4` between $10^{10}$ and
+$10^{12}$, using $(12 - 10)/0.05 = 40$ uniformly-spaced points on a logarithmic
+scale.
 
 You can use this logarithmic option for parameters with explicitly list values
 as well, but it's most uѕeful when combined with the uniform spacing above.
@@ -210,7 +211,7 @@ also use a list that contains only 1 parameter:
 ```
 input:
   ...
-  c_h2so4: [5e8] # this does the same thing as the above example
+  c_h2so4: [5e8] # this does the same thing as the original example
   ...
 ```
 
