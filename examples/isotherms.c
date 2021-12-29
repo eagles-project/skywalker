@@ -38,11 +38,11 @@
 #include <string.h>
 #include <tgmath.h>
 
-void usage(const char *prog_name) {
-  fprintf(stderr, "%s: calculates the pressure of a Van der Waals gas given "
-                  "its volume and temperature.\n", prog_name);
-  fprintf(stderr, "%s: usage:\n", prog_name);
-  fprintf(stderr, "%s <input.yaml>\n", prog_name);
+void usage() {
+  fprintf(stderr, "isotherms_c: calculates the pressure of a Van der Waals gas "
+                  "given its volume and temperature.\n");
+  fprintf(stderr, "isotherms_c: usage:\n");
+  fprintf(stderr, "isotherms_c <input.yaml>\n");
   exit(-1);
 }
 
@@ -51,7 +51,7 @@ void usage(const char *prog_name) {
 sw_real_t get_value(sw_input_t *input, const char *name) {
   sw_input_result_t in_result = sw_input_get(input, name);
   if (in_result.error_code != SW_SUCCESS) {
-    fprintf(stderr, "p_gas: %s", in_result.error_message);
+    fprintf(stderr, "isotherms_c: %s", in_result.error_message);
     exit(-1);
   }
   return in_result.value;
@@ -67,29 +67,29 @@ const char* output_file_name(const char *input_file) {
     dot_index = (const char*)dot - input_file;
   }
   memcpy(output_file_, input_file, sizeof(char) * dot_index);
-  memcpy(&output_file_[dot_index], ".py", sizeof(char) * 3);
-  output_file_[dot_index+3] = '\0';
+  memcpy(&output_file_[dot_index], "_c.py\0", sizeof(char) * 6);
   return (const char*)output_file_;
 }
 
 int main(int argc, char **argv) {
 
   if (argc == 1) {
-    usage((const char*)argv[0]);
+    usage();
   }
   const char *input_file = argv[1];
 
   // Load the ensemble. Any error encountered is fatal.
-  printf("p_gas: Loading ensemble from %s...\n", input_file);
+  printf("isotherms_c: Loading ensemble from %s...\n", input_file);
   sw_ensemble_result_t load_result = sw_load_ensemble(input_file, NULL);
   if (load_result.error_code != SW_SUCCESS) {
-    fprintf(stderr, "p_gas: %s", load_result.error_message);
+    fprintf(stderr, "isotherms_c: %s", load_result.error_message);
     exit(-1);
   }
 
-  // Ensemble data
   sw_ensemble_t *ensemble = load_result.ensemble;
-  printf("p_gas: found %zd ensemble members.\n", sw_ensemble_size(ensemble));
+  printf("isotherms_c: found %zd ensemble members.\n", sw_ensemble_size(ensemble));
+
+  // Iterate over all members of the ensemble.
   sw_input_t *input;
   sw_output_t *output;
   while (sw_ensemble_next(ensemble, &input, &output)) {
@@ -97,6 +97,7 @@ int main(int argc, char **argv) {
     sw_real_t V = get_value(input, "V"); // gas (molar) volume [m3]
     sw_real_t T = get_value(input, "T"); // gas temperature [K]
 
+    // Fetch Van der Waals parameters if they're present.
     sw_real_t a = 0.0, b = 0.0;
     if (sw_input_has(input, "a")) {
       a = get_value(input, "a");
@@ -105,20 +106,20 @@ int main(int argc, char **argv) {
       b = get_value(input, "b");
     }
 
-    // Compute the gas temperature using the Van der Waals equation.
+    // Compute p(V, T).
     static const sw_real_t R = 8.31446261815324;
     sw_real_t p = R * T / (V - b) - a/(V*V);
 
-    // Stash it.
+    // Stash the computed pressure in the member's output.
     sw_output_set(output, "p", p);
   }
 
   // Write out a Python module.
   const char *output_file = output_file_name(input_file);
-  printf("p_gas: Writing data to %s...\n", output_file);
+  printf("isotherms_c: Writing data to %s...\n", output_file);
   sw_write_result_t w_result = sw_ensemble_write(ensemble, output_file);
   if (w_result.error_code != SW_SUCCESS) {
-    fprintf(stderr, "p_gas: %s\n", w_result.error_message);
+    fprintf(stderr, "isotherms_c: %s\n", w_result.error_message);
     exit(-1);
   }
 

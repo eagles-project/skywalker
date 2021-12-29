@@ -256,7 +256,7 @@ class Ensemble final {
 // Loads an ensemble from the given YAML file, using the block with the given
 // name to load settings.
 inline Ensemble* load_ensemble(const std::string& yaml_file,
-                               const std::string& settings_block) {
+                               const std::string& settings_block = "") {
   auto result = sw_load_ensemble(yaml_file.c_str(), settings_block.c_str());
   if (result.error_code == SW_SUCCESS) {
     return new Ensemble(result.type, result.ensemble, result.settings);

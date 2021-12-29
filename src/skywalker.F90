@@ -285,19 +285,25 @@ contains
   ! of the YAML block to read to retrieve settings for the driver program using
   ! Skywalker.
   function load_ensemble(yaml_file, settings_block) result(e_result)
-    use iso_c_binding, only: c_ptr
+    use iso_c_binding, only: c_ptr, c_null_ptr
     implicit none
 
-    character(len=*), intent(in) :: yaml_file
-    character(len=*), intent(in) :: settings_block
+    character(len=*), intent(in)           :: yaml_file
+    character(len=*), intent(in), optional :: settings_block
 
     type(ensemble_result_t) :: e_result
-    type(c_ptr) :: c_err_msg
+    type(c_ptr) :: c_settings_block, c_err_msg
 
+    if (present(settings_block)) then
+      c_settings_block = f_to_c_string(settings_block)
+    else
+      c_settings_block = c_null_ptr
+    end if
     call sw_load_ensemble_f90(f_to_c_string(yaml_file), &
-                              f_to_c_string(settings_block), &
+                              c_settings_block, &
                               e_result%settings%ptr, e_result%ensemble%ptr, &
                               e_result%type, e_result%error_code, c_err_msg)
+
     if (e_result%error_code == SW_SUCCESS) then
       e_result%ensemble%size = sw_ensemble_size(e_result%ensemble%ptr)
       ! Set the ensemble pointer on settings to allow proper destruction
@@ -551,7 +557,8 @@ contains
     type(write_result_t) :: w_result
     type(c_ptr) :: c_err_msg
 
-    call sw_ensemble_write_f90(ensemble%ptr, f_to_c_string(module_filename), &
+    call sw_ensemble_write_f90(ensemble%ptr, &
+                               f_to_c_string(trim(module_filename)), &
                                w_result%error_code, c_err_msg)
     if (w_result%error_code /= SW_SUCCESS) then
       w_result%error_message = c_to_f_string(c_err_msg)

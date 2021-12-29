@@ -637,7 +637,7 @@ static yaml_data_t parse_yaml(FILE* file, const char* settings_block) {
   yaml_parser_delete(&parser);
 
   // Did we find a settings block?
-  if (settings_block && !data.settings) {
+  if (settings_block && (settings_block[0] != '\0') && !data.settings) {
     data.error_code = SW_SETTINGS_NOT_FOUND;
     data.error_message = new_string("The settings block '%s' was not found.",
                                     settings_block);

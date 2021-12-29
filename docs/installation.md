@@ -36,6 +36,11 @@ you to consider.
   the build is instrumented for a debugger (`Debug`).
 * `SKYWALKER_PRECISION` can be set to `single` or `double` (default) to control
   the precision of floating point numbers.
+* `CMAKE_C_COMPILER` sets the C compiler that is used to build Skywalker.
+  Usually, the default compiler is fine, but if you want to use an MPI-capable
+  compiler or a specific vendor compiler, you can specify it with this option.
+* `CMAKE_Fortran_COMPILER` sets the Fortran compiler that is used to build
+  Skywalker's Fortran interface.
 
 From the top-level `skywalker` directory, create a "build" directory
 (e.g. `build`). This is where you'll configure and build Skywalker. For example,

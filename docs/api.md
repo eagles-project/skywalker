@@ -6,19 +6,19 @@ C/C++ header file or using the appropriate Fortran module in your program.
 
 === "C"
 
-    ```
+    ``` c
     #include <skywalker.h>
     ```
 
 === "C++"
 
-    ```
+    ``` c++
     #include <skywalker.hpp>
     ```
 
 === "Fortran"
 
-    ```
+    ``` fortran
     use skywalker
     ```
 
@@ -53,19 +53,19 @@ CMake variable.
 
 === "C"
 
-    ```
+    ``` c
     typedef double sw_real_t;
     ```
 
 === "C++"
 
-    ```
+    ``` c++
     using Real = sw_real_t;
     ```
 
 === "Fortran"
 
-    ```
+    ``` fortran
     #define c_real c_double
     ```
 
@@ -81,12 +81,12 @@ Each of the essential concepts in the library has an associated type.
 
 === "C"
 
-    ```
+    ``` c
     typedef struct sw_ensemble_t sw_ensemble_t;
     ```
 === "C++"
 
-    ```
+    ``` c++
     class Ensemble final {
      public:
       // Returns the type of the ensemble (SW_LATTICE or SW_ENUMERATION).
@@ -109,7 +109,7 @@ Each of the essential concepts in the library has an associated type.
     ```
 === "Fortran"
 
-    ```
+    ``` fortran
     type :: ensemble_t
       type(c_ptr)       :: ptr
       integer(c_size_t) :: size  ! number of members
@@ -132,11 +132,11 @@ Each of the essential concepts in the library has an associated type.
   that can be retrieved by name.
 
 === "C"
-    ```
+    ``` c
     typedef struct sw_settings_t sw_settings_t;
     ```
 === "C++"
-    ```
+    ``` c++
     class Settings final {
      public:
 
@@ -150,7 +150,7 @@ Each of the essential concepts in the library has an associated type.
     };
     ```
 === "Fortran"
-    ```
+    ``` fortran
     type :: settings_t
       type(c_ptr) :: ptr, ensemble_ptr
     contains
@@ -164,11 +164,11 @@ Each of the essential concepts in the library has an associated type.
   within a dedicated type. Input data cannot be modified--it can only be read.
 
 === "C"
-    ```
+    ``` c
     typedef struct sw_input_t sw_input_t;
     ```
 === "C++"
-    ```
+    ``` c++
     class Input final {
      public:
       Input();
@@ -191,7 +191,7 @@ Each of the essential concepts in the library has an associated type.
     };
     ```
 === "Fortran"
-    ```
+    ``` fortran
     type :: input_t
       type(c_ptr) :: ptr, ensemble_ptr
     contains
@@ -209,11 +209,11 @@ Each of the essential concepts in the library has an associated type.
   parameters can only be written.
 
 === "C"
-    ```
+    ``` c
     typedef struct sw_output_t sw_output_t;
     ```
 === "C++"
-    ```
+    ``` c++
     class Output final {
      public:
       Output();
@@ -228,7 +228,7 @@ Each of the essential concepts in the library has an associated type.
     };
     ```
 === "Fortran"
-    ```
+    ``` fortran
     type :: output_t
       type(c_ptr) :: ptr
     contains
@@ -286,26 +286,26 @@ file with a single function call.
 
 === "C"
 
-    ```
+    ``` c
     sw_ensemble_result_t sw_load_ensemble(const char *yaml_file,
                                           const char *settings_block);
     ```
 
 === "C++"
 
-    ```
+    ``` c++
     namespace skywalker {
       Ensemble* load_ensemble(const std::string& yaml_file,
-                              const std::string& settings_block);
+                              const std::string& settings_block = "");
     }
     ```
 
 === "Fortran"
 
-    ```
+    ``` fortran
     function load_ensemble(yaml_file, settings_block) result(e_result)
       character(len=*), intent(in) :: yaml_file
-      character(len=*), intent(in) :: settings_block
+      character(len=*), intent(in), optional :: settings_block
       type(ensemble_result_t) :: e_result
     end function
     ```
@@ -314,8 +314,9 @@ file with a single function call.
   an absolute or relative path to a file on disk.
 * `settings_block` is the name of the block in the YAML file from which settings
   are read. This can be the name of your program, or just `"settings"` if you
-  want a mneumonic name. If this string is `NULL` or blank, Skywalker does not
-  attempt to read any settings from the file.
+  want a mneumonic name. This argument is optional: If this string is `NULL` or
+  blank in C, or not given in C++ or Fortran, Skywalker does not attempt to read
+  any settings from the file.
 
 Settings can be used to create a single YAML input file that defines ensembles
 for several Skywalker programs (e.g. for cross validating different methods or
@@ -327,7 +328,7 @@ settings, as well as error handling information.
 
 === "C"
 
-    ```
+    ``` c
     typedef struct sw_ensemble_result_t {
       // The settings associated with the driver program
       sw_settings_t *settings;
@@ -345,7 +346,7 @@ settings, as well as error handling information.
 
 === "Fortran"
 
-    ```
+    ``` fortran
     type :: ensemble_result_t
       ! The settings associated with the driver program
       type(settings_t) :: settings
@@ -377,13 +378,13 @@ Settings can be queried with a `has` function that returns true if a setting
 with the given name is found and false otherwise.
 
 === "C"
-    ```
+    ``` c
     // Returns true if the setting with the given name exists within the given
     // settings instance, false otherwise.
     bool sw_settings_has(sw_settings_t *settings, const char* name);
     ```
 === "C++"
-    ```
+    ``` c++
     class Settings final {
       ...
       // Returns true if the setting with the given name exists within the given
@@ -393,7 +394,7 @@ with the given name is found and false otherwise.
     };
     ```
 === "Fortran"
-    ```
+    ``` fortran
     ! Returns .true. if the setting with the given name exists within the given
     ! settings instance, false otherwise.
     function settings_has(settings, name) result(has)
@@ -406,13 +407,13 @@ with the given name is found and false otherwise.
 A setting with the given name can be fetched.
 
 === "C"
-    ```
+    ``` c
     // Retrieves the setting with the given name.
     sw_settings_result_t sw_settings_get(sw_settings_t *settings,
                                          const char *name);
     ```
 === "C++"
-    ```
+    ``` c++
     class Settings final {
       ...
       // Retrieves a (string-valued) setting with the given name, throwing an
@@ -422,7 +423,7 @@ A setting with the given name can be fetched.
     };
     ```
 === "Fortran"
-    ```
+    ``` fortran
     ! Retrieves the setting with the given name, returning a result that can
     ! be checked for errors that occur.
     function settings_get_param(settings, name) result(s_result)
@@ -437,7 +438,7 @@ C and Fortran interfaces define a result type that allows this situation to
 be handled.
 
 === "C"
-    ```
+    ``` c
     typedef struct sw_setting_result_t {
       const char* value;         // fetched value (if error_code == 0)
       int error_code;            // error code indicating success or failure
@@ -445,7 +446,7 @@ be handled.
     } sw_settings_result_t;
     ```
 === "Fortran"
-    ```
+    ``` fortran
     type :: settings_result_t
       character(len=255) :: value         ! fetched value (if error_code == 0)
       integer            :: error_code    ! error code indicating success or failure
@@ -459,7 +460,7 @@ For brevity, the Fortran interface also offers a function that halts your
 program if a setting is not found:
 
 === "Fortran"
-    ```
+    ``` fortran
     ! Retrieves the setting with the given name, halting the program if an
     ! error occurs.
     function settings_get(settings, name) result(str)
@@ -487,7 +488,7 @@ Fortran, you can construct a loop that calls a function to get the input and
 output parameters for each member, terminating when there are no members left.
 
 === "C"
-    ```
+    ``` c
     // Iterates over the inputs and outputs in an ensemble, making them available
     // one at a time for computation. This function returns true once for each
     // member of an ensemble and false once the ensemble's members have been
@@ -498,7 +499,7 @@ output parameters for each member, terminating when there are no members left.
                           sw_output_t **output);
     ```
 === "Fortran"
-    ```
+    ``` fortran
     ! Iterates over the inputs and outputs in an ensemble, making them available
     ! one at a time for computation. This function returns true once for each
     ! member of an ensemble and false once the ensemble's members have been
@@ -519,7 +520,7 @@ on the input and output data for each member. The function you define takes a
 `Output` object, and returns nothing.
 
 === "C++"
-    ```
+    ``` c++
     class Ensemble final {
       ...
       // Iterates over all ensemble members, applying the given function f to
@@ -541,23 +542,13 @@ using its name.
 It's easy to check whether the ensemble member has a given parameter:
 
 === "C"
-    ```
+    ``` c
     // Returns true if a (scalar) input parameter with the given name exists
     // within the given input instance, false otherwise.
     bool sw_input_has(sw_input_t *input, const char* name);
     ```
-=== "Fortran"
-    ```
-    ! Returns .true. if the input parameter with the given name exists within the
-    ! given input instance, false otherwise.
-    function input_has(input, name) result(has)
-      class(input_t), intent(in) :: input
-      character(len=*), intent(in)  :: name
-      logical(c_bool) :: has
-    end function
-    ```
 === "C++"
-    ```
+    ``` c++
     class Input final {
       ...
       // Returns true if the input parameter with the given name exists within
@@ -566,16 +557,26 @@ It's easy to check whether the ensemble member has a given parameter:
       ...
     };
     ```
+=== "Fortran"
+    ``` fortran
+    ! Returns .true. if the input parameter with the given name exists within the
+    ! given input instance, false otherwise.
+    function input_has(input, name) result(has)
+      class(input_t), intent(in) :: input
+      character(len=*), intent(in)  :: name
+      logical(c_bool) :: has
+    end function
+    ```
 
 Similarly, it's easy to fetch the parameter:
 
 === "C"
-    ```
+    ``` c
     // Retrieves the (scalar) input parameter with the given name.
     sw_input_result_t sw_input_get(sw_input_t *input, const char *name);
     ```
 === "C++"
-    ```
+    ``` c++
     class Input final {
       ...
       // Retrieves a (real-valued) parameter with the given name, throwing an
@@ -585,7 +586,7 @@ Similarly, it's easy to fetch the parameter:
     };
     ```
 === "Fortran"
-    ```
+    ``` fortran
     ! Retrieves the input parameter with the given name.
     function input_get_param(input, name) result(i_result)
       class(input_t), intent(in)   :: input
@@ -599,7 +600,7 @@ The C and Fortran interfaces return a result type that allows you to check
 whether the operation succeeded.
 
 === "C"
-    ```
+    ``` c
     typedef struct sw_input_result_t {
       sw_real_t value;           // fetched value (if error_code == 0)
       int error_code;            // error code indicating success or failure
@@ -607,7 +608,7 @@ whether the operation succeeded.
     } sw_input_result_t;
     ```
 === "Fortran"
-    ```
+    ``` fortran
     type :: input_result_t
       real(c_real)       :: value         ! fetched value (if error_code == 0)
       integer(c_int)     :: error_code    ! error code indicating success or failure
@@ -623,7 +624,7 @@ The Fortran interface also offers you a "shortcut" that directly fetches your
 input parameter, halting your program with `STOP` on failure.
 
 === "Fortran"
-    ```
+    ``` fortran
     ! Retrieves the input parameter with the given name, halting the program
     ! on failure.
     function input_get(input, name) result(val)
@@ -644,13 +645,13 @@ As with scalar input parameters, you can check to see whether an input array
 parameter exists within an ensemble member.
 
 === "C"
-    ```
+    ``` c
     // Returns true if an input array parameter with the given name exists within
     // the given input instance, false otherwise.
     bool sw_input_has_array(sw_input_t *input, const char* name);
     ```
 === "C++"
-    ```
+    ``` c++
     class Input final {
       ...
       // Returns true if an input array parameter with the given name exists within
@@ -660,7 +661,7 @@ parameter exists within an ensemble member.
     };
     ```
 === "Fortran"
-    ```
+    ``` fortran
     ! Returns .true. if an input array parameter with the given name exists within
     ! the given input instance, false otherwise.
     function input_has_array(input, name) result(has)
@@ -674,12 +675,12 @@ The process of retrieving input array parameters works the same way as it does
 for scalar input parameters.
 
 === "C"
-    ```
+    ``` c
     // Retrieves the (array-valued) input parameter with the given name.
     sw_input_array_result_t sw_input_get_array(sw_input_t *input, const char *name);
     ```
 === "C++"
-    ```
+    ``` c++
     class Input final {
       ...
       // Retrieves a (real-valued) array parameter with the given name, throwing an
@@ -688,7 +689,7 @@ for scalar input parameters.
     };
     ```
 === "Fortran"
-    ```
+    ``` fortran
     ! Retrieves the input array parameter with the given name.
     function input_get_array_param(input, name) result(i_result)
       class(input_t), intent(in)   :: input
@@ -701,7 +702,7 @@ The C and Fortran interface define result types for fetching input array
 parameters.
 
 === "C"
-    ```
+    ``` c
     typedef struct sw_input_array_result_t {
       sw_real_t *values;         // fetched values (if error_code == 0)
       size_t size;               // number of values (if error_code == 0)
@@ -710,7 +711,7 @@ parameters.
     } sw_input_array_result_t;
     ```
 === "Fortran"
-    ```
+    ``` fortran
     type :: input_array_result_t
       real(c_real), dimension(:), pointer :: values ! fetched values (if error_code == 0)
       integer(c_size_t)                   :: size   ! number of values (if error_code == 0)
@@ -725,7 +726,7 @@ as in the scalar case, the Fortran interface also defines a subroutine that
 tries to fetch an array parameter and halts with `STOP` on failure.
 
 === "Fortran"
-    ```
+    ``` fortran
     ! Retrieves the input array parameter with the given name, halting on
     ! failure.
     subroutine input_get_array(input, name, values)
@@ -752,13 +753,13 @@ to store that value by name in the ensemble member's output data. To do this,
 you can call a function to set the value of a named output parameter.
 
 === "C"
-    ```
+    ``` c
     // This function sets a quantity with the given name and value within the given
     // output instance. This operation cannot fail under normal circumstances.
     void sw_output_set(sw_output_t *output, const char *name, sw_real_t value);
     ```
 === "C++"
-    ```
+    ``` c++
     class Output final {
       ...
       // Sets a (real-valued) parameter with the given name. This operation
@@ -769,7 +770,7 @@ you can call a function to set the value of a named output parameter.
 
     ```
 === "Fortran"
-    ```
+    ``` fortran
     ! Sets a quantity with the given name and value within the given output
     ! instance. This operation cannot fail under normal circumstances.
     subroutine output_set(output, name, value)
@@ -790,7 +791,7 @@ just output values that share a common name. You can set an array-valued output
 parameter by calling the appropriate function or subroutine.
 
 === "C"
-    ```
+    ``` c
     // This function sets an array of quantities with the given name and values
     // within the given output instance. This operation cannot fail under normal
     // circumstances.
@@ -798,7 +799,7 @@ parameter by calling the appropriate function or subroutine.
                              const sw_real_t *values, const size_t *size);
     ```
 === "C++"
-    ```
+    ``` c++
     class Output final {
       ...
       // Sets (real-valued) parameters in an array with the given name. This
@@ -808,7 +809,7 @@ parameter by calling the appropriate function or subroutine.
     };
     ```
 === "Fortran"
-    ```
+    ``` fortran
     ! Sets an array of quantities with the given name and values to the given
     ! output instance. This operation cannot fail under normal circumstances.
     subroutine output_set_array(output, name, values)
@@ -827,14 +828,14 @@ At the end of your program, you can call a function to write all your ensemble
 data to a Python module that be postprocessed.
 
 === "C"
-    ```
+    ``` c
     // Writes input and output data within the ensemble to a Python module stored
     // in the file with the given name.
     sw_write_result_t sw_ensemble_write(sw_ensemble_t *ensemble,
                                         const char *module_filename);
     ```
 === "C++"
-    ```
+    ``` c++
     class Ensemble final {
       ...
       // Writes input and output data within the ensemble to a Python module stored
@@ -844,7 +845,7 @@ data to a Python module that be postprocessed.
     };
     ```
 === "Fortran"
-    ```
+    ``` fortran
     ! Writes input and output data within the ensemble to a Python module stored
     ! in the file with the given name.
     function ensemble_write_module(ensemble, module_filename) result (w_result)
@@ -859,14 +860,14 @@ interfaces define a result type that can capture the information needed to
 handle this failure.
 
 === "C"
-    ```
+    ``` c
     typedef struct sw_write_result_t {
       int error_code;            // error code indicating success or failure
       const char* error_message; // text description of error
     } sw_write_result_t;
     ```
 === "Fortran"
-    ```
+    ``` fortran
     type :: write_result_t
       integer(c_int)     :: error_code    ! error code indicating success or failure
       character(len=255) :: error_message ! text description of error
@@ -880,7 +881,7 @@ Fortran result types. And, as usual, there is a Fortran subroutine that attempts
 to write the ensemble data to the given file and halts on failure.
 
 === "Fortran"
-    ```
+    ``` fortran
     ! Writes input and output data within the ensemble to a Python module stored
     ! in the file with the given name, halting on failure.
     subroutine ensemble_write(ensemble, module_filename)
@@ -896,13 +897,13 @@ ensemble uses by destroying it. In C and Fortran, you can do this with a
 simple function call.
 
 === "C"
-    ```
+    ``` c
     // Destroys an ensemble, freeing its allocated resources. Use this at the end
     // of your driver program, or when a fatal error has been encountered.
     void sw_ensemble_free(sw_ensemble_t *ensemble);
     ```
 === "Fortran"
-    ```
+    ``` fortran
     ! Destroys an ensemble, freeing all allocated resources.
     subroutine ensemble_free(ensemble)
       class(ensemble_t), intent(in) :: ensemble
@@ -924,12 +925,12 @@ You can write a banner to the standard error strstream (`stderr` in C and C++)
 with a call to the appropriate function.
 
 === "C"
-    ```
+    ``` c
     // Prints a banner containing Skywalker's version info to stderr.
     void sw_print_banner(void);
     ```
 === "C++"
-    ```
+    ``` c++
     namespace skywalker {
     ...
     // Prints a banner containing Skywalker's version info to stderr.
@@ -938,7 +939,7 @@ with a call to the appropriate function.
     } // namespace skywalker
     ```
 === "Fortran"
-    ```
+    ``` fortran
     ! Prints a banner containing Skywalker's version info to stderr.
     subroutine print_banner()
     end subroutine
@@ -953,12 +954,12 @@ trying to use a newer feature of the library.
 Sometimes it helps to know how many members an ensemble contains.
 
 === "C"
-    ```
+    ``` c
     // Returns the size of the given ensemble.
     size_t sw_ensemble_size(sw_ensemble_t* ensemble);
     ```
 === "C++"
-    ```
+    ``` c++
     class Ensemble {
       ...
       // Returns the size of the ensemble (number of members).
@@ -997,7 +998,7 @@ given ensemble was built using the "lattice" or "enumeration" methods:
     You can compare these values with the `type` field of the
     `sw_ensemble_result_t` variable returned by `load_ensemble`.
 === "C++"
-    ```
+    ``` c++
     // Ensemble type (SW_LATTICE or SW_ENUMERATION).
     using EnsembleType = sw_ens_type_t;
     ...
