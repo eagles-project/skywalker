@@ -1,17 +1,28 @@
-# Examples
+# Example: Van der Waals Gas
 
-All of the examples in this section use the **Van der Waals gas law**, a
+The example in this section focuses on the **Van der Waals gas law**, a
 generalization of the ideal gas law that accurately describes many gases over
-a great range of temperatures, pressures, and volumes.
+a great range of temperatures, pressures, and volumes. The example has three
+parts.
 
-All examples use the Standard International (SI, also called *mks*) system of
-units. When we define a quantity, we denote its units in square brackets. For
-example, the mass of an object could be written as $m$ [kg]. Quantities without
-units are followed by [-].
+In this example, we use the Standard International (SI, also called *mks*)
+system of units. When we define a quantity, we denote its units in square
+brackets. For example, the mass of an object could be written as $m$ [kg].
+Quantities without units are followed by [-].
 
-The code for these examples is available in the
+The code for the example is available in the
 [examples folder](https://github.com/eagles-project/skywalker/tree/main/examples)
 of the Skywalker source tree.
+
+We'll use Python to make a few plots along the way. We use Python 3 and the
+[matplotlib](https://matplotlib.org) library, which comes with many scientific
+Python packages like [IPython](https://ipython.org). If you're not using one of
+those packages, you can usually install matplotlib with a command like the
+following:
+
+```
+pip3 install matplotlib
+```
 
 ### Ideal gas
 
@@ -52,7 +63,7 @@ The Van der Waals approximation is a significant improvement on the ideal gas
 law, and can be used to study various phenomena. Our discussion follows that in
 Chapter IV of *Thermodynamics*, by Enrico Fermi, Dover Publications, NY (1936).
 
-## Example 1: Plotting Isotherms
+## Part 1: Plotting Isotherms
 
 An isotherm is a thermodynamic process in which the temperature remains the
 same throughout. Isothermal processes are important in any setting in which
@@ -212,18 +223,15 @@ Here's our program:
       use skywalker
       implicit none
 
-      ! Working precision real kind
-      integer, parameter :: wp = c_real
-
       ! Universal gas constant
-      real(wp), parameter     :: R = 8.31446261815324_wp
+      real(swp), parameter     :: R = 8.31446261815324_swp
 
       character(len=255)      :: input_file, output_file
       type(ensemble_result_t) :: load_result
       type(ensemble_t)        :: ensemble
       type(input_t)           :: input
       type(output_t)          :: output
-      real(wp)                :: V, T, p, a, b
+      real(swp)               :: V, T, p, a, b
 
       input_file = "ideal_gas_isotherms.yaml"
 
@@ -292,7 +300,7 @@ and check to see that an appropriate `.py` file appears.
 
 Here's a plot of the resulting isotherms:
 
-![Ideal gas law isotherms](ideal_gas_isotherms_c.png)
+![Ideal gas law isotherms](images/ideal_gas_isotherms_c.png)
 
 If you want to generate this plot for yourself, run the
 [plot_isotherms.py](https://github.com/eagles-project/skywalker/tree/main/examples/plot_isotherms.py)
@@ -378,11 +386,11 @@ changes:
           skywalker::Real p = R * T / (V - b) - a/(V*V);
     ```
 === "Fortran"
-    Declare `real(wp)` variables `a` and `b`, and replace lines 39-40 with
+    Declare `real(swp)` variables `a` and `b`, and replace lines 39-40 with
     ``` fortran linenums="39"
         ! Fetch Van der Waals parameters if they're present.
-        a = 0.0_wp
-        b = 0.0_wp
+        a = 0.0_swp
+        b = 0.0_swp
         if (input%has("a")) a = input%get("a")
         if (input%has("b")) b = input%get("b")
 
@@ -395,13 +403,13 @@ With these changes, the program can now build the ensembles indicated in the
 resulting plots (including our ideal gas for comparison):
 
 === "Ideal gas"
-    ![Ideal gas law isotherms](ideal_gas_isotherms_c.png)
+    ![Ideal gas law isotherms](images/ideal_gas_isotherms_c.png)
 === "N2 gas"
-    ![N2 gas law isotherms](n2_gas_isotherms_c.png)
+    ![N2 gas law isotherms](images/n2_gas_isotherms_c.png)
 === "CO2 gas"
-    ![CO2 gas law isotherms](co2_gas_isotherms_c.png)
+    ![CO2 gas law isotherms](images/co2_gas_isotherms_c.png)
 
-## Example 2: Vapor Saturation Pressure in Carbon Dioxide Gas
+## Part 2: Determining the Vapor Saturation Pressure in Carbon Dioxide
 
 You may be curious about what's happening with the blue curve representing the
 isotherm for $T = 273$ K for carbon dioxide. If you follow the curve starting
@@ -422,14 +430,17 @@ pressure in a Van der Waals gas only depends on its kinetic energy.
 In other words, the saturation vapor pressure is a horizontal line over the
 course of the phase change. It looks like this:
 
-![Saturation vapor pressure](saturation_vapor_pressure.png)
+![Saturation vapor pressure](images/saturation_vapor_pressure.png)
 
-Let's modify our program to make use of these ideas. One might think that
-we must compute the saturation vapor pressure using the Clapeyron equation,
-which involves the latent heat of evaporation and the specific volumes of the
-gas and liquid phases. However, all we really need to know is that the entropy
-of a system $S$ remains unchanged over a complete cycle in a reversible process
-(such as a phase change):
+Let's modify our program to make use of these ideas. Our objective is to find
+the value of the saturation pressure, or the height of the horizontal line in
+the vicinity of the phase change.
+
+One might think that we must compute the saturation vapor pressure using the
+Clapeyron equation, which involves the latent heat of evaporation and the
+specific volumes of the gas and liquid phases. However, all we really need to
+know is that the entropy of a system $S$ remains unchanged over a complete cycle
+in a reversible process (such as a phase change):
 
 $$
 \oint \texttt{d}S = \oint \frac{\texttt{d}Q}{T} = 0
@@ -437,8 +448,8 @@ $$
 
 where $\texttt{d}Q$ is the increment (differential) of the heat $Q$. In an
 isothermal process, $T$ is constant, and we are left with the statement
-that the **total heat exchanged in a complete cycle of a reversible isothermal
-process is 0**.
+that the **total heat transferred into and out of a system over a complete cycle
+of a reversible isothermal process is 0.**
 
 *Discuss the calculation of the saturation vapor pressure here.*
 
@@ -447,5 +458,5 @@ saturation vapor pressure in a supersaturated liquid. The Van der Waals equation
 of state does a decent job of illustrating this phenomenon. We take this up in
 the next example.
 
-## Example 3: A Parameter Study Using Latin Hypercube Sampling
+## Part 3: Studying Supersaturation with Latin Hypercube Sampling
 

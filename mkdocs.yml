@@ -1,13 +1,13 @@
 site_name: "Skywalker: A Parameter Study Tool for Box Models"
 
 nav:
-  - Skywalker: 'index.md'
+  - 'index.md'
   - 'installation.md'
   - 'quick_start.md'
   - 'input.md'
   - 'output.md'
   - 'api.md'
-  - 'examples.md'
+  - 'example.md'
 
 theme:
   name: material

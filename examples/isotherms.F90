@@ -38,9 +38,6 @@ module isotherms_mod
   use skywalker
   implicit none
 
-  ! Working precision real kind
-  integer, parameter :: wp = c_real
-
 contains
 
   subroutine usage()
@@ -84,14 +81,14 @@ program isotherms
   implicit none
 
   ! Universal gas constant
-  real(wp), parameter     :: R = 8.31446261815324_wp
+  real(swp), parameter    :: R = 8.31446261815324_swp
 
   character(len=255)      :: input_file, output_file
   type(ensemble_result_t) :: load_result
   type(ensemble_t)        :: ensemble
   type(input_t)           :: input
   type(output_t)          :: output
-  real(wp)                :: V, T, p, a, b
+  real(swp)               :: V, T, p, a, b
 
   if (command_argument_count() /= 1) then
     call usage()
@@ -116,8 +113,8 @@ program isotherms
     T = input%get("T") ! gas temperature [K]
 
     ! Fetch Van der Waals parameters if they're present.
-    a = 0.0_wp
-    b = 0.0_wp
+    a = 0.0_swp
+    b = 0.0_swp
     if (input%has("a")) a = input%get("a")
     if (input%has("b")) b = input%get("b")
 

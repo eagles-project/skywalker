@@ -40,9 +40,6 @@ module array_param_test_mod
   use iso_c_binding, only: c_float, c_double
   implicit none
 
-  ! Working precision real kind
-  integer, parameter :: wp = c_real
-
 contains
   subroutine fatal_error(message, line)
     character(len=*), intent(in) :: message
@@ -53,7 +50,8 @@ contains
   end subroutine
 
   function approx_equal(x, y) result(equal)
-    real(wp), intent(in) :: x, y
+    use skywalker, only: swp
+    real(swp), intent(in) :: x, y
     logical :: equal
 
     if (abs(x - y) < 1e-14) then
@@ -74,12 +72,12 @@ program enumeration_test
 
   implicit none
 
-  character(len=255)                  :: input_file
-  type(ensemble_result_t)             :: load_result
-  type(ensemble_t)                    :: ensemble
-  real(wp), allocatable, dimension(:) :: values
-  type(input_t)                       :: input
-  type(output_t)                      :: output
+  character(len=255)                   :: input_file
+  type(ensemble_result_t)              :: load_result
+  type(ensemble_t)                     :: ensemble
+  real(swp), allocatable, dimension(:) :: values
+  type(input_t)                        :: input
+  type(output_t)                       :: output
 
   if (command_argument_count() /= 1) then
     print *, "enumeration_test_f90: usage:"
@@ -109,30 +107,30 @@ program enumeration_test
     assert(input%has_array("p1"))
     call input%get_array("p1", values)
     assert(size(values) == 3)
-    assert(approx_equal(values(1), 1.0_wp))
-    assert(approx_equal(values(2), 2.0_wp))
-    assert(approx_equal(values(3), 3.0_wp))
+    assert(approx_equal(values(1), 1.0_swp))
+    assert(approx_equal(values(2), 2.0_swp))
+    assert(approx_equal(values(3), 3.0_swp))
 
     assert(input%has_array("p2"))
     call input%get_array("p2", values)
     assert(size(values) == 3)
-    assert(approx_equal(values(1), 4.0_wp))
-    assert(approx_equal(values(2), 5.0_wp))
-    assert(approx_equal(values(3), 6.0_wp))
+    assert(approx_equal(values(1), 4.0_swp))
+    assert(approx_equal(values(2), 5.0_swp))
+    assert(approx_equal(values(3), 6.0_swp))
 
     assert(input%has("p3"))
-    assert(approx_equal(input%get("p3"), 3.0_wp))
+    assert(approx_equal(input%get("p3"), 3.0_swp))
 
     assert(input%has("tick"))
-    assert(input%get("tick") >= 0.0_wp)
-    assert(input%get("tick") <= 10.0_wp)
+    assert(input%get("tick") >= 0.0_swp)
+    assert(input%get("tick") <= 10.0_swp)
 
     assert(input%has("tock"))
-    assert(input%get("tock") >= 1e1_wp)
-    assert(input%get("tock") <= 1e11_wp)
+    assert(input%get("tock") >= 1e1_swp)
+    assert(input%get("tock") <= 1e11_swp)
 
     ! Add a "qoi" metric set to 4.
-    call output%set("qoi", 4.0_wp)
+    call output%set("qoi", 4.0_swp)
   end do
 
   ! Now we write out a Python module containing the output data.

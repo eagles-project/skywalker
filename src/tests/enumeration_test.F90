@@ -40,9 +40,6 @@ module enumeration_test_mod
   use iso_c_binding, only: c_float, c_double
   implicit none
 
-  ! Working precision real kind
-  integer, parameter :: wp = c_real
-
 contains
   subroutine fatal_error(message, line)
     character(len=*), intent(in) :: message
@@ -53,7 +50,8 @@ contains
   end subroutine
 
   function approx_equal(x, y) result(equal)
-    real(c_real), intent(in) :: x, y
+    use skywalker, only: swp
+    real(swp), intent(in) :: x, y
     logical :: equal
 
     if (abs(x - y) < 1e-14) then
@@ -81,7 +79,7 @@ program enumeration_test
   type(input_result_t)    :: in_result
   type(input_t)           :: input
   type(output_t)          :: output
-  real(c_real), dimension(:), allocatable :: array_val
+  real(swp), dimension(:), allocatable :: array_val
   integer                 :: i
 
   allocate(array_val(10))
@@ -124,21 +122,21 @@ program enumeration_test
   assert(ensemble%size == 11)
   do while (ensemble%next(input, output))
     assert(input%has("p1"))
-    assert(approx_equal(input%get("p1"), 1.0_wp))
+    assert(approx_equal(input%get("p1"), 1.0_swp))
 
     assert(input%has("p2"))
-    assert(approx_equal(input%get("p2"), 2.0_wp))
+    assert(approx_equal(input%get("p2"), 2.0_swp))
 
     assert(input%has("p3"))
-    assert(approx_equal(input%get("p3"), 3.0_wp))
+    assert(approx_equal(input%get("p3"), 3.0_swp))
 
     assert(input%has("tick"))
-    assert(input%get("tick") >= 0.0_wp)
-    assert(input%get("tick") <= 10.0_wp)
+    assert(input%get("tick") >= 0.0_swp)
+    assert(input%get("tick") <= 10.0_swp)
 
     assert(input%has("tock"))
-    assert(input%get("tock") >= 1e1_wp)
-    assert(input%get("tock") <= 1e11_wp)
+    assert(input%get("tock") >= 1e1_swp)
+    assert(input%get("tock") <= 1e11_swp)
 
     ! Look for a parameter that doesn't exist, checking its result by calling
     ! get_param() instead of get().
@@ -147,7 +145,7 @@ program enumeration_test
     assert(in_result%error_code == SW_PARAM_NOT_FOUND)
 
     ! Add a "qoi" metric set to 4.
-    call output%set("qoi", 4.0_wp)
+    call output%set("qoi", 4.0_swp)
     do i = 1,10
       array_val(i) = i
     end do

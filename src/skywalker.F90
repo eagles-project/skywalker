@@ -43,6 +43,9 @@ module skywalker
 
   implicit none
 
+  ! Skywalker precision (swp): real kind used by skywalker
+  integer, parameter :: swp = c_real
+
   ! Error codes -- see skywalker.h.in for descriptions
   integer, parameter :: sw_success = 0
   integer, parameter :: sw_yaml_file_not_found = 1

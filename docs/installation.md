@@ -10,7 +10,8 @@ software. To build it, you need
 
 ## Clone the Repository
 
-First, go get the source code at GitHub:
+First, go get the [source code](https:/github.com/eagles-project/skywalker)
+at GitHub:
 
 === "SSH"
     ```
@@ -61,14 +62,14 @@ to build.
 
 ## Build, Test, and Install Skywalker
 
-To build skywalker, type
+To build skywalker, make sure you're in your build directory and type
 
 ```
 make -j
 ```
 
-from your build directory. If this process succeeds, you can run the tests
-and examples included with Skywalker by typing
+If this process succeeds, you can run the tests and examples included with
+Skywalker by typing
 
 ```
 make test
@@ -81,8 +82,8 @@ Skywalker to the path you specified with `CMAKE_INSTALL_PREFIX`, type
 make install
 ```
 
-This process installs the following artifacts, which you can use to
-build your own Skywalker-powered programs:
+This process installs the following artifacts, which you can use to build your
+own Skywalker programs:
 
 * `PREFIX/lib/libskywalker_<precision>.a`, a library you can use with a C or C++
   Skywalker program.

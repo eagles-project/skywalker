@@ -66,12 +66,13 @@ CMake variable.
 === "Fortran"
 
     ``` fortran
-    #define c_real c_double
+    ! Skywalker precision (swp): real kind used by skywalker
+    integer, parameter :: swp
     ```
 
-In Fortran, the `c_real` kind is used to store ensemble parameters, and is
-defined to either the `c_double` or `c_float` interoperable types defined by
-the Fortran 2003 ISO C bindings.
+In Fortran, the `swp` kind is used to store input parameters and output values,
+and is set to either the `c_double` or `c_float` interoperable types defined
+by the Fortran 2003 ISO C bindings.
 
 ### Interface types
 
