@@ -76,8 +76,7 @@ and save it to a file with the indicated name.
       sw_output_t *output;
       while (sw_ensemble_next(ensemble, &input, &output)) {
         // Fetch input values.
-        sw_input_result_t result;
-        result = sw_input_get(input, "x");
+        sw_input_result_t result = sw_input_get(input, "x");
         if (result.error_code != SW_SUCCESS) {
           fprintf(stderr, "Error: %s", load_result.error_message);
           exit(-1);
@@ -174,7 +173,7 @@ and save it to a file with the indicated name.
       ! Load the ensemble, exiting if the operation fails.
       load_result = load_ensemble(trim(input_file))
       if (load_result%error_code /= SW_SUCCESS) then
-        print *, "isotherms_f90: ", trim(load_result%error_message)
+        print *, "Error: ", trim(load_result%error_message)
         stop
       end if
 
@@ -291,8 +290,7 @@ install with a command like
 pip3 install matplotlib
 ```
 
-You can run this script without arguments in interactive mode (`-i`) to see
-the plot:
+Run the script to see the plot.
 
 ```
 python3 plot_surface.py

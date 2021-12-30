@@ -96,8 +96,8 @@ output array values are similarly indicated with two sets of braces, even for
 ensembles having only a single member. The syntax is easy and intuitive, mostly
 because YAML and Python use the same format for defining lists.
 
-Skywalker doesn't impose any structure on array-valued outputs--for example,
-it's possible to write arrays with different sizes to an output variable--so
-your program must write array-valued outputs in the most sensible way for your
-work.
+Skywalker doesn't impose any structure on array-valued outputs. For example,
+it's possible to write arrays with different sizes to a single output variable.
+Therefore, your program must write array-valued outputs in the most sensible way
+for your work.
 

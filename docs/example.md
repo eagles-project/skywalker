@@ -409,7 +409,7 @@ resulting plots (including our ideal gas for comparison):
 === "CO2 gas"
     ![CO2 gas law isotherms](images/co2_gas_isotherms_c.png)
 
-## Part 2: Determining the Vapor Saturation Pressure in Carbon Dioxide
+## Part 2: Determining the Saturation Vapor Pressure in Carbon Dioxide
 
 You may be curious about what's happening with the blue curve representing the
 isotherm for $T = 273$ K for carbon dioxide. If you follow the curve starting
@@ -419,13 +419,14 @@ funny happens: the gas pressure *decreases* under compression. This simply
 doesn't happen in reality. What's going on?
 
 What's going on is a phase change: carbon dioxide condenses to liquid form
-under these conditions. Therefore the gas is no longer in a homogeneous state,
-and the Van der Waals equation of state isn't satisfied for the gas/liquid
-mixture. Rather, the pressure (called the **saturation vapor pressure**) remains
-constant alongside the temperature over the course of the phase change. One way
-to understand this is that under a phase change, the system reconfigures itself
-in a way that affects its binding energy and not its kinetic energy, and the
-pressure in a Van der Waals gas only depends on its kinetic energy.
+under these conditions. The gas is no longer in a homogeneous state, and the
+Van der Waals equation of state isn't satisfied for the gas/liquid mixture.
+Rather, the pressure (called the **saturation vapor pressure**) remains constant
+alongside the temperature over the course of the phase change. One way to
+understand this is that under a phase change, the system reconfigures its
+binding energy but not its kinetic energy. The pressure in a Van der Waals gas
+depends only on its kinetic energy (because it assumes that the particles
+interact only weakly), so it remains constant.
 
 In other words, the saturation vapor pressure is a horizontal line over the
 course of the phase change. It looks like this:
@@ -451,7 +452,68 @@ isothermal process, $T$ is constant, and we are left with the statement
 that the **total heat transferred into and out of a system over a complete cycle
 of a reversible isothermal process is 0.**
 
-*Discuss the calculation of the saturation vapor pressure here.*
+If no heat is absorbed or emitted from a parcel of gas during an isothermal
+compression process during a phase change, the horizontal line must be drawn
+such that the total work done by the compression is zero. The differential
+expression for this compressional work $W$ is
+
+$$
+\texttt{d}W = p\texttt{d}V.
+$$
+
+On a PV diagram, $W = \int_{V_1}^{V_2} p\texttt{d}V$ is the area under the
+curve $p(V)$ over the interval $[V_1, V_2]$. **This integral must vanish over
+this interval.** So we must draw our horizontal line $p$ = $p_s$ at the
+saturation vapor pressure $p_s$ such that the areas above and below it
+between $V_1$ and $V_2$ are equal, and therefore sum to zero:
+
+$$
+W = \int_{V_1}^{V_s} p\texttt{d}V + \int_{V_s}^{V_2} p\texttt{d}V = 0
+$$
+
+Here, $V_s$ indicates the volume at which the pressure in the uncorrected
+isotherm is equal to the saturation vapor pressure: $p(V_s) = p_s$. If we can
+find $V_s$, we have determined $p_s$.
+
+### Approximating the saturation vapor pressure numerically
+
+Unfortunately, we don't have a curve $p(V)$ to work with in our calculation of
+$V_s$. We only have a discrete set of pressures associated with a discrete
+set of volumes. However, we can approximate both of the above integrals using
+the midpoint rule to get an algebraic expression for $V_s$. If we have $N$
+points with volumes $\{V_i\}$ and pressures $\{p_i\}$, let $s$ denote the point
+at which the volume is $V_s$. Then
+
+$$
+\sum_{i=0}^{s-1} p_i \Delta V_i + p_s \Delta V_s + \sum_{i=s+1}^N p_i \Delta V_i \approx 0
+$$
+
+where we have used the discrete increment $\Delta V_i$, which is constant for
+our uniformly spaced volumes. We pull the increment out of the sum, split the
+contribution of $p_s \Delta V_s$ between the two integrals, and rearrange terms
+to get
+
+$$
+\sum_{i=0}^{s-1} p_i + p_s/2 \approx -\sum_{i=s+1}^N p_i - p_s/2
+$$
+
+We can solve this problem using a bisection algorithm to select a value for $s$.
+The value of $s$ that minimizes the difference between the left and right hand
+sides is the value of $s$ for which the volume is $V_s$, and for which the
+saturation vapor pressure is $p_s$.
+
+Because we have approximated the integrals by the midpoint rule with uniform
+spacing $\Delta V_i = \Delta V$, we expect the error in the calculation of
+$p_s$ to be proportional to the square of the spacing between our specified
+volumes. More points give us more accuracy at a quadratic rate of convergence.
+
+### Adding a setting to compute the saturation vapor pressure
+
+*Show code snippets for adding the bisection algorithm and the associated
+setting.*
+
+Now our program can compute the saturation vapor pressure if requested in
+our `settings` block.
 
 Before we move on, we note that the gas pressure can actually exceed the
 saturation vapor pressure in a supersaturated liquid. The Van der Waals equation
