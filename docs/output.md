@@ -82,18 +82,19 @@ file that can be used with legacy [NCL](https://www.ncl.ucar.edu) programs.
 
 ## NaNs
 
-Sometimes a Skywalker program emits a NaN, either as the result of pathelogical
+Sometimes a Skywalker program emits a NaN, either as the result of pathological
 numeric arithmetic or as an indicator that the value is undefined. In this case,
 the value is written using Python's `nan` representation. This ensures a
 faithful translation for all data, no matter what the circumstance.
 
 ## Array-Valued Outputs
 
-Just as you can store multiple values in a single input array parameter, a
-Skywalker program can write outputs with multiple values stored in an array.
-And just as input array parameters are indicated with two sets of braces in a
-YAML input file, output array values are similarly indicated with two sets of
-braces, even for ensembles having only a single member.
+Just as you can store multiple values in a single input array parameter, you
+can write outputs with multiple values stored in an array. And just as input
+array parameters are indicated with two sets of braces in a YAML input file,
+output array values are similarly indicated with two sets of braces, even for
+ensembles having only a single member. The syntax is easy and intuitive, mostly
+because YAML and Python use the same format for defining lists.
 
 Skywalker doesn't impose any structure on array-valued outputs--for example,
 it's possible to write arrays with different sizes to an output variable--so
