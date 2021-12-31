@@ -409,24 +409,30 @@ resulting plots (including our ideal gas for comparison):
 === "CO2 gas"
     ![CO2 gas law isotherms](images/co2_gas_isotherms_c.png)
 
+### Exercises
+
+1. Experiment with different values of $a$ and $b$. Are there values that
+   trigger interesting or surprising behavior? Try to interpret these values
+   physically.
+
 ## Part 2: Determining the Saturation Vapor Pressure in Carbon Dioxide
 
 You may be curious about what's happening with the blue curve representing the
 isotherm for $T = 273$ K for carbon dioxide. If you follow the curve starting
-from the right, the curve represents a compression process for the gas at a
-constant temperature. Somewhere around $V = 2 \times 10^{-4}$ m$^3$, something
-funny happens: the gas pressure *decreases* under compression. This simply
-doesn't happen in reality. What's going on?
+from the right, it represents a compression process for the gas at a constant
+temperature. Somewhere around $V = 2 \times 10^{-4}$ m$^3$, something funny
+happens: the gas pressure *decreases* under compression. This simply doesn't
+happen in reality. What's going on?
 
 What's going on is a phase change: carbon dioxide condenses to liquid form
 under these conditions. The gas is no longer in a homogeneous state, and the
 Van der Waals equation of state isn't satisfied for the gas/liquid mixture.
 Rather, the pressure (called the **saturation vapor pressure**) remains constant
 alongside the temperature over the course of the phase change. One way to
-understand this is that under a phase change, the system reconfigures its
-binding energy but not its kinetic energy. The pressure in a Van der Waals gas
-depends only on its kinetic energy (because it assumes that the particles
-interact only weakly), so it remains constant.
+understand this is that under a phase change, the system alters its binding
+energy but not its kinetic energy. The pressure in a Van der Waals gas depends
+only on its kinetic energy (because it assumes that the particles interact only
+weakly), so it remains constant.
 
 In other words, the saturation vapor pressure is a horizontal line over the
 course of the phase change. It looks like this:
@@ -458,17 +464,23 @@ such that the total work done by the compression is zero. The differential
 expression for this compressional work $W$ is
 
 $$
-\texttt{d}W = p\texttt{d}V.
+\texttt{d}W = p~\texttt{d}V.
 $$
 
 On a PV diagram, $W = \int_{V_1}^{V_2} p\texttt{d}V$ is the area under the
 curve $p(V)$ over the interval $[V_1, V_2]$. **This integral must vanish over
-this interval.** So we must draw our horizontal line $p$ = $p_s$ at the
-saturation vapor pressure $p_s$ such that the areas above and below it
-between $V_1$ and $V_2$ are equal, and therefore sum to zero:
+any closed cycle.**
+
+We choose a closed cycle that consists of the following:
+
+*Describe the close cycle.*
+
+So we must draw our horizontal line $p$ = $p_s$ at the saturation vapor pressure
+$p_s$ such that the areas above and below it between $V_1$ and $V_2$ are equal,
+and therefore sum to zero:
 
 $$
-W = \int_{V_1}^{V_s} p\texttt{d}V + \int_{V_s}^{V_2} p\texttt{d}V = 0
+W = \int_{V_1}^{V_s} (p-p_s)~\texttt{d}V + \int_{V_s}^{V_2} (p-p_s)~\texttt{d}V = 0
 $$
 
 Here, $V_s$ indicates the volume at which the pressure in the uncorrected
@@ -482,19 +494,24 @@ $V_s$. We only have a discrete set of pressures associated with a discrete
 set of volumes. However, we can approximate both of the above integrals using
 the midpoint rule to get an algebraic expression for $V_s$. If we have $N$
 points with volumes $\{V_i\}$ and pressures $\{p_i\}$, let $s$ denote the point
-at which the volume is $V_s$. Then
+at which the volume is $V_s$ and the pressure is $p_s$. Then
 
 $$
-\sum_{i=0}^{s-1} p_i \Delta V_i + p_s \Delta V_s + \sum_{i=s+1}^N p_i \Delta V_i \approx 0
+\frac{p_1\Delta V}{2} + \sum_{i=2}^{s-1} p_i \Delta V + p_s \Delta V +
+\sum_{i=s+1}^{N-1} p_i \Delta V + \frac{p_N\Delta V}{2} \approx 0
 $$
 
-where we have used the discrete increment $\Delta V_i$, which is constant for
-our uniformly spaced volumes. We pull the increment out of the sum, split the
-contribution of $p_s \Delta V_s$ between the two integrals, and rearrange terms
-to get
+where we have used the discrete increment $\Delta V$, which is constant for
+our uniformly spaced volumes. The endpoints are halved because their
+contributions span only $\Delta V/2$, as in this picture:
+
+*Picture*
+
+We pull the increment out of the sums, split the contribution of $p_s \Delta V$
+between the two integrals, and rearrange terms to get
 
 $$
-\sum_{i=0}^{s-1} p_i + p_s/2 \approx -\sum_{i=s+1}^N p_i - p_s/2
+\frac{p_1 +p_s}{2} + \sum_{i=2}^{s-1} p_i \approx \frac{p_N - p_s}{2} -\sum_{i=s+1}^{N-1} p_i
 $$
 
 We can solve this problem using a bisection algorithm to select a value for $s$.
@@ -503,9 +520,8 @@ sides is the value of $s$ for which the volume is $V_s$, and for which the
 saturation vapor pressure is $p_s$.
 
 Because we have approximated the integrals by the midpoint rule with uniform
-spacing $\Delta V_i = \Delta V$, we expect the error in the calculation of
-$p_s$ to be proportional to the square of the spacing between our specified
-volumes. More points give us more accuracy at a quadratic rate of convergence.
+spacing in volumes $\Delta V$, we expect the error in the calculation of $p_s$
+to be proportional to $\Delta V^2$. More points give us more accuracy at a quadratic rate of convergence.
 
 ### Adding a setting to compute the saturation vapor pressure
 
@@ -520,5 +536,16 @@ saturation vapor pressure in a supersaturated liquid. The Van der Waals equation
 of state does a decent job of illustrating this phenomenon. We take this up in
 the next example.
 
+### Exercises
+
+1. Convince yourself that the error in our calculation of the saturation vapor
+   pressure improves as we decrease the volume spacing $\Delta V$. (Or not!)
+2. If you are familiar with the Clapeyron equation, modify your program to use
+   it to estimate the saturation vapor pressure. You'll need to look up the
+   value of the latent heat of evaporation for carbon dioxide. Modify the
+   setting in your program to allow a user to select this option or the one
+   we implemented above.
+
 ## Part 3: Studying Supersaturation with Latin Hypercube Sampling
 
+### Exercises

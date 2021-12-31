@@ -267,7 +267,6 @@ $[-2\pi, 2\pi] \times [-2\pi, 2\pi]$.
 === "plot_surface.py"
     ``` python
     import matplotlib.pyplot as plt
-    from matplotlib import cm
     import numpy as np
 
     # Extract data from surface.py.
@@ -278,6 +277,7 @@ $[-2\pi, 2\pi] \times [-2\pi, 2\pi]$.
 
     # Plot the contours of f(x, y).
     plt.tricontour(x, y, f)
+    plt.colorbar()
 
     # Display the plot.
     plt.show()
@@ -298,7 +298,7 @@ python3 plot_surface.py
 
 Here's how it looks:
 
-![f(x,y)](images/f.png)
+![f(x,y)](images/surface.png)
 
 That's it. Congratulations--you've successfully used Skywalker to sample a
 multivariate function over regularly spaced intervals. If you like, you can
