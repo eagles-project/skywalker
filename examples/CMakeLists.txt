@@ -15,7 +15,7 @@ foreach (file plot_isotherms.py ideal_gas_isotherms.yaml n2_gas_isotherms.yaml
 endforeach()
 
 # Build the C/C++/Fortran drivers and add tests.
-foreach (lang c cpp f90)
+foreach (lang c cpp F90)
   add_skywalker_driver(isotherms_${lang} isotherms.${lang})
   add_test(ideal_gas_isotherms_${lang} isotherms_${lang} ideal_gas_isotherms.yaml)
   add_test(n2_gas_isotherms_${lang} isotherms_${lang} n2_gas_isotherms.yaml)
