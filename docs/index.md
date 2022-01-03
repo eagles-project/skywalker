@@ -22,7 +22,7 @@ to use to solve your own problems with a Skywalker program:
   Skywalker program.
 * The [API](api.md) guide describes Skywalker's application programming
   interface for all three languages.
-* We've provided a detailed [example](examples.md) that demonstrates how you can
+* We've provided a detailed [example](example.md) that demonstrates how you can
   use Skywalker to investigate a problem.
 
 ### Acknowledgements

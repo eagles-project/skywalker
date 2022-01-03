@@ -9,6 +9,8 @@ nav:
   - 'api.md'
   - 'example.md'
 
+edit_uri: ""
+
 theme:
   name: material
   palette:
