@@ -1367,10 +1367,8 @@ void sw_input_get_array_f90(sw_input_t *input, const char *name,
 void sw_ensemble_write_f90(sw_ensemble_t *ensemble, const char *module_filename,
                           int *error_code, const char **error_message) {
   sw_write_result_t result = sw_ensemble_write(ensemble, module_filename);
-  if (result.error_code != SW_SUCCESS) {
-    *error_code = result.error_code;
-    *error_message = result.error_message;
-  }
+  *error_code = result.error_code;
+  *error_message = result.error_message;
 }
 
 // Returns a newly-allocated C string for the given Fortran string pointer with
