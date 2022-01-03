@@ -1,0 +1,989 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-8.1.2">
+    
+    
+      
+        <title>Quick Start - Skywalker: A Parameter Study Tool for Box Models</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.f7951f6f.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.e6a45f82.min.css">
+        
+      
+    
+    
+    
+      
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="" data-md-color-accent="">
+  
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&"object"==typeof palette.color)for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)</script>
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#quick-start" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Skywalker: A Parameter Study Tool for Box Models" class="md-header__button md-logo" aria-label="Skywalker: A Parameter Study Tool for Box Models" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Skywalker: A Parameter Study Tool for Box Models
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Quick Start
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      <form class="md-header__option" data-md-component="palette">
+        
+          
+          
+          <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="" data-md-color-accent=""  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+          
+            <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5c-.84 0-1.65.15-2.39.42L12 2M3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29L3.34 7m.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14L3.36 17M20.65 7l-1.77 3.79a7.023 7.023 0 0 0-2.38-4.15l4.15.36m-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29L20.64 17M12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44L12 22z"/></svg>
+            </label>
+          
+        
+          
+          
+          <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="" data-md-color-accent=""  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_2">
+          
+            <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3 3.19.09m3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95 2.06.05m-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31z"/></svg>
+            </label>
+          
+        
+      </form>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/eagles-project/skywalker/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Skywalker: A Parameter Study Tool for Box Models" class="md-nav__button md-logo" aria-label="Skywalker: A Parameter Study Tool for Box Models" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    Skywalker: A Parameter Study Tool for Box Models
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/eagles-project/skywalker/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        Overview
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installation/" class="md-nav__link">
+        Installation
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Quick Start
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        Quick Start
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#step-1-design-an-experiment" class="md-nav__link">
+    Step 1: Design an Experiment
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-2-write-a-skywalker-program" class="md-nav__link">
+    Step 2: Write a Skywalker Program
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-3-build-the-program" class="md-nav__link">
+    Step 3: Build the Program
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-4-run-the-experiment" class="md-nav__link">
+    Step 4: Run the Experiment
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-5-analyze-the-results" class="md-nav__link">
+    Step 5: Analyze the Results
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../input/" class="md-nav__link">
+        Input Format (YAML)
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../output/" class="md-nav__link">
+        Output Format (Python)
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/" class="md-nav__link">
+        The Skywalker API
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../example/" class="md-nav__link">
+        Example: Van der Waals Gas
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#step-1-design-an-experiment" class="md-nav__link">
+    Step 1: Design an Experiment
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-2-write-a-skywalker-program" class="md-nav__link">
+    Step 2: Write a Skywalker Program
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-3-build-the-program" class="md-nav__link">
+    Step 3: Build the Program
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-4-run-the-experiment" class="md-nav__link">
+    Step 4: Run the Experiment
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-5-analyze-the-results" class="md-nav__link">
+    Step 5: Analyze the Results
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content" data-md-component="content">
+            <article class="md-content__inner md-typeset">
+              
+                
+<a href="https://github.com/eagles-project/skywalker/edit/master/docs/quick_start.md" title="Edit this page" class="md-content__button md-icon">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
+</a>
+
+
+<h1 id="quick-start">Quick Start</h1>
+<p>Once you've successfully <a href="../installation/">installed Skywalker</a>, it's time to
+write your first Skywalker program. Sometimes we refer to such a program as a
+<em>driver</em>, since it's really just a way to run an algorithm or parameterization
+that we want to study.</p>
+<p>Let's get started.</p>
+<h2 id="step-1-design-an-experiment">Step 1: Design an Experiment</h2>
+<p>For simplicity, we are going to study a function of two variables</p>
+<div class="arithmatex">\[
+f(x, y) = y \sin(x) - x \cos(y)
+\]</div>
+<p>over the domain <span class="arithmatex">\([-2\pi, 2\pi]\times[−2\pi, 2\pi]\)</span>. Our input parameters are
+<span class="arithmatex">\(x\)</span> and <span class="arithmatex">\(y\)</span>, and our output variable is <span class="arithmatex">\(f\)</span>. We will sample points on a uniform
+grid of evenly-spaced <span class="arithmatex">\(x\)</span> and <span class="arithmatex">\(y\)</span> values.</p>
+<p>Suppose we want to sample <span class="arithmatex">\(f\)</span> at 100 <span class="arithmatex">\(x\)</span> values and 100 <span class="arithmatex">\(y\)</span> values, tracing out
+the surface it represents above the euclidean plane. Here's a YAML file that
+sets up the calculation of <span class="arithmatex">\(f\)</span> on these <span class="arithmatex">\((x, y)\)</span> points:</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:1"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">surface.yaml</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span>
+<span class="normal">2</span>
+<span class="normal">3</span>
+<span class="normal">4</span>
+<span class="normal">5</span></pre></div></td><td class="code"><div class="highlight"><pre><span></span><code>type: lattice
+
+input:
+  x: [-6.2831853, 6.2831853, 0.0628]
+  y: [-6.2831853, 6.2831853, 0.0628]
+</code></pre></div>
+</td></tr></table>
+</div>
+</div>
+</div>
+<p>Line 1 indicates that all values of <span class="arithmatex">\(x\)</span> are combined with all values of <span class="arithmatex">\(y\)</span>.
+Lines 4 and 5 define 100 uniformly-spaced values between <span class="arithmatex">\(−2\pi\)</span> and <span class="arithmatex">\(2\pi\)</span> for
+<span class="arithmatex">\(x\)</span> and <span class="arithmatex">\(y\)</span>. You can find detailed explanations of all these things in the
+<a href="../input/">Input Format (YAML)</a> section.</p>
+<p>This YAML input file reflects the design of our experiment. Now we just need a
+Skywalker program that computes <span class="arithmatex">\(f\)</span> at each of the points we've specified.</p>
+<h2 id="step-2-write-a-skywalker-program">Step 2: Write a Skywalker Program</h2>
+<p>A Skywalker program creates an <strong>ensemble</strong> of complete sets of inputs (in this
+case, the point <span class="arithmatex">\((x, y)\)</span> in <span class="arithmatex">\(\mathbb{R}^2\)</span>). Each point represents a <strong>member</strong>
+of the ensemble. The program loops over each ensemble members <span class="arithmatex">\((x, y)\)</span> and
+computes the output <span class="arithmatex">\(f\)</span> for it. Finally, it writes all of its ensemble data
+(all values of <span class="arithmatex">\(x\)</span>, <span class="arithmatex">\(y\)</span>, and <span class="arithmatex">\(f\)</span>) to a <a href="../output/">Python module</a> that can
+be used for postprocessing. The data in the module is ordered in such a way that
+each output is associated with its inputs.</p>
+<p>Here's a program that does all of these things, written in C, C++, and Fortran.
+Pick your favorite language, paste the corresponding code into a text editor,
+and save it to a file with the indicated name.</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="2:3"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><input id="__tabbed_2_2" name="__tabbed_2" type="radio" /><input id="__tabbed_2_3" name="__tabbed_2" type="radio" /><div class="tabbed-labels"><label for="__tabbed_2_1">C (surface.c)</label><label for="__tabbed_2_2">C++ (surface.cpp)</label><label for="__tabbed_2_3">Fortran (surface.F90)</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 1</span>
+<span class="normal"> 2</span>
+<span class="normal"> 3</span>
+<span class="normal"> 4</span>
+<span class="normal"> 5</span>
+<span class="normal"> 6</span>
+<span class="normal"> 7</span>
+<span class="normal"> 8</span>
+<span class="normal"> 9</span>
+<span class="normal">10</span>
+<span class="normal">11</span>
+<span class="normal">12</span>
+<span class="normal">13</span>
+<span class="normal">14</span>
+<span class="normal">15</span>
+<span class="normal">16</span>
+<span class="normal">17</span>
+<span class="normal">18</span>
+<span class="normal">19</span>
+<span class="normal">20</span>
+<span class="normal">21</span>
+<span class="normal">22</span>
+<span class="normal">23</span>
+<span class="normal">24</span>
+<span class="normal">25</span>
+<span class="normal">26</span>
+<span class="normal">27</span>
+<span class="normal">28</span>
+<span class="normal">29</span>
+<span class="normal">30</span>
+<span class="normal">31</span>
+<span class="normal">32</span>
+<span class="normal">33</span>
+<span class="normal">34</span>
+<span class="normal">35</span>
+<span class="normal">36</span>
+<span class="normal">37</span>
+<span class="normal">38</span>
+<span class="normal">39</span>
+<span class="normal">40</span>
+<span class="normal">41</span>
+<span class="normal">42</span>
+<span class="normal">43</span>
+<span class="normal">44</span>
+<span class="normal">45</span>
+<span class="normal">46</span>
+<span class="normal">47</span>
+<span class="normal">48</span>
+<span class="normal">49</span>
+<span class="normal">50</span>
+<span class="normal">51</span>
+<span class="normal">52</span>
+<span class="normal">53</span></pre></div></td><td class="code"><div class="highlight"><pre><span></span><code><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;skywalker.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;math.h&gt;</span><span class="cp"></span>
+
+<span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">**</span><span class="n">argv</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="c1">// Specify the name of the input file.</span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">input_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;surface.yaml&quot;</span><span class="p">;</span><span class="w"></span>
+
+<span class="w">  </span><span class="c1">// Load the ensemble, exiting if the operation fails.</span>
+<span class="w">  </span><span class="n">sw_ensemble_result_t</span><span class="w"> </span><span class="n">load_result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sw_load_ensemble</span><span class="p">(</span><span class="n">input_file</span><span class="p">,</span><span class="w"> </span><span class="nb">NULL</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">load_result</span><span class="p">.</span><span class="n">error_code</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">SW_SUCCESS</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Error: %s&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">load_result</span><span class="p">.</span><span class="n">error_message</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">exit</span><span class="p">(</span><span class="mi">-1</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="p">}</span><span class="w"></span>
+
+<span class="w">  </span><span class="c1">// Iterate over all members of the ensemble.</span>
+<span class="w">  </span><span class="n">sw_ensemble_t</span><span class="w"> </span><span class="o">*</span><span class="n">ensemble</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">load_result</span><span class="p">.</span><span class="n">ensemble</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="n">sw_input_t</span><span class="w"> </span><span class="o">*</span><span class="n">input</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="n">sw_output_t</span><span class="w"> </span><span class="o">*</span><span class="n">output</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="n">sw_ensemble_next</span><span class="p">(</span><span class="n">ensemble</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">input</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">output</span><span class="p">))</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="c1">// Fetch input values.</span>
+<span class="w">    </span><span class="n">sw_input_result_t</span><span class="w"> </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sw_input_get</span><span class="p">(</span><span class="n">input</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;x&quot;</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">result</span><span class="p">.</span><span class="n">error_code</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">SW_SUCCESS</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">      </span><span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Error: %s&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">load_result</span><span class="p">.</span><span class="n">error_message</span><span class="p">);</span><span class="w"></span>
+<span class="w">      </span><span class="n">exit</span><span class="p">(</span><span class="mi">-1</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="n">sw_real_t</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">result</span><span class="p">.</span><span class="n">value</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sw_input_get</span><span class="p">(</span><span class="n">input</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;y&quot;</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">result</span><span class="p">.</span><span class="n">error_code</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">SW_SUCCESS</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">      </span><span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Error: %s&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">load_result</span><span class="p">.</span><span class="n">error_message</span><span class="p">);</span><span class="w"></span>
+<span class="w">      </span><span class="n">exit</span><span class="p">(</span><span class="mi">-1</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="n">sw_real_t</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">result</span><span class="p">.</span><span class="n">value</span><span class="p">;</span><span class="w"></span>
+
+<span class="w">    </span><span class="c1">// Compute f(x, y).</span>
+<span class="w">    </span><span class="n">sw_real_t</span><span class="w"> </span><span class="n">f</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">sin</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">cos</span><span class="p">(</span><span class="n">y</span><span class="p">);</span><span class="w"></span>
+
+<span class="w">    </span><span class="c1">// Store f as an output variable.</span>
+<span class="w">    </span><span class="n">sw_output_set</span><span class="p">(</span><span class="n">output</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;f&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">f</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="p">}</span><span class="w"></span>
+
+<span class="w">  </span><span class="c1">// Write a Python module containing the input/output data.</span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">output_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;surface.py&quot;</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="n">sw_write_result_t</span><span class="w"> </span><span class="n">w_result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sw_ensemble_write</span><span class="p">(</span><span class="n">ensemble</span><span class="p">,</span><span class="w"> </span><span class="n">output_file</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">w_result</span><span class="p">.</span><span class="n">error_code</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">SW_SUCCESS</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Error: %s&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">load_result</span><span class="p">.</span><span class="n">error_message</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">exit</span><span class="p">(</span><span class="mi">-1</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="p">}</span><span class="w"></span>
+
+<span class="w">  </span><span class="c1">// Clean up.</span>
+<span class="w">  </span><span class="n">sw_ensemble_free</span><span class="p">(</span><span class="n">ensemble</span><span class="p">);</span><span class="w"></span>
+
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</code></pre></div>
+</td></tr></table>
+</div>
+<div class="tabbed-block">
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 1</span>
+<span class="normal"> 2</span>
+<span class="normal"> 3</span>
+<span class="normal"> 4</span>
+<span class="normal"> 5</span>
+<span class="normal"> 6</span>
+<span class="normal"> 7</span>
+<span class="normal"> 8</span>
+<span class="normal"> 9</span>
+<span class="normal">10</span>
+<span class="normal">11</span>
+<span class="normal">12</span>
+<span class="normal">13</span>
+<span class="normal">14</span>
+<span class="normal">15</span>
+<span class="normal">16</span>
+<span class="normal">17</span>
+<span class="normal">18</span>
+<span class="normal">19</span>
+<span class="normal">20</span>
+<span class="normal">21</span>
+<span class="normal">22</span>
+<span class="normal">23</span>
+<span class="normal">24</span>
+<span class="normal">25</span>
+<span class="normal">26</span>
+<span class="normal">27</span>
+<span class="normal">28</span>
+<span class="normal">29</span>
+<span class="normal">30</span>
+<span class="normal">31</span>
+<span class="normal">32</span>
+<span class="normal">33</span>
+<span class="normal">34</span>
+<span class="normal">35</span>
+<span class="normal">36</span>
+<span class="normal">37</span>
+<span class="normal">38</span>
+<span class="normal">39</span>
+<span class="normal">40</span>
+<span class="normal">41</span></pre></div></td><td class="code"><div class="highlight"><pre><span></span><code><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;skywalker.hpp&gt;</span><span class="cp"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;cmath&gt;</span><span class="cp"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;iostream&gt;</span><span class="cp"></span>
+
+<span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">**</span><span class="n">argv</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="c1">// Specify the name of the input file.</span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">input_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;surface.yaml&quot;</span><span class="p">;</span><span class="w"></span>
+
+<span class="w">  </span><span class="c1">// Load the ensemble, exiting if the operation fails.</span>
+<span class="w">  </span><span class="n">skywalker</span><span class="o">::</span><span class="n">Ensemble</span><span class="w"> </span><span class="o">*</span><span class="n">ensemble</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">nullptr</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="k">try</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">ensemble</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">skywalker</span><span class="o">::</span><span class="n">load_ensemble</span><span class="p">(</span><span class="n">input_file</span><span class="p">);</span><span class="w"></span>
+
+<span class="w">    </span><span class="c1">// Iterate over all members of the ensemble. We define a lambda function</span>
+<span class="w">    </span><span class="c1">// that operates on the input and output variables for each member.</span>
+<span class="w">    </span><span class="n">ensemble</span><span class="o">-&gt;</span><span class="n">process</span><span class="p">([](</span><span class="k">const</span><span class="w"> </span><span class="n">skywalker</span><span class="o">::</span><span class="n">Input</span><span class="w"> </span><span class="o">&amp;</span><span class="n">input</span><span class="p">,</span><span class="w"></span>
+<span class="w">                         </span><span class="n">skywalker</span><span class="o">::</span><span class="n">Output</span><span class="w"> </span><span class="o">&amp;</span><span class="n">output</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">      </span><span class="c1">// Fetch input values.</span>
+<span class="w">      </span><span class="n">skywalker</span><span class="o">::</span><span class="n">Real</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">input</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;x&quot;</span><span class="p">);</span><span class="w"></span>
+<span class="w">      </span><span class="n">skywalker</span><span class="o">::</span><span class="n">Real</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">input</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;y&quot;</span><span class="p">);</span><span class="w"></span>
+
+<span class="w">      </span><span class="c1">// Compute f(x, y).</span>
+<span class="w">      </span><span class="n">skywalker</span><span class="o">::</span><span class="n">Real</span><span class="w"> </span><span class="n">f</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">sin</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">cos</span><span class="p">(</span><span class="n">y</span><span class="p">);</span><span class="w"></span>
+
+<span class="w">      </span><span class="c1">// Store f as an output variable.</span>
+<span class="w">      </span><span class="n">output</span><span class="p">.</span><span class="n">set</span><span class="p">(</span><span class="s">&quot;f&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">f</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="p">});</span><span class="w"></span>
+
+<span class="w">    </span><span class="c1">// Write a Python module containing the input/output data.</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">output_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;surface.py&quot;</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="n">ensemble</span><span class="o">-&gt;</span><span class="n">write</span><span class="p">(</span><span class="n">output_file</span><span class="p">);</span><span class="w"></span>
+
+<span class="w">    </span><span class="c1">// Clean up.</span>
+<span class="w">    </span><span class="k">delete</span><span class="w"> </span><span class="n">ensemble</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="n">skywalker</span><span class="o">::</span><span class="n">Exception</span><span class="o">&amp;</span><span class="w"> </span><span class="n">e</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cerr</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Error: &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">e</span><span class="p">.</span><span class="n">what</span><span class="p">()</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="n">exit</span><span class="p">(</span><span class="mi">-1</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="p">}</span><span class="w"></span>
+
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</code></pre></div>
+</td></tr></table>
+</div>
+<div class="tabbed-block">
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 1</span>
+<span class="normal"> 2</span>
+<span class="normal"> 3</span>
+<span class="normal"> 4</span>
+<span class="normal"> 5</span>
+<span class="normal"> 6</span>
+<span class="normal"> 7</span>
+<span class="normal"> 8</span>
+<span class="normal"> 9</span>
+<span class="normal">10</span>
+<span class="normal">11</span>
+<span class="normal">12</span>
+<span class="normal">13</span>
+<span class="normal">14</span>
+<span class="normal">15</span>
+<span class="normal">16</span>
+<span class="normal">17</span>
+<span class="normal">18</span>
+<span class="normal">19</span>
+<span class="normal">20</span>
+<span class="normal">21</span>
+<span class="normal">22</span>
+<span class="normal">23</span>
+<span class="normal">24</span>
+<span class="normal">25</span>
+<span class="normal">26</span>
+<span class="normal">27</span>
+<span class="normal">28</span>
+<span class="normal">29</span>
+<span class="normal">30</span>
+<span class="normal">31</span>
+<span class="normal">32</span>
+<span class="normal">33</span>
+<span class="normal">34</span>
+<span class="normal">35</span>
+<span class="normal">36</span>
+<span class="normal">37</span>
+<span class="normal">38</span>
+<span class="normal">39</span>
+<span class="normal">40</span>
+<span class="normal">41</span>
+<span class="normal">42</span></pre></div></td><td class="code"><div class="highlight"><pre><span></span><code><span class="k">program </span><span class="n">surface</span>
+  <span class="k">use </span><span class="n">skywalker</span>
+  <span class="k">implicit none</span>
+
+<span class="k">  </span><span class="kt">character</span><span class="p">(</span><span class="nb">len</span><span class="o">=</span><span class="mi">255</span><span class="p">)</span>      <span class="kd">::</span> <span class="n">input_file</span><span class="p">,</span> <span class="n">output_file</span>
+  <span class="k">type</span><span class="p">(</span><span class="n">ensemble_result_t</span><span class="p">)</span> <span class="kd">::</span> <span class="n">load_result</span>
+  <span class="k">type</span><span class="p">(</span><span class="n">ensemble_t</span><span class="p">)</span>        <span class="kd">::</span> <span class="n">ensemble</span>
+  <span class="k">type</span><span class="p">(</span><span class="n">input_t</span><span class="p">)</span>           <span class="kd">::</span> <span class="n">input</span>
+  <span class="k">type</span><span class="p">(</span><span class="n">output_t</span><span class="p">)</span>          <span class="kd">::</span> <span class="n">output</span>
+  <span class="kt">real</span><span class="p">(</span><span class="n">swp</span><span class="p">)</span>               <span class="kd">::</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">f</span>
+
+  <span class="c">! Specify the name of the input file.</span>
+  <span class="n">input_file</span> <span class="o">=</span> <span class="s2">&quot;surface.yaml&quot;</span>
+
+  <span class="c">! Load the ensemble, exiting if the operation fails.</span>
+  <span class="n">load_result</span> <span class="o">=</span> <span class="n">load_ensemble</span><span class="p">(</span><span class="nb">trim</span><span class="p">(</span><span class="n">input_file</span><span class="p">))</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">load_result</span><span class="p">%</span><span class="n">error_code</span> <span class="o">/=</span> <span class="n">SW_SUCCESS</span><span class="p">)</span> <span class="k">then</span>
+<span class="k">    print</span> <span class="o">*</span><span class="p">,</span> <span class="s2">&quot;Error: &quot;</span><span class="p">,</span> <span class="nb">trim</span><span class="p">(</span><span class="n">load_result</span><span class="p">%</span><span class="n">error_message</span><span class="p">)</span>
+    <span class="k">stop</span>
+<span class="k">  end if</span>
+
+  <span class="c">! Iterate over all members of the ensemble.</span>
+  <span class="n">ensemble</span> <span class="o">=</span> <span class="n">load_result</span><span class="p">%</span><span class="n">ensemble</span>
+  <span class="k">do while</span> <span class="p">(</span><span class="n">ensemble</span><span class="p">%</span><span class="n">next</span><span class="p">(</span><span class="n">input</span><span class="p">,</span> <span class="n">output</span><span class="p">))</span>
+    <span class="c">! Fetch inputs.</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">input</span><span class="p">%</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">input</span><span class="p">%</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">)</span>
+
+    <span class="c">! Compute f(x, y).</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="n">y</span> <span class="o">*</span> <span class="nb">sin</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">-</span> <span class="n">x</span> <span class="o">*</span> <span class="nb">cos</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+
+    <span class="c">! Store f as an output variable.</span>
+    <span class="k">call </span><span class="n">output</span><span class="p">%</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;f&quot;</span><span class="p">,</span> <span class="n">f</span><span class="p">);</span>
+  <span class="k">end do</span>
+
+  <span class="c">! Write out a Python module.</span>
+  <span class="n">output_file</span> <span class="o">=</span> <span class="s2">&quot;surface.py&quot;</span>
+  <span class="k">call </span><span class="n">ensemble</span><span class="p">%</span><span class="k">write</span><span class="p">(</span><span class="n">output_file</span><span class="p">)</span>
+
+  <span class="c">! Clean up.</span>
+  <span class="k">call </span><span class="n">ensemble</span><span class="p">%</span><span class="n">free</span><span class="p">();</span>
+<span class="k">end program</span>
+</code></pre></div>
+</td></tr></table>
+</div>
+</div>
+</div>
+<p>The <a href="../api/">API</a> section discusses each of the elements in this program. For
+now, let's just try to build it and run it.</p>
+<h2 id="step-3-build-the-program">Step 3: Build the Program</h2>
+<p>Everyone has their own setup for building programs, so let's keep it simple:
+we'll compile the program and link it against the appropriate Skywalker library
+in one step:</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="3:3"><input checked="checked" id="__tabbed_3_1" name="__tabbed_3" type="radio" /><input id="__tabbed_3_2" name="__tabbed_3" type="radio" /><input id="__tabbed_3_3" name="__tabbed_3" type="radio" /><div class="tabbed-labels"><label for="__tabbed_3_1">C</label><label for="__tabbed_3_2">C++</label><label for="__tabbed_3_3">Fortran</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code>cc surface.c -I/path/to/include -L/path/to/lib -lskywalker_double -o surface
+</code></pre></div>
+</div>
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code>c++ surface.cpp -std=c++11 -I/path/to/include -L/path/to/lib -lskywalker_double -o surface
+</code></pre></div>
+</div>
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code>gfortran surface.F90 -I/path/to/include -L/path/to/lib -lskywalker_f90_double -o surface
+</code></pre></div>
+</div>
+</div>
+</div>
+<p>If you use a different compiler, substitute it above. A few things to note:</p>
+<ul>
+<li>
+<p>The C++ Skywalker program uses lambda functions, which requires at least
+  C++11.</p>
+</li>
+<li>
+<p>The <code>-I</code> flags above indicate the location of the Skywalker headers
+  (<code>skywalker.h</code>, <code>skywalker.hpp</code>) and modules (<code>skywalker.mod</code>) you installed
+  in the <a href="../installation/">Installation</a> section. So if you set Skywalker's
+  <code>CMAKE_INSTALL_PREFIX</code> to <code>/usr/local</code>, you would use <code>-I/usr/local/include</code>.</p>
+</li>
+<li>
+<p>Likewise, the <code>-L</code> flags tell the linker where to find the Skywalker
+  libraries. If your <code>CMAKE_INSTALL_PREFIX</code> is <code>/usr/local</code>, indicate this with
+  <code>-L/usr/local/lib</code>.</p>
+</li>
+<li>
+<p>The <code>-l</code> parameter indicates the library to link your program against. C and
+  C++ programs must be linked against <code>libskywalker_double.a</code>, while Fortran
+  programs must use <code>libskywalker_f90_double.a</code>. If you've configured Skywalker
+  to use single precision floating point numbers with
+  <code>-DSKYWALKER_PRECISION=single</code>, replace <code>double</code> with <code>single</code>.</p>
+</li>
+</ul>
+<p>If all goes well, you'll end up with a <code>surface</code> executable.</p>
+<h2 id="step-4-run-the-experiment">Step 4: Run the Experiment</h2>
+<p>Now it's time to see the program in action. Make sure your <code>surface</code>
+executable is in the same directory as your <code>surface.yaml</code> input file,
+and run it without arguments:</p>
+<div class="highlight"><pre><span></span><code>./surface
+</code></pre></div>
+<p>Hopefully, the program runs to completion, generating a <code>surface.py</code> text
+file containing the data. You can open up this file in an editor to see how it
+looks. The format of this file is described <a href="../output/">here</a>.</p>
+<h2 id="step-5-analyze-the-results">Step 5: Analyze the Results</h2>
+<p>Here's a simple Python 3 program you can run in the same directory as your
+<code>surface.py</code> file to generate a surface plot of <span class="arithmatex">\(f(x, y)\)</span> over the domain
+<span class="arithmatex">\([-2\pi, 2\pi] \times [-2\pi, 2\pi]\)</span>.</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="4:1"><input checked="checked" id="__tabbed_4_1" name="__tabbed_4" type="radio" /><div class="tabbed-labels"><label for="__tabbed_4_1">plot_surface.py</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="c1"># Extract data from surface.py.</span>
+<span class="kn">import</span> <span class="nn">surface</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">surface</span><span class="o">.</span><span class="n">input</span><span class="o">.</span><span class="n">x</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">surface</span><span class="o">.</span><span class="n">input</span><span class="o">.</span><span class="n">y</span><span class="p">)</span>
+<span class="n">f</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">surface</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">f</span><span class="p">)</span>
+
+<span class="c1"># Plot the contours of f(x, y).</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">tricontour</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">()</span>
+
+<span class="c1"># Display the plot.</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</code></pre></div>
+</div>
+</div>
+</div>
+<p>The script uses <a href="https://matplotlib.org">matplotlib</a>, which you can often
+install with a command like</p>
+<div class="highlight"><pre><span></span><code>pip3 install matplotlib
+</code></pre></div>
+<p>Run the script to see the plot.</p>
+<div class="highlight"><pre><span></span><code>python3 plot_surface.py
+</code></pre></div>
+<p>Here's how it looks:</p>
+<p><img alt="f(x,y)" src="../images/surface.png" /></p>
+<p>That's it. Congratulations--you've successfully used Skywalker to sample a
+multivariate function over regularly spaced intervals. If you like, you can
+continue through the rest of the documentation to learn how things work. You can
+also take a look at <a href="../example/">a more involved example</a> if that's your style.</p>
+
+              
+            </article>
+          </div>
+        </div>
+        
+          <a href="#" class="md-top md-icon" data-md-component="top" data-md-state="hidden">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"/></svg>
+            Back to top
+          </a>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    <nav class="md-footer__inner md-grid" aria-label="Footer">
+      
+        
+        <a href="../installation/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Installation" rel="prev">
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+          </div>
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              Installation
+            </div>
+          </div>
+        </a>
+      
+      
+        
+        <a href="../input/" class="md-footer__link md-footer__link--next" aria-label="Next: Input Format (YAML)" rel="next">
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              Input Format (YAML)
+            </div>
+          </div>
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
+          </div>
+        </a>
+      
+    </nav>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.indices", "navigation.instant", "navigation.sections", "navigation.top"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.0bbba5b5.min.js"}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.649a939e.min.js"></script>
+      
+        <script src="../javascript/mathjax.js"></script>
+      
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

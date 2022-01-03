@@ -1,0 +1,1288 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-8.1.2">
+    
+    
+      
+        <title>Example: Van der Waals Gas - Skywalker: A Parameter Study Tool for Box Models</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.f7951f6f.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.e6a45f82.min.css">
+        
+      
+    
+    
+    
+      
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="" data-md-color-accent="">
+  
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&"object"==typeof palette.color)for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)</script>
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#example-van-der-waals-gas" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Skywalker: A Parameter Study Tool for Box Models" class="md-header__button md-logo" aria-label="Skywalker: A Parameter Study Tool for Box Models" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Skywalker: A Parameter Study Tool for Box Models
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Example: Van der Waals Gas
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      <form class="md-header__option" data-md-component="palette">
+        
+          
+          
+          <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="" data-md-color-accent=""  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+          
+            <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5c-.84 0-1.65.15-2.39.42L12 2M3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29L3.34 7m.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14L3.36 17M20.65 7l-1.77 3.79a7.023 7.023 0 0 0-2.38-4.15l4.15.36m-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29L20.64 17M12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44L12 22z"/></svg>
+            </label>
+          
+        
+          
+          
+          <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="" data-md-color-accent=""  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_2">
+          
+            <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3 3.19.09m3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95 2.06.05m-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31z"/></svg>
+            </label>
+          
+        
+      </form>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/eagles-project/skywalker/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Skywalker: A Parameter Study Tool for Box Models" class="md-nav__button md-logo" aria-label="Skywalker: A Parameter Study Tool for Box Models" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    Skywalker: A Parameter Study Tool for Box Models
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/eagles-project/skywalker/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        Overview
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installation/" class="md-nav__link">
+        Installation
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../quick_start/" class="md-nav__link">
+        Quick Start
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../input/" class="md-nav__link">
+        Input Format (YAML)
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../output/" class="md-nav__link">
+        Output Format (Python)
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/" class="md-nav__link">
+        The Skywalker API
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Example: Van der Waals Gas
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        Example: Van der Waals Gas
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#ideal-gas" class="md-nav__link">
+    Ideal gas
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#van-der-waals-gas" class="md-nav__link">
+    Van der Waals gas
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#part-1-plotting-isotherms" class="md-nav__link">
+    Part 1: Plotting Isotherms
+  </a>
+  
+    <nav class="md-nav" aria-label="Part 1: Plotting Isotherms">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ideal-gas_1" class="md-nav__link">
+    Ideal gas
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#van-der-waals-gases" class="md-nav__link">
+    Van der Waals gases
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#exercises" class="md-nav__link">
+    Exercises
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#part-2-determining-the-saturation-vapor-pressure-in-carbon-dioxide" class="md-nav__link">
+    Part 2: Determining the Saturation Vapor Pressure in Carbon Dioxide
+  </a>
+  
+    <nav class="md-nav" aria-label="Part 2: Determining the Saturation Vapor Pressure in Carbon Dioxide">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#approximating-the-saturation-vapor-pressure-numerically" class="md-nav__link">
+    Approximating the saturation vapor pressure numerically
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#exercises_1" class="md-nav__link">
+    Exercises
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#ideal-gas" class="md-nav__link">
+    Ideal gas
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#van-der-waals-gas" class="md-nav__link">
+    Van der Waals gas
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#part-1-plotting-isotherms" class="md-nav__link">
+    Part 1: Plotting Isotherms
+  </a>
+  
+    <nav class="md-nav" aria-label="Part 1: Plotting Isotherms">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ideal-gas_1" class="md-nav__link">
+    Ideal gas
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#van-der-waals-gases" class="md-nav__link">
+    Van der Waals gases
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#exercises" class="md-nav__link">
+    Exercises
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#part-2-determining-the-saturation-vapor-pressure-in-carbon-dioxide" class="md-nav__link">
+    Part 2: Determining the Saturation Vapor Pressure in Carbon Dioxide
+  </a>
+  
+    <nav class="md-nav" aria-label="Part 2: Determining the Saturation Vapor Pressure in Carbon Dioxide">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#approximating-the-saturation-vapor-pressure-numerically" class="md-nav__link">
+    Approximating the saturation vapor pressure numerically
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#exercises_1" class="md-nav__link">
+    Exercises
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content" data-md-component="content">
+            <article class="md-content__inner md-typeset">
+              
+                
+<a href="https://github.com/eagles-project/skywalker/edit/master/docs/example.md" title="Edit this page" class="md-content__button md-icon">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
+</a>
+
+
+<h1 id="example-van-der-waals-gas">Example: Van der Waals Gas</h1>
+<p>The example in this section focuses on the <strong>Van der Waals gas law</strong>, a
+generalization of the ideal gas law that accurately describes many gases over
+a great range of temperatures, pressures, and volumes. The example has three
+parts.</p>
+<p>In this example, we use the Standard International (SI, also called <em>mks</em>)
+system of units. When we define a quantity, we denote its units in square
+brackets. For example, the mass of an object could be written as <span class="arithmatex">\(m\)</span> [kg].
+Quantities without units are followed by [-].</p>
+<p>The code for the example is available in the
+<a href="https://github.com/eagles-project/skywalker/tree/main/examples">examples folder</a>
+of the Skywalker source tree.</p>
+<p>We'll use Python to make a few plots along the way. We use Python 3 and the
+<a href="https://matplotlib.org">matplotlib</a> library, which comes with many scientific
+Python packages like <a href="https://ipython.org">IPython</a>. If you're not using one of
+those packages, you can usually install matplotlib with a command like the
+following:</p>
+<div class="highlight"><pre><span></span><code>pip3 install matplotlib
+</code></pre></div>
+<h3 id="ideal-gas">Ideal gas</h3>
+<p>Recall that the ideal gas law relates the pressure, temperature, and volume of
+a gas through the equation of state</p>
+<div class="arithmatex">\[
+pV = \nu R T
+\]</div>
+<p>where</p>
+<ul>
+<li><span class="arithmatex">\(p\)</span> is the gas pressure [Pa]</li>
+<li><span class="arithmatex">\(V\)</span> is the volume occupied by the gas [m<span class="arithmatex">\(^3\)</span>]</li>
+<li><span class="arithmatex">\(\nu\)</span> is the number of moles of gas contained in the volume <span class="arithmatex">\(V\)</span> [-]</li>
+<li><span class="arithmatex">\(R\)</span> is the universal gas constant [J <span class="arithmatex">\(\cdot\)</span> K<span class="arithmatex">\(^{-1} \cdot\)</span> mol<span class="arithmatex">\(^{-1}\)</span>]</li>
+<li><span class="arithmatex">\(T\)</span> is the temperature of the gas [K]</li>
+</ul>
+<p>Strictly speaking, the ideal gas law holds for gases whose molecules don't
+interact with one another. While this is not true for any known substance, it's
+a good approximation for gases whose molecules interact only weakly.</p>
+<h3 id="van-der-waals-gas">Van der Waals gas</h3>
+<p>The equation of state for the van der Waals gas law is a refinement of the ideal
+gas law that attempts to model weak interactions between particles using a pair
+of parameters <span class="arithmatex">\(a\)</span> and <span class="arithmatex">\(b\)</span>. The equation is</p>
+<div class="arithmatex">\[
+(p + a/V^2)(V - b) = \nu RT
+\]</div>
+<p>where <span class="arithmatex">\(a\)</span> represents the effects of <strong>cohesive forces</strong> within a molecule, and
+<span class="arithmatex">\(b\)</span> represents effects of molecules having a <strong>finite size</strong>. Clearly, when
+<span class="arithmatex">\(a=b=0\)</span>, this equation reverts to the ideal gas law.</p>
+<p>The Van der Waals approximation is a significant improvement on the ideal gas
+law, and can be used to study various phenomena. Our discussion follows that in
+Chapter IV of <em>Thermodynamics</em>, by Enrico Fermi, Dover Publications, NY (1936).</p>
+<h2 id="part-1-plotting-isotherms">Part 1: Plotting Isotherms</h2>
+<p>An isotherm is a thermodynamic process in which the temperature remains the
+same throughout. Isothermal processes are important in any setting in which
+smaller physical systems interact with a heat reservoir at a given temperature.
+They are conveniently expressed using <strong>PV diagrams</strong>, which are just XY plots
+with the volume <span class="arithmatex">\(V\)</span> on the <span class="arithmatex">\(x\)</span> axis and the pressure <span class="arithmatex">\(p\)</span> on the <span class="arithmatex">\(y\)</span> axis.</p>
+<h3 id="ideal-gas_1">Ideal gas</h3>
+<p>We can construct an isotherm curve for an ideal gas by writing the pressure <span class="arithmatex">\(p\)</span>
+as a function of <span class="arithmatex">\(V\)</span> and <span class="arithmatex">\(T\)</span> for a single mole of gas (<span class="arithmatex">\(\nu = 1\)</span>):</p>
+<div class="arithmatex">\[
+p(V, T) = \frac{RT}{V}
+\]</div>
+<p>Let's write a simple Skywalker program that takes <span class="arithmatex">\(V\)</span> and <span class="arithmatex">\(T\)</span> as input and
+computes <span class="arithmatex">\(p\)</span> as output. Our program will read the following input file, named
+<code>ideal_gas_isotherms</code>, which constructs an ensemble of <span class="arithmatex">\((V, T)\)</span> pairs,
+with <span class="arithmatex">\(V \in [5^{-5}, 1^{-3}]\)</span> m<span class="arithmatex">\({^3}\)</span> and <span class="arithmatex">\(T\)</span> assuming the values 273 K, 373 K,
+473 K, 573 K, and 673 K.</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:1"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">ideal_gas_isotherms.yaml</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code>type: lattice
+
+input:
+  V: [5.0e-5, 1.0e-3, 1.0e-6]  # [m^3]
+  T: [273, 373, 473, 573, 673] # [K]
+</code></pre></div>
+</div>
+</div>
+</div>
+<p>Here's our program:</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="2:3"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><input id="__tabbed_2_2" name="__tabbed_2" type="radio" /><input id="__tabbed_2_3" name="__tabbed_2" type="radio" /><div class="tabbed-labels"><label for="__tabbed_2_1">C</label><label for="__tabbed_2_2">C++</label><label for="__tabbed_2_3">Fortran</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 1</span>
+<span class="normal"> 2</span>
+<span class="normal"> 3</span>
+<span class="normal"> 4</span>
+<span class="normal"> 5</span>
+<span class="normal"> 6</span>
+<span class="normal"> 7</span>
+<span class="normal"> 8</span>
+<span class="normal"> 9</span>
+<span class="normal">10</span>
+<span class="normal">11</span>
+<span class="normal">12</span>
+<span class="normal">13</span>
+<span class="normal">14</span>
+<span class="normal">15</span>
+<span class="normal">16</span>
+<span class="normal">17</span>
+<span class="normal">18</span>
+<span class="normal">19</span>
+<span class="normal">20</span>
+<span class="normal">21</span>
+<span class="normal">22</span>
+<span class="normal">23</span>
+<span class="normal">24</span>
+<span class="normal">25</span>
+<span class="normal">26</span>
+<span class="normal">27</span>
+<span class="normal">28</span>
+<span class="normal">29</span>
+<span class="normal">30</span>
+<span class="normal">31</span>
+<span class="normal">32</span>
+<span class="normal">33</span>
+<span class="normal">34</span>
+<span class="normal">35</span>
+<span class="normal">36</span>
+<span class="normal">37</span>
+<span class="normal">38</span>
+<span class="normal">39</span>
+<span class="normal">40</span>
+<span class="normal">41</span>
+<span class="normal">42</span>
+<span class="normal">43</span>
+<span class="normal">44</span>
+<span class="normal">45</span>
+<span class="normal">46</span>
+<span class="normal">47</span>
+<span class="normal">48</span>
+<span class="normal">49</span>
+<span class="normal">50</span>
+<span class="normal">51</span>
+<span class="normal">52</span>
+<span class="normal">53</span>
+<span class="normal">54</span>
+<span class="normal">55</span>
+<span class="normal">56</span>
+<span class="normal">57</span></pre></div></td><td class="code"><div class="highlight"><pre><span></span><code><span class="c1">// isotherms.c</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;skywalker.h&gt;</span><span class="cp"></span>
+
+<span class="c1">// This function retrieves the value with the given name from the given</span>
+<span class="c1">// input, exiting on failure.</span>
+<span class="n">sw_real_t</span><span class="w"> </span><span class="nf">get_value</span><span class="p">(</span><span class="n">sw_input_t</span><span class="w"> </span><span class="o">*</span><span class="n">input</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">name</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="n">sw_input_result_t</span><span class="w"> </span><span class="n">in_result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sw_input_get</span><span class="p">(</span><span class="n">input</span><span class="p">,</span><span class="w"> </span><span class="n">name</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">in_result</span><span class="p">.</span><span class="n">error_code</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">SW_SUCCESS</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;isotherms_c: %s&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">in_result</span><span class="p">.</span><span class="n">error_message</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">exit</span><span class="p">(</span><span class="mi">-1</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="p">}</span><span class="w"></span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="n">in_result</span><span class="p">.</span><span class="n">value</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+
+<span class="c1">// Here&#39;s the main function.</span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">**</span><span class="n">argv</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">input_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;ideal_gas_isotherms.yaml&quot;</span><span class="p">;</span><span class="w"></span>
+
+<span class="w">  </span><span class="c1">// Load the ensemble. Any error encountered is fatal.</span>
+<span class="w">  </span><span class="n">printf</span><span class="p">(</span><span class="s">&quot;isotherms_c: Loading ensemble from %s...</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">input_file</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="n">sw_ensemble_result_t</span><span class="w"> </span><span class="n">load_result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sw_load_ensemble</span><span class="p">(</span><span class="n">input_file</span><span class="p">,</span><span class="w"> </span><span class="nb">NULL</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">load_result</span><span class="p">.</span><span class="n">error_code</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">SW_SUCCESS</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;isotherms_c: %s&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">load_result</span><span class="p">.</span><span class="n">error_message</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">exit</span><span class="p">(</span><span class="mi">-1</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="p">}</span><span class="w"></span>
+
+<span class="w">  </span><span class="n">sw_ensemble_t</span><span class="w"> </span><span class="o">*</span><span class="n">ensemble</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">load_result</span><span class="p">.</span><span class="n">ensemble</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="n">printf</span><span class="p">(</span><span class="s">&quot;isotherms_c: found %zd ensemble members.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">sw_ensemble_size</span><span class="p">(</span><span class="n">ensemble</span><span class="p">));</span><span class="w"></span>
+
+<span class="w">  </span><span class="c1">// Iterate over all members of the ensemble.</span>
+<span class="w">  </span><span class="n">sw_input_t</span><span class="w"> </span><span class="o">*</span><span class="n">input</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="n">sw_output_t</span><span class="w"> </span><span class="o">*</span><span class="n">output</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="n">sw_ensemble_next</span><span class="p">(</span><span class="n">ensemble</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">input</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">output</span><span class="p">))</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="c1">// Fetch (V, T) from the member&#39;s input.</span>
+<span class="w">    </span><span class="n">sw_real_t</span><span class="w"> </span><span class="n">V</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">get_value</span><span class="p">(</span><span class="n">input</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;V&quot;</span><span class="p">);</span><span class="w"> </span><span class="c1">// gas (molar) volume [m3]</span>
+<span class="w">    </span><span class="n">sw_real_t</span><span class="w"> </span><span class="n">T</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">get_value</span><span class="p">(</span><span class="n">input</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;T&quot;</span><span class="p">);</span><span class="w"> </span><span class="c1">// gas temperature [K]</span>
+
+<span class="w">    </span><span class="c1">// Compute p(V, T).</span>
+<span class="w">    </span><span class="k">static</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">sw_real_t</span><span class="w"> </span><span class="n">R</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">8.31446261815324</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="n">sw_real_t</span><span class="w"> </span><span class="n">p</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">R</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">T</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">V</span><span class="p">;</span><span class="w"></span>
+
+<span class="w">    </span><span class="c1">// Stash the computed pressure in the member&#39;s output.</span>
+<span class="w">    </span><span class="n">sw_output_set</span><span class="p">(</span><span class="n">output</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;p&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">p</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="p">}</span><span class="w"></span>
+
+<span class="w">  </span><span class="c1">// Write out a Python module.</span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">output_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;ideal_gas_isotherms_c.py&quot;</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="n">printf</span><span class="p">(</span><span class="s">&quot;isotherms_c: Writing data to %s...</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">output_file</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="n">sw_write_result_t</span><span class="w"> </span><span class="n">w_result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sw_ensemble_write</span><span class="p">(</span><span class="n">ensemble</span><span class="p">,</span><span class="w"> </span><span class="n">output_file</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">w_result</span><span class="p">.</span><span class="n">error_code</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">SW_SUCCESS</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;isotherms_c: %s</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">w_result</span><span class="p">.</span><span class="n">error_message</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">exit</span><span class="p">(</span><span class="mi">-1</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="p">}</span><span class="w"></span>
+
+<span class="w">  </span><span class="c1">// Clean up.</span>
+<span class="w">  </span><span class="n">sw_ensemble_free</span><span class="p">(</span><span class="n">ensemble</span><span class="p">);</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</code></pre></div>
+</td></tr></table>
+</div>
+<div class="tabbed-block">
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 1</span>
+<span class="normal"> 2</span>
+<span class="normal"> 3</span>
+<span class="normal"> 4</span>
+<span class="normal"> 5</span>
+<span class="normal"> 6</span>
+<span class="normal"> 7</span>
+<span class="normal"> 8</span>
+<span class="normal"> 9</span>
+<span class="normal">10</span>
+<span class="normal">11</span>
+<span class="normal">12</span>
+<span class="normal">13</span>
+<span class="normal">14</span>
+<span class="normal">15</span>
+<span class="normal">16</span>
+<span class="normal">17</span>
+<span class="normal">18</span>
+<span class="normal">19</span>
+<span class="normal">20</span>
+<span class="normal">21</span>
+<span class="normal">22</span>
+<span class="normal">23</span>
+<span class="normal">24</span>
+<span class="normal">25</span>
+<span class="normal">26</span>
+<span class="normal">27</span>
+<span class="normal">28</span>
+<span class="normal">29</span>
+<span class="normal">30</span>
+<span class="normal">31</span>
+<span class="normal">32</span>
+<span class="normal">33</span>
+<span class="normal">34</span>
+<span class="normal">35</span>
+<span class="normal">36</span>
+<span class="normal">37</span>
+<span class="normal">38</span>
+<span class="normal">39</span>
+<span class="normal">40</span>
+<span class="normal">41</span>
+<span class="normal">42</span>
+<span class="normal">43</span>
+<span class="normal">44</span>
+<span class="normal">45</span>
+<span class="normal">46</span>
+<span class="normal">47</span>
+<span class="normal">48</span>
+<span class="normal">49</span>
+<span class="normal">50</span></pre></div></td><td class="code"><div class="highlight"><pre><span></span><code><span class="c1">// isotherms.cpp</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;skywalker.hpp&gt;</span><span class="cp"></span>
+
+<span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">**</span><span class="n">argv</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">input_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;ideal_gas_isotherms.yaml&quot;</span><span class="p">;</span><span class="w"></span>
+
+<span class="w">  </span><span class="c1">// Load the ensemble. Any error encountered is fatal.</span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;isotherms_cpp: Loading ensemble from &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">input_file</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;...</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="n">skywalker</span><span class="o">::</span><span class="n">Ensemble</span><span class="w"> </span><span class="o">*</span><span class="n">ensemble</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">nullptr</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="k">try</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">ensemble</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">skywalker</span><span class="o">::</span><span class="n">load_ensemble</span><span class="p">(</span><span class="n">input_file</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="n">skywalker</span><span class="o">::</span><span class="n">Exception</span><span class="w"> </span><span class="o">&amp;</span><span class="n">e</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cerr</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;isotherms_cpp: &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">e</span><span class="p">.</span><span class="n">what</span><span class="p">()</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="n">exit</span><span class="p">(</span><span class="mi">-1</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="p">}</span><span class="w"></span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;isotherms_cpp: found &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">ensemble</span><span class="o">-&gt;</span><span class="n">size</span><span class="p">()</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot; ensemble members.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">;</span><span class="w"></span>
+
+<span class="w">  </span><span class="c1">// Iterate over all members of the ensemble.</span>
+<span class="w">  </span><span class="k">try</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">ensemble</span><span class="o">-&gt;</span><span class="n">process</span><span class="p">([](</span><span class="k">const</span><span class="w"> </span><span class="n">skywalker</span><span class="o">::</span><span class="n">Input</span><span class="w"> </span><span class="o">&amp;</span><span class="n">input</span><span class="p">,</span><span class="w"></span>
+<span class="w">                         </span><span class="n">skywalker</span><span class="o">::</span><span class="n">Output</span><span class="w"> </span><span class="o">&amp;</span><span class="n">output</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">      </span><span class="c1">// Fetch inputs.</span>
+<span class="w">      </span><span class="n">skywalker</span><span class="o">::</span><span class="n">Real</span><span class="w"> </span><span class="n">V</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">input</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;V&quot;</span><span class="p">);</span><span class="w"> </span><span class="c1">// gas (molar) volume [m3]</span>
+<span class="w">      </span><span class="n">skywalker</span><span class="o">::</span><span class="n">Real</span><span class="w"> </span><span class="n">T</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">input</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;T&quot;</span><span class="p">);</span><span class="w"> </span><span class="c1">// gas temperature [K]</span>
+
+<span class="w">      </span><span class="c1">// Compute p(V, T).</span>
+<span class="w">      </span><span class="k">static</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">skywalker</span><span class="o">::</span><span class="n">Real</span><span class="w"> </span><span class="n">R</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">8.31446261815324</span><span class="p">;</span><span class="w"></span>
+<span class="w">      </span><span class="n">skywalker</span><span class="o">::</span><span class="n">Real</span><span class="w"> </span><span class="n">p</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">R</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">T</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">V</span><span class="p">;</span><span class="w"></span>
+
+<span class="w">      </span><span class="c1">// Stash the computed pressure in the member&#39;s output.</span>
+<span class="w">      </span><span class="n">output</span><span class="p">.</span><span class="n">set</span><span class="p">(</span><span class="s">&quot;p&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">p</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="p">});</span><span class="w"></span>
+<span class="w">  </span><span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="n">skywalker</span><span class="o">::</span><span class="n">Exception</span><span class="w"> </span><span class="o">&amp;</span><span class="n">e</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cerr</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;isotherms_cpp: &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">e</span><span class="p">.</span><span class="n">what</span><span class="p">()</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="n">exit</span><span class="p">(</span><span class="mi">-1</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="p">}</span><span class="w"></span>
+
+<span class="w">  </span><span class="c1">// Write out a Python module.</span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">output_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;ideal_gas_isotherms_cpp.py&quot;</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;isotherms_cpp: Writing data to &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">output_file</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;...</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="k">try</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">ensemble</span><span class="o">-&gt;</span><span class="n">write</span><span class="p">(</span><span class="n">output_file</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="n">skywalker</span><span class="o">::</span><span class="n">Exception</span><span class="w"> </span><span class="o">&amp;</span><span class="n">e</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cerr</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;isotherms_cpp: &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">e</span><span class="p">.</span><span class="n">what</span><span class="p">()</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="n">exit</span><span class="p">(</span><span class="mi">-1</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="p">}</span><span class="w"></span>
+
+<span class="w">  </span><span class="c1">// Clean up.</span>
+<span class="w">  </span><span class="k">delete</span><span class="w"> </span><span class="n">ensemble</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</code></pre></div>
+</td></tr></table>
+</div>
+<div class="tabbed-block">
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 1</span>
+<span class="normal"> 2</span>
+<span class="normal"> 3</span>
+<span class="normal"> 4</span>
+<span class="normal"> 5</span>
+<span class="normal"> 6</span>
+<span class="normal"> 7</span>
+<span class="normal"> 8</span>
+<span class="normal"> 9</span>
+<span class="normal">10</span>
+<span class="normal">11</span>
+<span class="normal">12</span>
+<span class="normal">13</span>
+<span class="normal">14</span>
+<span class="normal">15</span>
+<span class="normal">16</span>
+<span class="normal">17</span>
+<span class="normal">18</span>
+<span class="normal">19</span>
+<span class="normal">20</span>
+<span class="normal">21</span>
+<span class="normal">22</span>
+<span class="normal">23</span>
+<span class="normal">24</span>
+<span class="normal">25</span>
+<span class="normal">26</span>
+<span class="normal">27</span>
+<span class="normal">28</span>
+<span class="normal">29</span>
+<span class="normal">30</span>
+<span class="normal">31</span>
+<span class="normal">32</span>
+<span class="normal">33</span>
+<span class="normal">34</span>
+<span class="normal">35</span>
+<span class="normal">36</span>
+<span class="normal">37</span>
+<span class="normal">38</span>
+<span class="normal">39</span>
+<span class="normal">40</span>
+<span class="normal">41</span>
+<span class="normal">42</span>
+<span class="normal">43</span>
+<span class="normal">44</span>
+<span class="normal">45</span>
+<span class="normal">46</span>
+<span class="normal">47</span>
+<span class="normal">48</span>
+<span class="normal">49</span>
+<span class="normal">50</span></pre></div></td><td class="code"><div class="highlight"><pre><span></span><code><span class="c">! isotherms.F90</span>
+<span class="k">program </span><span class="n">isotherms</span>
+  <span class="k">use </span><span class="nb">iso_c_binding</span><span class="p">,</span> <span class="k">only</span><span class="p">:</span> <span class="kt">c_float</span><span class="p">,</span> <span class="kt">c_double</span>
+<span class="kt">  </span><span class="k">use </span><span class="n">skywalker</span>
+  <span class="k">implicit none</span>
+
+  <span class="c">! Universal gas constant</span>
+  <span class="kt">real</span><span class="p">(</span><span class="n">swp</span><span class="p">),</span> <span class="k">parameter</span>     <span class="kd">::</span> <span class="n">R</span> <span class="o">=</span> <span class="mf">8.31446261815324_swp</span>
+
+  <span class="kt">character</span><span class="p">(</span><span class="nb">len</span><span class="o">=</span><span class="mi">255</span><span class="p">)</span>      <span class="kd">::</span> <span class="n">input_file</span><span class="p">,</span> <span class="n">output_file</span>
+  <span class="k">type</span><span class="p">(</span><span class="n">ensemble_result_t</span><span class="p">)</span> <span class="kd">::</span> <span class="n">load_result</span>
+  <span class="k">type</span><span class="p">(</span><span class="n">ensemble_t</span><span class="p">)</span>        <span class="kd">::</span> <span class="n">ensemble</span>
+  <span class="k">type</span><span class="p">(</span><span class="n">input_t</span><span class="p">)</span>           <span class="kd">::</span> <span class="n">input</span>
+  <span class="k">type</span><span class="p">(</span><span class="n">output_t</span><span class="p">)</span>          <span class="kd">::</span> <span class="n">output</span>
+  <span class="kt">real</span><span class="p">(</span><span class="n">swp</span><span class="p">)</span>               <span class="kd">::</span> <span class="n">V</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span>
+
+  <span class="n">input_file</span> <span class="o">=</span> <span class="s2">&quot;ideal_gas_isotherms.yaml&quot;</span>
+
+  <span class="c">! Load the ensemble. Any error encountered is fatal.</span>
+  <span class="k">print</span> <span class="o">*</span><span class="p">,</span> <span class="s2">&quot;isotherms_f90: Loading ensemble from &quot;</span><span class="p">,</span> <span class="nb">trim</span><span class="p">(</span><span class="n">input_file</span><span class="p">),</span> <span class="s2">&quot;...&quot;</span>
+  <span class="n">load_result</span> <span class="o">=</span> <span class="n">load_ensemble</span><span class="p">(</span><span class="nb">trim</span><span class="p">(</span><span class="n">input_file</span><span class="p">))</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">load_result</span><span class="p">%</span><span class="n">error_code</span> <span class="o">/=</span> <span class="n">SW_SUCCESS</span><span class="p">)</span> <span class="k">then</span>
+<span class="k">    print</span> <span class="o">*</span><span class="p">,</span> <span class="s2">&quot;isotherms_f90: &quot;</span><span class="p">,</span> <span class="nb">trim</span><span class="p">(</span><span class="n">load_result</span><span class="p">%</span><span class="n">error_message</span><span class="p">)</span>
+    <span class="k">stop</span>
+<span class="k">  end if</span>
+
+<span class="k">  </span><span class="n">ensemble</span> <span class="o">=</span> <span class="n">load_result</span><span class="p">%</span><span class="n">ensemble</span>
+  <span class="k">print</span> <span class="o">*</span><span class="p">,</span> <span class="s2">&quot;isotherms_f90: found &quot;</span><span class="p">,</span> <span class="n">ensemble</span><span class="p">%</span><span class="n">size</span><span class="p">,</span> <span class="s2">&quot; ensemble members.&quot;</span>
+
+  <span class="c">! Iterate over all members of the ensemble.</span>
+  <span class="k">do while</span> <span class="p">(</span><span class="n">ensemble</span><span class="p">%</span><span class="n">next</span><span class="p">(</span><span class="n">input</span><span class="p">,</span> <span class="n">output</span><span class="p">))</span>
+    <span class="c">! Fetch inputs.</span>
+    <span class="n">V</span> <span class="o">=</span> <span class="n">input</span><span class="p">%</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;V&quot;</span><span class="p">)</span> <span class="c">! gas (molar) volume [m3]</span>
+    <span class="n">T</span> <span class="o">=</span> <span class="n">input</span><span class="p">%</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;T&quot;</span><span class="p">)</span> <span class="c">! gas temperature [K]</span>
+
+    <span class="c">! Compute p(V, T).</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="n">R</span> <span class="o">*</span> <span class="n">T</span> <span class="o">/</span> <span class="n">V</span>
+
+    <span class="c">! Stash the computed pressure in the member&#39;s output.</span>
+    <span class="k">call </span><span class="n">output</span><span class="p">%</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;p&quot;</span><span class="p">,</span> <span class="n">p</span><span class="p">);</span>
+  <span class="k">end do</span>
+
+  <span class="c">! Write out a Python module.</span>
+  <span class="n">output_file</span> <span class="o">=</span> <span class="s2">&quot;ideal_gas_isotherms_f90.py&quot;</span>
+  <span class="k">print</span> <span class="o">*</span><span class="p">,</span> <span class="s2">&quot;isotherms_f90: Writing data to &quot;</span><span class="p">,</span> <span class="n">output_file</span><span class="p">,</span> <span class="s2">&quot;...&quot;</span>
+  <span class="k">call </span><span class="n">ensemble</span><span class="p">%</span><span class="k">write</span><span class="p">(</span><span class="n">output_file</span><span class="p">)</span>
+
+  <span class="c">! Clean up.</span>
+  <span class="k">call </span><span class="n">ensemble</span><span class="p">%</span><span class="n">free</span><span class="p">();</span>
+<span class="k">end program</span>
+</code></pre></div>
+</td></tr></table>
+</div>
+</div>
+</div>
+<p>Click through the different tabs for the C, C++, and Fortran versions of the
+program. You can see that they're very similar. Here's what's going on:</p>
+<ol>
+<li>An ensemble is loaded with a <code>load_ensemble</code> function. If the attempt to
+   load the ensemble fails, the program halts.</li>
+<li>The members of the ensemble are processed one by one. In the C and Fortran
+   programs, this happens in a <code>while</code>/<code>do while</code> loop, in which a call to
+   <code>sw_ensemble_next</code> or <code>ensemble%next</code> associates the <code>input</code> and <code>output</code>
+   variables with a specific ensemble member. In C++, this loop is hidden inside
+   a call to <code>ensemble-&gt;process</code>, which accepts a lambda function whose
+   arguments are the properly associated <code>input</code> and <code>output</code> variables for each
+   member. Inside this loop:<ol>
+<li>the gas volume <span class="arithmatex">\(V\)</span> and temperature <span class="arithmatex">\(T\)</span> are extracted from the <code>input</code>
+   variable for the current ensemble member</li>
+<li>the gas pressure <span class="arithmatex">\(p\)</span> is computed from <span class="arithmatex">\(V\)</span> and <span class="arithmatex">\(T\)</span></li>
+<li>the computed pressure <span class="arithmatex">\(p\)</span> is stored in the <code>output</code> variable for the
+   current ensemble member</li>
+</ol>
+</li>
+<li>After every ensemble member has been processed in Step 2, a Python module
+   containing all input and output data for the ensemble is written.</li>
+<li>The ensemble is deleted with an appropriate function call or command.</li>
+</ol>
+<p>For a more detailed explanation of any of these steps, see the <a href="../api/">API</a>
+section.</p>
+<p>If you like, copy and paste any version of the program into a text editor, save
+it, and build it, linking it against <code>libskywalker.a</code> or <code>libskywalker_f90.a</code>
+as needed. Then run it in a directory containing <code>ideal_gas_isotherms.yaml</code>,
+and check to see that an appropriate <code>.py</code> file appears.</p>
+<p>Here's a plot of the resulting isotherms:</p>
+<p><img alt="Ideal gas law isotherms" src="../images/ideal_gas_isotherms_c.png" /></p>
+<p>If you want to generate this plot for yourself, run the
+<a href="https://github.com/eagles-project/skywalker/tree/main/examples/plot_isotherms.py">plot_isotherms.py</a>
+script in the <code>examples/</code> folder of the repo on the appropriate <code>.py</code> file,
+leaving out the <code>.py</code> suffix. E.g.</p>
+<div class="highlight"><pre><span></span><code>python3 plot_isotherms.py ideal_gas_isotherms_c
+</code></pre></div>
+<h3 id="van-der-waals-gases">Van der Waals gases</h3>
+<p>Now that we've successfully used Skywalker to plot the isotherms of an ideal
+gas at several temperatures, we can generalize our program(s) to handle Van der
+Waals gases. The expression for the gas pressure is</p>
+<div class="arithmatex">\[
+p = \frac{RT}{V - b} - \frac{a}{V^2}
+\]</div>
+<p>First, we must add the two parameters <span class="arithmatex">\(a\)</span> and <span class="arithmatex">\(b\)</span> as input. Here's a YAML input
+file that sets these parameters for diatomic nitrogen gas:</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="3:1"><input checked="checked" id="__tabbed_3_1" name="__tabbed_3" type="radio" /><div class="tabbed-labels"><label for="__tabbed_3_1">n2_gas_isotherms.yaml</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code>type: lattice
+
+input:
+  V: [5.0e-5, 1.0e-3, 1.0e-6]  # [m^3]
+  T: [273, 373, 473, 573, 673] # [K]
+  a: 0.137                     # [Pa m6/mol2]
+  b: 3.87e-5                   # [m3/mol]
+</code></pre></div>
+</div>
+</div>
+</div>
+<p>And here's one for carbon dioxide:</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="4:1"><input checked="checked" id="__tabbed_4_1" name="__tabbed_4" type="radio" /><div class="tabbed-labels"><label for="__tabbed_4_1">co2_gas_isotherms.yaml</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code>type: lattice
+
+input:
+  V: [5.0e-5, 1.0e-3, 1.0e-6]  # [m3]
+  T: [273, 373, 473, 573, 673] # [K]
+  a: 0.3658                    # [J m3/mol2]
+  b: 4.29e-5                   # [m3/mol]
+</code></pre></div>
+</div>
+</div>
+</div>
+<p>Now we must modify our programs to include these input parameters in the
+calculation of the gas pressure. Here are code snippets that implement these
+changes:</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="5:3"><input checked="checked" id="__tabbed_5_1" name="__tabbed_5" type="radio" /><input id="__tabbed_5_2" name="__tabbed_5" type="radio" /><input id="__tabbed_5_3" name="__tabbed_5" type="radio" /><div class="tabbed-labels"><label for="__tabbed_5_1">C</label><label for="__tabbed_5_2">C++</label><label for="__tabbed_5_3">Fortran</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<p>Replace lines 38-40 with
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">38</span>
+<span class="normal">39</span>
+<span class="normal">40</span>
+<span class="normal">41</span>
+<span class="normal">42</span>
+<span class="normal">43</span>
+<span class="normal">44</span>
+<span class="normal">45</span>
+<span class="normal">46</span>
+<span class="normal">47</span>
+<span class="normal">48</span>
+<span class="normal">49</span></pre></div></td><td class="code"><div class="highlight"><pre><span></span><code><span class="w">    </span><span class="c1">// Fetch Van der Waals parameters if they&#39;re present.</span>
+<span class="w">    </span><span class="n">sw_real_t</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w"> </span><span class="n">b</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.0</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">sw_input_has</span><span class="p">(</span><span class="n">input</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;a&quot;</span><span class="p">))</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">      </span><span class="n">a</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">get_value</span><span class="p">(</span><span class="n">input</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;a&quot;</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">sw_input_has</span><span class="p">(</span><span class="n">input</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;b&quot;</span><span class="p">))</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">      </span><span class="n">b</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">get_value</span><span class="p">(</span><span class="n">input</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;b&quot;</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+
+<span class="w">    </span><span class="c1">// Compute p(V, T).</span>
+<span class="w">    </span><span class="k">static</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">sw_real_t</span><span class="w"> </span><span class="n">R</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">8.31446261815324</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="n">sw_real_t</span><span class="w"> </span><span class="n">p</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">R</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">T</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="p">(</span><span class="n">V</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">b</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">a</span><span class="o">/</span><span class="p">(</span><span class="n">V</span><span class="o">*</span><span class="n">V</span><span class="p">);</span><span class="w"></span>
+</code></pre></div>
+</td></tr></table></p>
+</div>
+<div class="tabbed-block">
+<p>Replace lines 26-28 with
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">26</span>
+<span class="normal">27</span>
+<span class="normal">28</span>
+<span class="normal">29</span>
+<span class="normal">30</span>
+<span class="normal">31</span>
+<span class="normal">32</span>
+<span class="normal">33</span>
+<span class="normal">34</span>
+<span class="normal">35</span>
+<span class="normal">36</span>
+<span class="normal">37</span></pre></div></td><td class="code"><div class="highlight"><pre><span></span><code><span class="w">      </span><span class="c1">// Fetch Van der Waals parameters if they&#39;re present.</span>
+<span class="w">      </span><span class="n">skywalker</span><span class="o">::</span><span class="n">Real</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w"> </span><span class="n">b</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.0</span><span class="p">;</span><span class="w"></span>
+<span class="w">      </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">input</span><span class="p">.</span><span class="n">has</span><span class="p">(</span><span class="s">&quot;a&quot;</span><span class="p">))</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="n">a</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">input</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;a&quot;</span><span class="p">);</span><span class="w"></span>
+<span class="w">      </span><span class="p">}</span><span class="w"></span>
+<span class="w">      </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">input</span><span class="p">.</span><span class="n">has</span><span class="p">(</span><span class="s">&quot;b&quot;</span><span class="p">))</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="n">b</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">input</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;b&quot;</span><span class="p">);</span><span class="w"></span>
+<span class="w">      </span><span class="p">}</span><span class="w"></span>
+
+<span class="w">      </span><span class="c1">// Compute p(V, T).</span>
+<span class="w">      </span><span class="k">static</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">skywalker</span><span class="o">::</span><span class="n">Real</span><span class="w"> </span><span class="n">R</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">8.31446261815324</span><span class="p">;</span><span class="w"></span>
+<span class="w">      </span><span class="n">skywalker</span><span class="o">::</span><span class="n">Real</span><span class="w"> </span><span class="n">p</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">R</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">T</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="p">(</span><span class="n">V</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">b</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">a</span><span class="o">/</span><span class="p">(</span><span class="n">V</span><span class="o">*</span><span class="n">V</span><span class="p">);</span><span class="w"></span>
+</code></pre></div>
+</td></tr></table></p>
+</div>
+<div class="tabbed-block">
+<p>Declare <code>real(swp)</code> variables <code>a</code> and <code>b</code>, and replace lines 39-40 with
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">39</span>
+<span class="normal">40</span>
+<span class="normal">41</span>
+<span class="normal">42</span>
+<span class="normal">43</span>
+<span class="normal">44</span>
+<span class="normal">45</span>
+<span class="normal">46</span></pre></div></td><td class="code"><div class="highlight"><pre><span></span><code>    <span class="c">! Fetch Van der Waals parameters if they&#39;re present.</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="mf">0.0_swp</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="mf">0.0_swp</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">input</span><span class="p">%</span><span class="n">has</span><span class="p">(</span><span class="s2">&quot;a&quot;</span><span class="p">))</span> <span class="n">a</span> <span class="o">=</span> <span class="n">input</span><span class="p">%</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;a&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">input</span><span class="p">%</span><span class="n">has</span><span class="p">(</span><span class="s2">&quot;b&quot;</span><span class="p">))</span> <span class="n">b</span> <span class="o">=</span> <span class="n">input</span><span class="p">%</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;b&quot;</span><span class="p">)</span>
+
+    <span class="c">! Compute p(V, T).</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="n">R</span> <span class="o">*</span> <span class="n">T</span> <span class="o">/</span> <span class="p">(</span><span class="n">V</span> <span class="o">-</span> <span class="n">b</span><span class="p">)</span> <span class="o">-</span> <span class="n">a</span><span class="o">/</span><span class="p">(</span><span class="n">V</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+</code></pre></div>
+</td></tr></table></p>
+</div>
+</div>
+</div>
+<p>With these changes, the program can now build the ensembles indicated in the
+<code>n2_gas_isotherms.yaml</code> and <code>co2_gas_isotherms.yaml</code> files. Here are all of the
+resulting plots (including our ideal gas for comparison):</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="6:3"><input checked="checked" id="__tabbed_6_1" name="__tabbed_6" type="radio" /><input id="__tabbed_6_2" name="__tabbed_6" type="radio" /><input id="__tabbed_6_3" name="__tabbed_6" type="radio" /><div class="tabbed-labels"><label for="__tabbed_6_1">Ideal gas</label><label for="__tabbed_6_2">N2 gas</label><label for="__tabbed_6_3">CO2 gas</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<p><img alt="Ideal gas law isotherms" src="../images/ideal_gas_isotherms_c.png" /></p>
+</div>
+<div class="tabbed-block">
+<p><img alt="N2 gas law isotherms" src="../images/n2_gas_isotherms_c.png" /></p>
+</div>
+<div class="tabbed-block">
+<p><img alt="CO2 gas law isotherms" src="../images/co2_gas_isotherms_c.png" /></p>
+</div>
+</div>
+</div>
+<h3 id="exercises">Exercises</h3>
+<ol>
+<li>Experiment with different values of <span class="arithmatex">\(a\)</span> and <span class="arithmatex">\(b\)</span>. Are there values that
+   trigger interesting or surprising behavior? Try to interpret these values
+   physically.</li>
+</ol>
+<h2 id="part-2-determining-the-saturation-vapor-pressure-in-carbon-dioxide">Part 2: Determining the Saturation Vapor Pressure in Carbon Dioxide</h2>
+<p>You may be curious about what's happening with the blue curve representing the
+isotherm for <span class="arithmatex">\(T = 273\)</span> K for carbon dioxide. If you follow the curve starting
+from the right, it represents a compression process for the gas at a constant
+temperature. Somewhere around <span class="arithmatex">\(V = 2 \times 10^{-4}\)</span> m<span class="arithmatex">\(^3\)</span>, something funny
+happens: the gas pressure <em>decreases</em> under compression. This simply doesn't
+happen in reality. What's going on?</p>
+<p>What's going on is a phase change: carbon dioxide condenses to liquid form
+under these conditions. The gas is no longer in a homogeneous state, and the
+Van der Waals equation of state isn't satisfied for the gas/liquid mixture.
+Rather, the pressure (called the <strong>saturation vapor pressure</strong>) remains constant
+alongside the temperature over the course of the phase change. One way to
+understand this is that under a phase change, the system alters its binding
+energy but not its kinetic energy. The pressure in a Van der Waals gas depends
+only on its kinetic energy (because it assumes that the particles interact only
+weakly), so it remains constant.</p>
+<p>In other words, the saturation vapor pressure is a horizontal line over the
+course of the phase change. It looks like this:</p>
+<p><img alt="Saturation vapor pressure" src="../images/saturation_vapor_pressure.png" /></p>
+<p>Suppose we wanted to modify our program to make use of these ideas. Our
+objective is to find the value of the saturation pressure, or the height of the
+horizontal line in the vicinity of the phase change. One might think that we
+must use the <a href="https://en.wikipedia.org/wiki/Clausius–Clapeyron_relation">Clausius-Clapeyron equation</a>,
+which involves the latent heat of evaporation and the specific volumes of the
+gas and liquid phases. Alternatively, we could use basic thermodynamic
+principles about closed reversible cycles to derive
+<a href="https://en.wikipedia.org/wiki/Maxwell_construction">Maxwell's equal area rule</a>.
+However, the shape of the isotherm in question actually gives us enough
+geometric information to use an iterative approach that does a decent job of
+estimating the saturation vapor pressure.</p>
+<h3 id="approximating-the-saturation-vapor-pressure-numerically">Approximating the saturation vapor pressure numerically</h3>
+<p>We don't have a curve <span class="arithmatex">\(p(V)\)</span> to work with in our calculation of <span class="arithmatex">\(V_s\)</span>--we only
+have a discrete set of points with volumes <span class="arithmatex">\(\{V_i\}\)</span> and pressures <span class="arithmatex">\(\{p_i\}\)</span>.
+Let <span class="arithmatex">\(i_1\)</span> be the index of the first point along the (horizontal) phase change
+curve, and let <span class="arithmatex">\(i_2\)</span> be the index of the last point along this curve. These two
+points have the same pressure, which is the saturation vapor pressure. How do
+we determine them?</p>
+<p>Suppose we start the points at two distinctive locations and move them around
+till they have equal pressure. For example, we can set <span class="arithmatex">\(i_1\)</span> to the point at
+the trough of the Van der Waals isotherm, and <span class="arithmatex">\(i_2\)</span> to the local peak to the
+right of this trough. Then we know that our initial value of <span class="arithmatex">\(i_1\)</span> is too large,
+and that our initial value of <span class="arithmatex">\(i_2\)</span> is too small.</p>
+<p>We can now devise an iterative scheme that moves <span class="arithmatex">\(i_1\)</span> and <span class="arithmatex">\(i_2\)</span> apart until
+the difference in their pressures hits a minimum.</p>
+<div class="highlight"><pre><span></span><code> pdiff := abs(p(i2) - p(i1))
+ Do forever
+   # Trying moving i1 to the left, reversing if we hit a higher
+   # pressure difference.
+   prev_i1 := i1
+   i1 := i1 - 1
+   p21 := abs(p(i2) - p(i1))
+   if p21 &lt; pdiff
+     pdiff := p21
+   else
+     i1 := i1 + 1
+
+   # Trying moving i2 to the right.
+   prev_i2 := i2
+   i2 := i2 + 1
+   p21 := abs(p(i2) - p(i1))
+   if p21 &lt; pdiff
+     pdiff := p21
+   else
+     i2 := i2 - 1
+
+   # If we didn&#39;t move either point, we&#39;re finished.
+   if i1 = prev_i1 and i2 = prev_i2
+     break
+</code></pre></div>
+<h3 id="exercises_1">Exercises</h3>
+<ol>
+<li>Try to implement this iterative scheme to compute the saturation vapor
+   pressure for the above isotherm. (Hint: use an input that specifies a
+   single temperature.) Extra credit: can you add a setting to your program
+   that specifies whether or not to compute the saturation vapor pressure?
+   You can read about settings in the <a href="../input/">Input Format</a> and <a href="../api/">API</a>
+   sections.</li>
+<li>Can you find the critical point for carbon dioxide by exploring various
+   Van der Waals isotherms? How do you know when you've found it?</li>
+</ol>
+
+              
+            </article>
+          </div>
+        </div>
+        
+          <a href="#" class="md-top md-icon" data-md-component="top" data-md-state="hidden">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"/></svg>
+            Back to top
+          </a>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    <nav class="md-footer__inner md-grid" aria-label="Footer">
+      
+        
+        <a href="../api/" class="md-footer__link md-footer__link--prev" aria-label="Previous: The Skywalker API" rel="prev">
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+          </div>
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              The Skywalker API
+            </div>
+          </div>
+        </a>
+      
+      
+    </nav>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.indices", "navigation.instant", "navigation.sections", "navigation.top"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.0bbba5b5.min.js"}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.649a939e.min.js"></script>
+      
+        <script src="../javascript/mathjax.js"></script>
+      
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>
