@@ -439,113 +439,71 @@ course of the phase change. It looks like this:
 
 ![Saturation vapor pressure](images/saturation_vapor_pressure.png)
 
-Let's modify our program to make use of these ideas. Our objective is to find
-the value of the saturation pressure, or the height of the horizontal line in
-the vicinity of the phase change.
-
-One might think that we must compute the saturation vapor pressure using the
-Clapeyron equation, which involves the latent heat of evaporation and the
-specific volumes of the gas and liquid phases. However, all we really need to
-know is that the entropy of a system $S$ remains unchanged over a complete cycle
-in a reversible process (such as a phase change):
-
-$$
-\oint \texttt{d}S = \oint \frac{\texttt{d}Q}{T} = 0
-$$
-
-where $\texttt{d}Q$ is the increment (differential) of the heat $Q$. In an
-isothermal process, $T$ is constant, and we are left with the statement
-that the **total heat transferred into and out of a system over a complete cycle
-of a reversible isothermal process is 0.**
-
-If no heat is absorbed or emitted from a parcel of gas during an isothermal
-compression process during a phase change, the horizontal line must be drawn
-such that the total work done by the compression is zero. The differential
-expression for this compressional work $W$ is
-
-$$
-\texttt{d}W = p~\texttt{d}V.
-$$
-
-On a PV diagram, $W = \int_{V_1}^{V_2} p\texttt{d}V$ is the area under the
-curve $p(V)$ over the interval $[V_1, V_2]$. **This integral must vanish over
-any closed cycle.**
-
-We choose a closed cycle that consists of the following:
-
-*Describe the close cycle.*
-
-So we must draw our horizontal line $p$ = $p_s$ at the saturation vapor pressure
-$p_s$ such that the areas above and below it between $V_1$ and $V_2$ are equal,
-and therefore sum to zero:
-
-$$
-W = \int_{V_1}^{V_s} (p-p_s)~\texttt{d}V + \int_{V_s}^{V_2} (p-p_s)~\texttt{d}V = 0
-$$
-
-Here, $V_s$ indicates the volume at which the pressure in the uncorrected
-isotherm is equal to the saturation vapor pressure: $p(V_s) = p_s$. If we can
-find $V_s$, we have determined $p_s$.
+Suppose we wanted to modify our program to make use of these ideas. Our
+objective is to find the value of the saturation pressure, or the height of the
+horizontal line in the vicinity of the phase change. One might think that we
+must use the [Clausius-Clapeyron equation](https://en.wikipedia.org/wiki/Clausius–Clapeyron_relation),
+which involves the latent heat of evaporation and the specific volumes of the
+gas and liquid phases. Alternatively, we could use basic thermodynamic
+principles about closed reversible cycles to derive
+[Maxwell's equal area rule](https://en.wikipedia.org/wiki/Maxwell_construction).
+However, the shape of the isotherm in question actually gives us enough
+geometric information to use an iterative approach that does a decent job of
+estimating the saturation vapor pressure.
 
 ### Approximating the saturation vapor pressure numerically
 
-Unfortunately, we don't have a curve $p(V)$ to work with in our calculation of
-$V_s$. We only have a discrete set of pressures associated with a discrete
-set of volumes. However, we can approximate both of the above integrals using
-the midpoint rule to get an algebraic expression for $V_s$. If we have $N$
-points with volumes $\{V_i\}$ and pressures $\{p_i\}$, let $s$ denote the point
-at which the volume is $V_s$ and the pressure is $p_s$. Then
+We don't have a curve $p(V)$ to work with in our calculation of $V_s$--we only
+have a discrete set of points with volumes $\{V_i\}$ and pressures $\{p_i\}$.
+Let $i_1$ be the index of the first point along the (horizontal) phase change
+curve, and let $i_2$ be the index of the last point along this curve. These two
+points have the same pressure, which is the saturation vapor pressure. How do
+we determine them?
 
-$$
-\frac{p_1\Delta V}{2} + \sum_{i=2}^{s-1} p_i \Delta V + p_s \Delta V +
-\sum_{i=s+1}^{N-1} p_i \Delta V + \frac{p_N\Delta V}{2} \approx 0
-$$
+Suppose we start the points at two distinctive locations and move them around
+till they have equal pressure. For example, we can set $i_1$ to the point at
+the trough of the Van der Waals isotherm, and $i_2$ to the local peak to the
+right of this trough. Then we know that our initial value of $i_1$ is too large,
+and that our initial value of $i_2$ is too small.
 
-where we have used the discrete increment $\Delta V$, which is constant for
-our uniformly spaced volumes. The endpoints are halved because their
-contributions span only $\Delta V/2$, as in this picture:
+We can now devise an iterative scheme that moves $i_1$ and $i_2$ apart until
+the difference in their pressures hits a minimum.
 
-*Picture*
+```
+ pdiff := abs(p(i2) - p(i1))
+ Do forever
+   # Trying moving i1 to the left, reversing if we hit a higher
+   # pressure difference.
+   prev_i1 := i1
+   i1 := i1 - 1
+   p21 := abs(p(i2) - p(i1))
+   if p21 < pdiff
+     pdiff := p21
+   else
+     i1 := i1 + 1
 
-We pull the increment out of the sums, split the contribution of $p_s \Delta V$
-between the two integrals, and rearrange terms to get
+   # Trying moving i2 to the right.
+   prev_i2 := i2
+   i2 := i2 + 1
+   p21 := abs(p(i2) - p(i1))
+   if p21 < pdiff
+     pdiff := p21
+   else
+     i2 := i2 - 1
 
-$$
-\frac{p_1 +p_s}{2} + \sum_{i=2}^{s-1} p_i \approx \frac{p_N - p_s}{2} -\sum_{i=s+1}^{N-1} p_i
-$$
-
-We can solve this problem using a bisection algorithm to select a value for $s$.
-The value of $s$ that minimizes the difference between the left and right hand
-sides is the value of $s$ for which the volume is $V_s$, and for which the
-saturation vapor pressure is $p_s$.
-
-Because we have approximated the integrals by the midpoint rule with uniform
-spacing in volumes $\Delta V$, we expect the error in the calculation of $p_s$
-to be proportional to $\Delta V^2$. More points give us more accuracy at a quadratic rate of convergence.
-
-### Adding a setting to compute the saturation vapor pressure
-
-*Show code snippets for adding the bisection algorithm and the associated
-setting.*
-
-Now our program can compute the saturation vapor pressure if requested in
-our `settings` block.
-
-Before we move on, we note that the gas pressure can actually exceed the
-saturation vapor pressure in a supersaturated liquid. The Van der Waals equation
-of state does a decent job of illustrating this phenomenon. We take this up in
-the next example.
+   # If we didn't move either point, we're finished.
+   if i1 = prev_i1 and i2 = prev_i2
+     break
+```
 
 ### Exercises
 
-1. Convince yourself that the error in our calculation of the saturation vapor
-   pressure improves as we decrease the volume spacing $\Delta V$. (Or not!)
-2. If you are familiar with the Clapeyron equation, modify your program to use
-   it to estimate the saturation vapor pressure. You'll need to look up the
-   value of the latent heat of evaporation for carbon dioxide. Modify the
-   setting in your program to allow a user to select this option or the one
-   we implemented above.
+1. Try to implement this iterative scheme to compute the saturation vapor
+   pressure for the above isotherm. (Hint: use an input that specifies a
+   single temperature.) Extra credit: can you add a setting to your program
+   that specifies whether or not to compute the saturation vapor pressure?
+   You can read about settings in the [Input Format](input.md) and [API](api.md)
+   sections.
+2. Can you find the critical point for carbon dioxide by exploring various
+   Van der Waals isotherms? How do you know when you've found it?
 
-## Part 3: Studying Supersaturation with Latin Hypercube Sampling
-
-### Exercises
