@@ -9,7 +9,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-8.1.4">
+      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-8.1.2">
     
     
       
@@ -17,7 +17,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.bb3983ee.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.f7951f6f.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.e6a45f82.min.css">
@@ -740,7 +740,7 @@ C/C++ header file or using the appropriate Fortran module in your program.</p>
 </code></pre></div>
 </div>
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><span class="k">use </span><span class="n">skywalker</span><span class="w"></span>
+<div class="highlight"><pre><span></span><code><span class="k">use </span><span class="n">skywalker</span>
 </code></pre></div>
 </div>
 </div>
@@ -781,7 +781,7 @@ CMake variable.</p>
 </div>
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code><span class="c">! Skywalker precision (swp): real kind used by skywalker</span>
-<span class="kt">integer</span><span class="p">,</span><span class="w"> </span><span class="k">parameter</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">swp</span><span class="w"></span>
+<span class="kt">integer</span><span class="p">,</span> <span class="k">parameter</span> <span class="kd">::</span> <span class="n">swp</span>
 </code></pre></div>
 </div>
 </div>
@@ -797,11 +797,11 @@ by the Fortran 2003 ISO C bindings.</p>
 <div class="tabbed-set tabbed-alternate" data-tabs="3:3"><input checked="checked" id="__tabbed_3_1" name="__tabbed_3" type="radio" /><input id="__tabbed_3_2" name="__tabbed_3" type="radio" /><input id="__tabbed_3_3" name="__tabbed_3" type="radio" /><div class="tabbed-labels"><label for="__tabbed_3_1">C</label><label for="__tabbed_3_2">C++</label><label for="__tabbed_3_3">Fortran</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">sw_ensemble_t</span><span class="w"> </span><span class="n">sw_ensemble_t</span><span class="p">;</span><span class="w"></span>
+<div class="highlight"><pre><span></span><code><span class="k">typedef</span><span class="w"> </span><span class="k">struct</span> <span class="nc">sw_ensemble_t</span><span class="w"> </span><span class="n">sw_ensemble_t</span><span class="p">;</span><span class="w"></span>
 </code></pre></div>
 </div>
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Ensemble</span><span class="w"> </span><span class="k">final</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">Ensemble</span><span class="w"> </span><span class="k">final</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
 <span class="w"> </span><span class="k">public</span><span class="o">:</span><span class="w"></span>
 <span class="w">  </span><span class="c1">// Returns the type of the ensemble (SW_LATTICE or SW_ENUMERATION).</span>
 <span class="w">  </span><span class="n">EnsembleType</span><span class="w"> </span><span class="n">type</span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="p">;</span><span class="w"></span>
@@ -823,21 +823,21 @@ by the Fortran 2003 ISO C bindings.</p>
 </code></pre></div>
 </div>
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><span class="k">type</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">ensemble_t</span><span class="w"></span>
-<span class="w">  </span><span class="k">type</span><span class="p">(</span><span class="kt">c_ptr</span><span class="p">)</span><span class="w">       </span><span class="kd">::</span><span class="w"> </span><span class="n">ptr</span><span class="w"></span>
-<span class="w">  </span><span class="kt">integer</span><span class="p">(</span><span class="kt">c_size_t</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">size</span><span class="w">  </span><span class="c">! number of members</span>
-<span class="k">contains</span><span class="w"></span>
-<span class="w">  </span><span class="c">! Iterates over ensemble members</span>
-<span class="w">  </span><span class="k">procedure</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">next</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">ensemble_next</span><span class="w"></span>
-<span class="w">  </span><span class="c">! Writes a Python module containing input/output data to a file, halting</span>
-<span class="w">  </span><span class="c">! on failure</span>
-<span class="w">  </span><span class="k">procedure</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="k">write</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">ensemble_write</span><span class="w"></span>
-<span class="w">  </span><span class="c">! Writes a Python module containing input/output data to a file</span>
-<span class="w">  </span><span class="k">procedure</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">write_module</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">ensemble_write_module</span><span class="w"></span>
-<span class="w">  </span><span class="c">! Destroys an ensemble, freeing all allocated resources. Use at the end of</span>
-<span class="w">  </span><span class="c">! a driver program, or when a fatal error has occurred.</span>
-<span class="w">  </span><span class="k">procedure</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">free</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">ensemble_free</span><span class="w"></span>
-<span class="k">end type </span><span class="n">ensemble_t</span><span class="w"></span>
+<div class="highlight"><pre><span></span><code><span class="k">type</span> <span class="kd">::</span> <span class="n">ensemble_t</span>
+  <span class="k">type</span><span class="p">(</span><span class="kt">c_ptr</span><span class="p">)</span>       <span class="kd">::</span> <span class="n">ptr</span>
+  <span class="kt">integer</span><span class="p">(</span><span class="kt">c_size_t</span><span class="p">)</span> <span class="kd">::</span> <span class="n">size</span>  <span class="c">! number of members</span>
+<span class="k">contains</span>
+  <span class="c">! Iterates over ensemble members</span>
+  <span class="k">procedure</span> <span class="kd">::</span> <span class="n">next</span> <span class="o">=&gt;</span> <span class="n">ensemble_next</span>
+  <span class="c">! Writes a Python module containing input/output data to a file, halting</span>
+  <span class="c">! on failure</span>
+  <span class="k">procedure</span> <span class="kd">::</span> <span class="k">write</span> <span class="o">=&gt;</span> <span class="n">ensemble_write</span>
+  <span class="c">! Writes a Python module containing input/output data to a file</span>
+  <span class="k">procedure</span> <span class="kd">::</span> <span class="n">write_module</span> <span class="o">=&gt;</span> <span class="n">ensemble_write_module</span>
+  <span class="c">! Destroys an ensemble, freeing all allocated resources. Use at the end of</span>
+  <span class="c">! a driver program, or when a fatal error has occurred.</span>
+  <span class="k">procedure</span> <span class="kd">::</span> <span class="n">free</span> <span class="o">=&gt;</span> <span class="n">ensemble_free</span>
+<span class="k">end type </span><span class="n">ensemble_t</span>
 </code></pre></div>
 </div>
 </div>
@@ -850,11 +850,11 @@ by the Fortran 2003 ISO C bindings.</p>
 <div class="tabbed-set tabbed-alternate" data-tabs="4:3"><input checked="checked" id="__tabbed_4_1" name="__tabbed_4" type="radio" /><input id="__tabbed_4_2" name="__tabbed_4" type="radio" /><input id="__tabbed_4_3" name="__tabbed_4" type="radio" /><div class="tabbed-labels"><label for="__tabbed_4_1">C</label><label for="__tabbed_4_2">C++</label><label for="__tabbed_4_3">Fortran</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">sw_settings_t</span><span class="w"> </span><span class="n">sw_settings_t</span><span class="p">;</span><span class="w"></span>
+<div class="highlight"><pre><span></span><code><span class="k">typedef</span><span class="w"> </span><span class="k">struct</span> <span class="nc">sw_settings_t</span><span class="w"> </span><span class="n">sw_settings_t</span><span class="p">;</span><span class="w"></span>
 </code></pre></div>
 </div>
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Settings</span><span class="w"> </span><span class="k">final</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">Settings</span><span class="w"> </span><span class="k">final</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
 <span class="w"> </span><span class="k">public</span><span class="o">:</span><span class="w"></span>
 
 <span class="w">  </span><span class="c1">// Returns true if the setting with the given name exists within the given</span>
@@ -868,13 +868,13 @@ by the Fortran 2003 ISO C bindings.</p>
 </code></pre></div>
 </div>
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><span class="k">type</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">settings_t</span><span class="w"></span>
-<span class="w">  </span><span class="k">type</span><span class="p">(</span><span class="kt">c_ptr</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">ptr</span><span class="p">,</span><span class="w"> </span><span class="n">ensemble_ptr</span><span class="w"></span>
+<div class="highlight"><pre><span></span><code><span class="k">type</span> <span class="kd">::</span> <span class="n">settings_t</span>
+  <span class="k">type</span><span class="p">(</span><span class="kt">c_ptr</span><span class="p">)</span> <span class="kd">::</span> <span class="n">ptr</span><span class="p">,</span> <span class="n">ensemble_ptr</span>
 <span class="k">contains</span>
-<span class="k">  procedure</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">has</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">settings_has</span><span class="w"></span>
-<span class="w">  </span><span class="k">procedure</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">get</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">settings_get</span><span class="w"></span>
-<span class="w">  </span><span class="k">procedure</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">get_param</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">settings_get_param</span><span class="w"></span>
-<span class="k">end type</span><span class="w"></span>
+<span class="k">  procedure</span> <span class="kd">::</span> <span class="n">has</span> <span class="o">=&gt;</span> <span class="n">settings_has</span>
+  <span class="k">procedure</span> <span class="kd">::</span> <span class="n">get</span> <span class="o">=&gt;</span> <span class="n">settings_get</span>
+  <span class="k">procedure</span> <span class="kd">::</span> <span class="n">get_param</span> <span class="o">=&gt;</span> <span class="n">settings_get_param</span>
+<span class="k">end type</span>
 </code></pre></div>
 </div>
 </div>
@@ -886,11 +886,11 @@ by the Fortran 2003 ISO C bindings.</p>
 <div class="tabbed-set tabbed-alternate" data-tabs="5:3"><input checked="checked" id="__tabbed_5_1" name="__tabbed_5" type="radio" /><input id="__tabbed_5_2" name="__tabbed_5" type="radio" /><input id="__tabbed_5_3" name="__tabbed_5" type="radio" /><div class="tabbed-labels"><label for="__tabbed_5_1">C</label><label for="__tabbed_5_2">C++</label><label for="__tabbed_5_3">Fortran</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">sw_input_t</span><span class="w"> </span><span class="n">sw_input_t</span><span class="p">;</span><span class="w"></span>
+<div class="highlight"><pre><span></span><code><span class="k">typedef</span><span class="w"> </span><span class="k">struct</span> <span class="nc">sw_input_t</span><span class="w"> </span><span class="n">sw_input_t</span><span class="p">;</span><span class="w"></span>
 </code></pre></div>
 </div>
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Input</span><span class="w"> </span><span class="k">final</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">Input</span><span class="w"> </span><span class="k">final</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
 <span class="w"> </span><span class="k">public</span><span class="o">:</span><span class="w"></span>
 <span class="w">  </span><span class="n">Input</span><span class="p">();</span><span class="w"></span>
 
@@ -913,16 +913,16 @@ by the Fortran 2003 ISO C bindings.</p>
 </code></pre></div>
 </div>
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><span class="k">type</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">input_t</span><span class="w"></span>
-<span class="w">  </span><span class="k">type</span><span class="p">(</span><span class="kt">c_ptr</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">ptr</span><span class="p">,</span><span class="w"> </span><span class="n">ensemble_ptr</span><span class="w"></span>
+<div class="highlight"><pre><span></span><code><span class="k">type</span> <span class="kd">::</span> <span class="n">input_t</span>
+  <span class="k">type</span><span class="p">(</span><span class="kt">c_ptr</span><span class="p">)</span> <span class="kd">::</span> <span class="n">ptr</span><span class="p">,</span> <span class="n">ensemble_ptr</span>
 <span class="k">contains</span>
-<span class="k">  procedure</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">has</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">input_has</span><span class="w"></span>
-<span class="w">  </span><span class="k">procedure</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">get</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">input_get</span><span class="w"></span>
-<span class="w">  </span><span class="k">procedure</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">get_param</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">input_get_param</span><span class="w"></span>
-<span class="w">  </span><span class="k">procedure</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">has_array</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">input_has_array</span><span class="w"></span>
-<span class="w">  </span><span class="k">procedure</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">get_array</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">input_get_array</span><span class="w"></span>
-<span class="w">  </span><span class="k">procedure</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">get_array_param</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">input_get_array_param</span><span class="w"></span>
-<span class="k">end type </span><span class="n">input_t</span><span class="w"></span>
+<span class="k">  procedure</span> <span class="kd">::</span> <span class="n">has</span> <span class="o">=&gt;</span> <span class="n">input_has</span>
+  <span class="k">procedure</span> <span class="kd">::</span> <span class="n">get</span> <span class="o">=&gt;</span> <span class="n">input_get</span>
+  <span class="k">procedure</span> <span class="kd">::</span> <span class="n">get_param</span> <span class="o">=&gt;</span> <span class="n">input_get_param</span>
+  <span class="k">procedure</span> <span class="kd">::</span> <span class="n">has_array</span> <span class="o">=&gt;</span> <span class="n">input_has_array</span>
+  <span class="k">procedure</span> <span class="kd">::</span> <span class="n">get_array</span> <span class="o">=&gt;</span> <span class="n">input_get_array</span>
+  <span class="k">procedure</span> <span class="kd">::</span> <span class="n">get_array_param</span> <span class="o">=&gt;</span> <span class="n">input_get_array_param</span>
+<span class="k">end type </span><span class="n">input_t</span>
 </code></pre></div>
 </div>
 </div>
@@ -935,11 +935,11 @@ by the Fortran 2003 ISO C bindings.</p>
 <div class="tabbed-set tabbed-alternate" data-tabs="6:3"><input checked="checked" id="__tabbed_6_1" name="__tabbed_6" type="radio" /><input id="__tabbed_6_2" name="__tabbed_6" type="radio" /><input id="__tabbed_6_3" name="__tabbed_6" type="radio" /><div class="tabbed-labels"><label for="__tabbed_6_1">C</label><label for="__tabbed_6_2">C++</label><label for="__tabbed_6_3">Fortran</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">sw_output_t</span><span class="w"> </span><span class="n">sw_output_t</span><span class="p">;</span><span class="w"></span>
+<div class="highlight"><pre><span></span><code><span class="k">typedef</span><span class="w"> </span><span class="k">struct</span> <span class="nc">sw_output_t</span><span class="w"> </span><span class="n">sw_output_t</span><span class="p">;</span><span class="w"></span>
 </code></pre></div>
 </div>
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Output</span><span class="w"> </span><span class="k">final</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">Output</span><span class="w"> </span><span class="k">final</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
 <span class="w"> </span><span class="k">public</span><span class="o">:</span><span class="w"></span>
 <span class="w">  </span><span class="n">Output</span><span class="p">();</span><span class="w"></span>
 
@@ -954,14 +954,14 @@ by the Fortran 2003 ISO C bindings.</p>
 </code></pre></div>
 </div>
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><span class="k">type</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">output_t</span><span class="w"></span>
-<span class="w">  </span><span class="k">type</span><span class="p">(</span><span class="kt">c_ptr</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">ptr</span><span class="w"></span>
-<span class="k">contains</span><span class="w"></span>
-<span class="w">  </span><span class="c">! Adds a named metric to the output data.</span>
-<span class="w">  </span><span class="k">procedure</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">set</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">output_set</span><span class="w"></span>
-<span class="w">  </span><span class="c">! Adds a vector of named metric to the output data.</span>
-<span class="w">  </span><span class="k">procedure</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">set_array</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">output_set_array</span><span class="w"></span>
-<span class="k">end type </span><span class="n">output_t</span><span class="w"></span>
+<div class="highlight"><pre><span></span><code><span class="k">type</span> <span class="kd">::</span> <span class="n">output_t</span>
+  <span class="k">type</span><span class="p">(</span><span class="kt">c_ptr</span><span class="p">)</span> <span class="kd">::</span> <span class="n">ptr</span>
+<span class="k">contains</span>
+  <span class="c">! Adds a named metric to the output data.</span>
+  <span class="k">procedure</span> <span class="kd">::</span> <span class="n">set</span> <span class="o">=&gt;</span> <span class="n">output_set</span>
+  <span class="c">! Adds a vector of named metric to the output data.</span>
+  <span class="k">procedure</span> <span class="kd">::</span> <span class="n">set_array</span> <span class="o">=&gt;</span> <span class="n">output_set_array</span>
+<span class="k">end type </span><span class="n">output_t</span>
 </code></pre></div>
 </div>
 </div>
@@ -1018,11 +1018,11 @@ file with a single function call.</p>
 </code></pre></div>
 </div>
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><span class="k">function </span><span class="n">load_ensemble</span><span class="p">(</span><span class="n">yaml_file</span><span class="p">,</span><span class="w"> </span><span class="n">settings_block</span><span class="p">)</span><span class="w"> </span><span class="k">result</span><span class="p">(</span><span class="n">e_result</span><span class="p">)</span><span class="w"></span>
-<span class="w">  </span><span class="kt">character</span><span class="p">(</span><span class="nb">len</span><span class="o">=*</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">yaml_file</span><span class="w"></span>
-<span class="w">  </span><span class="kt">character</span><span class="p">(</span><span class="nb">len</span><span class="o">=*</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">),</span><span class="w"> </span><span class="k">optional</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">settings_block</span><span class="w"></span>
-<span class="w">  </span><span class="k">type</span><span class="p">(</span><span class="n">ensemble_result_t</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">e_result</span><span class="w"></span>
-<span class="k">end function</span><span class="w"></span>
+<div class="highlight"><pre><span></span><code><span class="k">function </span><span class="n">load_ensemble</span><span class="p">(</span><span class="n">yaml_file</span><span class="p">,</span> <span class="n">settings_block</span><span class="p">)</span> <span class="k">result</span><span class="p">(</span><span class="n">e_result</span><span class="p">)</span>
+  <span class="kt">character</span><span class="p">(</span><span class="nb">len</span><span class="o">=*</span><span class="p">),</span> <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span> <span class="kd">::</span> <span class="n">yaml_file</span>
+  <span class="kt">character</span><span class="p">(</span><span class="nb">len</span><span class="o">=*</span><span class="p">),</span> <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">),</span> <span class="k">optional</span> <span class="kd">::</span> <span class="n">settings_block</span>
+  <span class="k">type</span><span class="p">(</span><span class="n">ensemble_result_t</span><span class="p">)</span> <span class="kd">::</span> <span class="n">e_result</span>
+<span class="k">end function</span>
 </code></pre></div>
 </div>
 </div>
@@ -1045,7 +1045,7 @@ settings, as well as error handling information.</p>
 <div class="tabbed-set tabbed-alternate" data-tabs="8:2"><input checked="checked" id="__tabbed_8_1" name="__tabbed_8" type="radio" /><input id="__tabbed_8_2" name="__tabbed_8" type="radio" /><div class="tabbed-labels"><label for="__tabbed_8_1">C</label><label for="__tabbed_8_2">Fortran</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">sw_ensemble_result_t</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<div class="highlight"><pre><span></span><code><span class="k">typedef</span><span class="w"> </span><span class="k">struct</span> <span class="nc">sw_ensemble_result_t</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
 <span class="w">  </span><span class="c1">// The settings associated with the driver program</span>
 <span class="w">  </span><span class="n">sw_settings_t</span><span class="w"> </span><span class="o">*</span><span class="n">settings</span><span class="p">;</span><span class="w"></span>
 <span class="w">  </span><span class="c1">// The ensemble loaded (or NULL on failure)</span>
@@ -1061,19 +1061,19 @@ settings, as well as error handling information.</p>
 </code></pre></div>
 </div>
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><span class="k">type</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">ensemble_result_t</span><span class="w"></span>
-<span class="w">  </span><span class="c">! The settings associated with the driver program</span>
-<span class="w">  </span><span class="k">type</span><span class="p">(</span><span class="n">settings_t</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">settings</span><span class="w"></span>
-<span class="w">  </span><span class="c">! The ensemble loaded (if no error occurred)</span>
-<span class="w">  </span><span class="k">type</span><span class="p">(</span><span class="n">ensemble_t</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">ensemble</span><span class="w"></span>
-<span class="w">  </span><span class="c">! The ensemble&#39;s type</span>
-<span class="w">  </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="k">type</span><span class="w"></span>
-<span class="w">  </span><span class="c">! An error code indicating any problems encountered loading the ensemble</span>
-<span class="w">  </span><span class="c">! (zero = success, non-zero = failure)</span>
-<span class="w">  </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">error_code</span><span class="w"></span>
-<span class="w">  </span><span class="c">! A string describing any error encountered, or NULL if error_code == 0.</span>
-<span class="w">  </span><span class="kt">character</span><span class="p">(</span><span class="nb">len</span><span class="o">=</span><span class="mi">255</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">error_message</span><span class="w"></span>
-<span class="k">end type </span><span class="n">ensemble_result_t</span><span class="w"></span>
+<div class="highlight"><pre><span></span><code><span class="k">type</span> <span class="kd">::</span> <span class="n">ensemble_result_t</span>
+  <span class="c">! The settings associated with the driver program</span>
+  <span class="k">type</span><span class="p">(</span><span class="n">settings_t</span><span class="p">)</span> <span class="kd">::</span> <span class="n">settings</span>
+  <span class="c">! The ensemble loaded (if no error occurred)</span>
+  <span class="k">type</span><span class="p">(</span><span class="n">ensemble_t</span><span class="p">)</span> <span class="kd">::</span> <span class="n">ensemble</span>
+  <span class="c">! The ensemble&#39;s type</span>
+  <span class="kt">integer</span> <span class="kd">::</span> <span class="k">type</span>
+  <span class="c">! An error code indicating any problems encountered loading the ensemble</span>
+  <span class="c">! (zero = success, non-zero = failure)</span>
+  <span class="kt">integer</span> <span class="kd">::</span> <span class="n">error_code</span>
+  <span class="c">! A string describing any error encountered, or NULL if error_code == 0.</span>
+  <span class="kt">character</span><span class="p">(</span><span class="nb">len</span><span class="o">=</span><span class="mi">255</span><span class="p">)</span> <span class="kd">::</span> <span class="n">error_message</span>
+<span class="k">end type </span><span class="n">ensemble_result_t</span>
 </code></pre></div>
 </div>
 </div>
@@ -1098,7 +1098,7 @@ with the given name is found and false otherwise.</p>
 </code></pre></div>
 </div>
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Settings</span><span class="w"> </span><span class="k">final</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">Settings</span><span class="w"> </span><span class="k">final</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
 <span class="w">  </span><span class="p">...</span><span class="w"></span>
 <span class="w">  </span><span class="c1">// Returns true if the setting with the given name exists within the given</span>
 <span class="w">  </span><span class="c1">// settings instance, false otherwise.</span>
@@ -1110,11 +1110,11 @@ with the given name is found and false otherwise.</p>
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code><span class="c">! Returns .true. if the setting with the given name exists within the given</span>
 <span class="c">! settings instance, false otherwise.</span>
-<span class="k">function </span><span class="n">settings_has</span><span class="p">(</span><span class="n">settings</span><span class="p">,</span><span class="w"> </span><span class="n">name</span><span class="p">)</span><span class="w"> </span><span class="k">result</span><span class="p">(</span><span class="n">has</span><span class="p">)</span><span class="w"></span>
-<span class="w">  </span><span class="k">class</span><span class="p">(</span><span class="n">settings_t</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">settings</span><span class="w"></span>
-<span class="w">  </span><span class="kt">character</span><span class="p">(</span><span class="nb">len</span><span class="o">=*</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">name</span><span class="w"></span>
-<span class="w">  </span><span class="kt">logical</span><span class="p">(</span><span class="kt">c_bool</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">has</span><span class="w"></span>
-<span class="k">end function</span><span class="w"></span>
+<span class="k">function </span><span class="n">settings_has</span><span class="p">(</span><span class="n">settings</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span> <span class="k">result</span><span class="p">(</span><span class="n">has</span><span class="p">)</span>
+  <span class="k">class</span><span class="p">(</span><span class="n">settings_t</span><span class="p">),</span> <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span> <span class="kd">::</span> <span class="n">settings</span>
+  <span class="kt">character</span><span class="p">(</span><span class="nb">len</span><span class="o">=*</span><span class="p">),</span> <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span>  <span class="kd">::</span> <span class="n">name</span>
+  <span class="kt">logical</span><span class="p">(</span><span class="kt">c_bool</span><span class="p">)</span> <span class="kd">::</span> <span class="n">has</span>
+<span class="k">end function</span>
 </code></pre></div>
 </div>
 </div>
@@ -1129,7 +1129,7 @@ with the given name is found and false otherwise.</p>
 </code></pre></div>
 </div>
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Settings</span><span class="w"> </span><span class="k">final</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">Settings</span><span class="w"> </span><span class="k">final</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
 <span class="w">  </span><span class="p">...</span><span class="w"></span>
 <span class="w">  </span><span class="c1">// Retrieves a (string-valued) setting with the given name, throwing an</span>
 <span class="w">  </span><span class="c1">// exception if it doesn&#39;t exist.</span>
@@ -1141,11 +1141,11 @@ with the given name is found and false otherwise.</p>
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code><span class="c">! Retrieves the setting with the given name, returning a result that can</span>
 <span class="c">! be checked for errors that occur.</span>
-<span class="k">function </span><span class="n">settings_get_param</span><span class="p">(</span><span class="n">settings</span><span class="p">,</span><span class="w"> </span><span class="n">name</span><span class="p">)</span><span class="w"> </span><span class="k">result</span><span class="p">(</span><span class="n">s_result</span><span class="p">)</span><span class="w"></span>
-<span class="w">  </span><span class="k">class</span><span class="p">(</span><span class="n">settings_t</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">settings</span><span class="w"></span>
-<span class="w">  </span><span class="kt">character</span><span class="p">(</span><span class="nb">len</span><span class="o">=*</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">name</span><span class="w"></span>
-<span class="w">  </span><span class="k">type</span><span class="p">(</span><span class="n">settings_result_t</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">s_result</span><span class="w"></span>
-<span class="k">end function</span><span class="w"></span>
+<span class="k">function </span><span class="n">settings_get_param</span><span class="p">(</span><span class="n">settings</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span> <span class="k">result</span><span class="p">(</span><span class="n">s_result</span><span class="p">)</span>
+  <span class="k">class</span><span class="p">(</span><span class="n">settings_t</span><span class="p">),</span> <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span> <span class="kd">::</span> <span class="n">settings</span>
+  <span class="kt">character</span><span class="p">(</span><span class="nb">len</span><span class="o">=*</span><span class="p">),</span> <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span>  <span class="kd">::</span> <span class="n">name</span>
+  <span class="k">type</span><span class="p">(</span><span class="n">settings_result_t</span><span class="p">)</span> <span class="kd">::</span> <span class="n">s_result</span>
+<span class="k">end function</span>
 </code></pre></div>
 </div>
 </div>
@@ -1156,7 +1156,7 @@ be handled.</p>
 <div class="tabbed-set tabbed-alternate" data-tabs="11:2"><input checked="checked" id="__tabbed_11_1" name="__tabbed_11" type="radio" /><input id="__tabbed_11_2" name="__tabbed_11" type="radio" /><div class="tabbed-labels"><label for="__tabbed_11_1">C</label><label for="__tabbed_11_2">Fortran</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">sw_setting_result_t</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<div class="highlight"><pre><span></span><code><span class="k">typedef</span><span class="w"> </span><span class="k">struct</span> <span class="nc">sw_setting_result_t</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
 <span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">value</span><span class="p">;</span><span class="w">         </span><span class="c1">// fetched value (if error_code == 0)</span>
 <span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">error_code</span><span class="p">;</span><span class="w">            </span><span class="c1">// error code indicating success or failure</span>
 <span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">error_message</span><span class="p">;</span><span class="w"> </span><span class="c1">// text description of error</span>
@@ -1164,11 +1164,11 @@ be handled.</p>
 </code></pre></div>
 </div>
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><span class="k">type</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">settings_result_t</span><span class="w"></span>
-<span class="w">  </span><span class="kt">character</span><span class="p">(</span><span class="nb">len</span><span class="o">=</span><span class="mi">255</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="k">value</span><span class="w">         </span><span class="c">! fetched value (if error_code == 0)</span>
-<span class="w">  </span><span class="kt">integer</span><span class="w">            </span><span class="kd">::</span><span class="w"> </span><span class="n">error_code</span><span class="w">    </span><span class="c">! error code indicating success or failure</span>
-<span class="w">  </span><span class="kt">character</span><span class="p">(</span><span class="nb">len</span><span class="o">=</span><span class="mi">255</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">error_message</span><span class="w"> </span><span class="c">! text description of error</span>
-<span class="k">end type </span><span class="n">settings_result_t</span><span class="w"></span>
+<div class="highlight"><pre><span></span><code><span class="k">type</span> <span class="kd">::</span> <span class="n">settings_result_t</span>
+  <span class="kt">character</span><span class="p">(</span><span class="nb">len</span><span class="o">=</span><span class="mi">255</span><span class="p">)</span> <span class="kd">::</span> <span class="k">value</span>         <span class="c">! fetched value (if error_code == 0)</span>
+  <span class="kt">integer</span>            <span class="kd">::</span> <span class="n">error_code</span>    <span class="c">! error code indicating success or failure</span>
+  <span class="kt">character</span><span class="p">(</span><span class="nb">len</span><span class="o">=</span><span class="mi">255</span><span class="p">)</span> <span class="kd">::</span> <span class="n">error_message</span> <span class="c">! text description of error</span>
+<span class="k">end type </span><span class="n">settings_result_t</span>
 </code></pre></div>
 </div>
 </div>
@@ -1182,11 +1182,11 @@ halts your program if a setting is not found:</p>
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code><span class="c">! Retrieves the setting with the given name, halting the program if an</span>
 <span class="c">! error occurs.</span>
-<span class="k">function </span><span class="n">settings_get</span><span class="p">(</span><span class="n">settings</span><span class="p">,</span><span class="w"> </span><span class="n">name</span><span class="p">)</span><span class="w"> </span><span class="k">result</span><span class="p">(</span><span class="n">str</span><span class="p">)</span><span class="w"></span>
-<span class="w">  </span><span class="k">class</span><span class="p">(</span><span class="n">settings_t</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">settings</span><span class="w"></span>
-<span class="w">  </span><span class="kt">character</span><span class="p">(</span><span class="nb">len</span><span class="o">=*</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">name</span><span class="w"></span>
-<span class="w">  </span><span class="kt">character</span><span class="p">(</span><span class="nb">len</span><span class="o">=</span><span class="mi">255</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">str</span><span class="w"></span>
-<span class="k">end function</span><span class="w"></span>
+<span class="k">function </span><span class="n">settings_get</span><span class="p">(</span><span class="n">settings</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span> <span class="k">result</span><span class="p">(</span><span class="n">str</span><span class="p">)</span>
+  <span class="k">class</span><span class="p">(</span><span class="n">settings_t</span><span class="p">),</span> <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span> <span class="kd">::</span> <span class="n">settings</span>
+  <span class="kt">character</span><span class="p">(</span><span class="nb">len</span><span class="o">=*</span><span class="p">),</span> <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span>  <span class="kd">::</span> <span class="n">name</span>
+  <span class="kt">character</span><span class="p">(</span><span class="nb">len</span><span class="o">=</span><span class="mi">255</span><span class="p">)</span> <span class="kd">::</span> <span class="n">str</span>
+<span class="k">end function</span>
 </code></pre></div>
 </div>
 </div>
@@ -1224,12 +1224,12 @@ output parameters for each member, terminating when there are no members left.</
 <span class="c">! member of an ensemble and false once the ensemble&#39;s members have been</span>
 <span class="c">! traversed. Use it as a predicate in a do while loop in which inputs and</span>
 <span class="c">! outputs are processed.</span>
-<span class="k">function </span><span class="n">ensemble_next</span><span class="p">(</span><span class="n">ensemble</span><span class="p">,</span><span class="w"> </span><span class="n">input</span><span class="p">,</span><span class="w"> </span><span class="n">output</span><span class="p">)</span><span class="w"> </span><span class="k">result</span><span class="p">(</span><span class="n">next</span><span class="p">)</span><span class="w"></span>
-<span class="w">  </span><span class="k">class</span><span class="p">(</span><span class="n">ensemble_t</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">ensemble</span><span class="w"></span>
-<span class="w">  </span><span class="k">type</span><span class="p">(</span><span class="n">input_t</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">out</span><span class="p">)</span><span class="w">    </span><span class="kd">::</span><span class="w"> </span><span class="n">input</span><span class="w"></span>
-<span class="w">  </span><span class="k">type</span><span class="p">(</span><span class="n">output_t</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">out</span><span class="p">)</span><span class="w">   </span><span class="kd">::</span><span class="w"> </span><span class="n">output</span><span class="w"></span>
-<span class="w">  </span><span class="kt">logical</span><span class="p">(</span><span class="kt">c_bool</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">next</span><span class="w"></span>
-<span class="k">end function</span><span class="w"></span>
+<span class="k">function </span><span class="n">ensemble_next</span><span class="p">(</span><span class="n">ensemble</span><span class="p">,</span> <span class="n">input</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span> <span class="k">result</span><span class="p">(</span><span class="n">next</span><span class="p">)</span>
+  <span class="k">class</span><span class="p">(</span><span class="n">ensemble_t</span><span class="p">),</span> <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span> <span class="kd">::</span> <span class="n">ensemble</span>
+  <span class="k">type</span><span class="p">(</span><span class="n">input_t</span><span class="p">),</span> <span class="k">intent</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>    <span class="kd">::</span> <span class="n">input</span>
+  <span class="k">type</span><span class="p">(</span><span class="n">output_t</span><span class="p">),</span> <span class="k">intent</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>   <span class="kd">::</span> <span class="n">output</span>
+  <span class="kt">logical</span><span class="p">(</span><span class="kt">c_bool</span><span class="p">)</span> <span class="kd">::</span> <span class="n">next</span>
+<span class="k">end function</span>
 </code></pre></div>
 </div>
 </div>
@@ -1242,7 +1242,7 @@ on the input and output data for each member. The function you define takes a
 <div class="tabbed-set tabbed-alternate" data-tabs="14:1"><input checked="checked" id="__tabbed_14_1" name="__tabbed_14" type="radio" /><div class="tabbed-labels"><label for="__tabbed_14_1">C++</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Ensemble</span><span class="w"> </span><span class="k">final</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">Ensemble</span><span class="w"> </span><span class="k">final</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
 <span class="w">  </span><span class="p">...</span><span class="w"></span>
 <span class="w">  </span><span class="c1">// Iterates over all ensemble members, applying the given function f to</span>
 <span class="w">  </span><span class="c1">// each input/output pair.</span>
@@ -1269,7 +1269,7 @@ using its name.</p>
 </code></pre></div>
 </div>
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Input</span><span class="w"> </span><span class="k">final</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">Input</span><span class="w"> </span><span class="k">final</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
 <span class="w">  </span><span class="p">...</span><span class="w"></span>
 <span class="w">  </span><span class="c1">// Returns true if the input parameter with the given name exists within</span>
 <span class="w">  </span><span class="c1">// the given input instance, false otherwise.</span>
@@ -1281,11 +1281,11 @@ using its name.</p>
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code><span class="c">! Returns .true. if the input parameter with the given name exists within the</span>
 <span class="c">! given input instance, false otherwise.</span>
-<span class="k">function </span><span class="n">input_has</span><span class="p">(</span><span class="n">input</span><span class="p">,</span><span class="w"> </span><span class="n">name</span><span class="p">)</span><span class="w"> </span><span class="k">result</span><span class="p">(</span><span class="n">has</span><span class="p">)</span><span class="w"></span>
-<span class="w">  </span><span class="k">class</span><span class="p">(</span><span class="n">input_t</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">input</span><span class="w"></span>
-<span class="w">  </span><span class="kt">character</span><span class="p">(</span><span class="nb">len</span><span class="o">=*</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">name</span><span class="w"></span>
-<span class="w">  </span><span class="kt">logical</span><span class="p">(</span><span class="kt">c_bool</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">has</span><span class="w"></span>
-<span class="k">end function</span><span class="w"></span>
+<span class="k">function </span><span class="n">input_has</span><span class="p">(</span><span class="n">input</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span> <span class="k">result</span><span class="p">(</span><span class="n">has</span><span class="p">)</span>
+  <span class="k">class</span><span class="p">(</span><span class="n">input_t</span><span class="p">),</span> <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span> <span class="kd">::</span> <span class="n">input</span>
+  <span class="kt">character</span><span class="p">(</span><span class="nb">len</span><span class="o">=*</span><span class="p">),</span> <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span>  <span class="kd">::</span> <span class="n">name</span>
+  <span class="kt">logical</span><span class="p">(</span><span class="kt">c_bool</span><span class="p">)</span> <span class="kd">::</span> <span class="n">has</span>
+<span class="k">end function</span>
 </code></pre></div>
 </div>
 </div>
@@ -1299,7 +1299,7 @@ using its name.</p>
 </code></pre></div>
 </div>
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Input</span><span class="w"> </span><span class="k">final</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">Input</span><span class="w"> </span><span class="k">final</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
 <span class="w">  </span><span class="p">...</span><span class="w"></span>
 <span class="w">  </span><span class="c1">// Retrieves a (real-valued) parameter with the given name, throwing an</span>
 <span class="w">  </span><span class="c1">// exception if it doesn&#39;t exist.</span>
@@ -1310,11 +1310,11 @@ using its name.</p>
 </div>
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code><span class="c">! Retrieves the input parameter with the given name.</span>
-<span class="k">function </span><span class="n">input_get_param</span><span class="p">(</span><span class="n">input</span><span class="p">,</span><span class="w"> </span><span class="n">name</span><span class="p">)</span><span class="w"> </span><span class="k">result</span><span class="p">(</span><span class="n">i_result</span><span class="p">)</span><span class="w"></span>
-<span class="w">  </span><span class="k">class</span><span class="p">(</span><span class="n">input_t</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w">   </span><span class="kd">::</span><span class="w"> </span><span class="n">input</span><span class="w"></span>
-<span class="w">  </span><span class="kt">character</span><span class="p">(</span><span class="nb">len</span><span class="o">=*</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">name</span><span class="w"></span>
-<span class="w">  </span><span class="k">type</span><span class="p">(</span><span class="n">input_result_t</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">i_result</span><span class="w"></span>
-<span class="k">end function</span><span class="w"></span>
+<span class="k">function </span><span class="n">input_get_param</span><span class="p">(</span><span class="n">input</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span> <span class="k">result</span><span class="p">(</span><span class="n">i_result</span><span class="p">)</span>
+  <span class="k">class</span><span class="p">(</span><span class="n">input_t</span><span class="p">),</span> <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span>   <span class="kd">::</span> <span class="n">input</span>
+  <span class="kt">character</span><span class="p">(</span><span class="nb">len</span><span class="o">=*</span><span class="p">),</span> <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span> <span class="kd">::</span> <span class="n">name</span>
+  <span class="k">type</span><span class="p">(</span><span class="n">input_result_t</span><span class="p">)</span> <span class="kd">::</span> <span class="n">i_result</span>
+<span class="k">end function</span>
 </code></pre></div>
 </div>
 </div>
@@ -1325,7 +1325,7 @@ whether the operation succeeded.</p>
 <div class="tabbed-set tabbed-alternate" data-tabs="17:2"><input checked="checked" id="__tabbed_17_1" name="__tabbed_17" type="radio" /><input id="__tabbed_17_2" name="__tabbed_17" type="radio" /><div class="tabbed-labels"><label for="__tabbed_17_1">C</label><label for="__tabbed_17_2">Fortran</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">sw_input_result_t</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<div class="highlight"><pre><span></span><code><span class="k">typedef</span><span class="w"> </span><span class="k">struct</span> <span class="nc">sw_input_result_t</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
 <span class="w">  </span><span class="n">sw_real_t</span><span class="w"> </span><span class="n">value</span><span class="p">;</span><span class="w">           </span><span class="c1">// fetched value (if error_code == 0)</span>
 <span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">error_code</span><span class="p">;</span><span class="w">            </span><span class="c1">// error code indicating success or failure</span>
 <span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">error_message</span><span class="p">;</span><span class="w"> </span><span class="c1">// text description of error</span>
@@ -1333,11 +1333,11 @@ whether the operation succeeded.</p>
 </code></pre></div>
 </div>
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><span class="k">type</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">input_result_t</span><span class="w"></span>
-<span class="w">  </span><span class="kt">real</span><span class="p">(</span><span class="n">c_real</span><span class="p">)</span><span class="w">       </span><span class="kd">::</span><span class="w"> </span><span class="k">value</span><span class="w">         </span><span class="c">! fetched value (if error_code == 0)</span>
-<span class="w">  </span><span class="kt">integer</span><span class="p">(</span><span class="kt">c_int</span><span class="p">)</span><span class="w">     </span><span class="kd">::</span><span class="w"> </span><span class="n">error_code</span><span class="w">    </span><span class="c">! error code indicating success or failure</span>
-<span class="w">  </span><span class="kt">character</span><span class="p">(</span><span class="nb">len</span><span class="o">=</span><span class="mi">255</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">error_message</span><span class="w"> </span><span class="c">! text description of error</span>
-<span class="k">end type </span><span class="n">input_result_t</span><span class="w"></span>
+<div class="highlight"><pre><span></span><code><span class="k">type</span> <span class="kd">::</span> <span class="n">input_result_t</span>
+  <span class="kt">real</span><span class="p">(</span><span class="n">c_real</span><span class="p">)</span>       <span class="kd">::</span> <span class="k">value</span>         <span class="c">! fetched value (if error_code == 0)</span>
+  <span class="kt">integer</span><span class="p">(</span><span class="kt">c_int</span><span class="p">)</span>     <span class="kd">::</span> <span class="n">error_code</span>    <span class="c">! error code indicating success or failure</span>
+  <span class="kt">character</span><span class="p">(</span><span class="nb">len</span><span class="o">=</span><span class="mi">255</span><span class="p">)</span> <span class="kd">::</span> <span class="n">error_message</span> <span class="c">! text description of error</span>
+<span class="k">end type </span><span class="n">input_result_t</span>
 </code></pre></div>
 </div>
 </div>
@@ -1352,11 +1352,11 @@ input parameter, halting your program with <code>STOP</code> on failure.</p>
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code><span class="c">! Retrieves the input parameter with the given name, halting the program</span>
 <span class="c">! on failure.</span>
-<span class="k">function </span><span class="n">input_get</span><span class="p">(</span><span class="n">input</span><span class="p">,</span><span class="w"> </span><span class="n">name</span><span class="p">)</span><span class="w"> </span><span class="k">result</span><span class="p">(</span><span class="n">val</span><span class="p">)</span><span class="w"></span>
-<span class="w">  </span><span class="k">class</span><span class="p">(</span><span class="n">input_t</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w">   </span><span class="kd">::</span><span class="w"> </span><span class="n">input</span><span class="w"></span>
-<span class="w">  </span><span class="kt">character</span><span class="p">(</span><span class="nb">len</span><span class="o">=*</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">name</span><span class="w"></span>
-<span class="w">  </span><span class="kt">real</span><span class="p">(</span><span class="n">c_real</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">val</span><span class="w"></span>
-<span class="k">end function</span><span class="w"></span>
+<span class="k">function </span><span class="n">input_get</span><span class="p">(</span><span class="n">input</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span> <span class="k">result</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+  <span class="k">class</span><span class="p">(</span><span class="n">input_t</span><span class="p">),</span> <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span>   <span class="kd">::</span> <span class="n">input</span>
+  <span class="kt">character</span><span class="p">(</span><span class="nb">len</span><span class="o">=*</span><span class="p">),</span> <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span> <span class="kd">::</span> <span class="n">name</span>
+  <span class="kt">real</span><span class="p">(</span><span class="n">c_real</span><span class="p">)</span> <span class="kd">::</span> <span class="n">val</span>
+<span class="k">end function</span>
 </code></pre></div>
 </div>
 </div>
@@ -1377,7 +1377,7 @@ parameter exists within an ensemble member.</p>
 </code></pre></div>
 </div>
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Input</span><span class="w"> </span><span class="k">final</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">Input</span><span class="w"> </span><span class="k">final</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
 <span class="w">  </span><span class="p">...</span><span class="w"></span>
 <span class="w">  </span><span class="c1">// Returns true if an input array parameter with the given name exists within</span>
 <span class="w">  </span><span class="c1">// the given input instance, false otherwise.</span>
@@ -1389,11 +1389,11 @@ parameter exists within an ensemble member.</p>
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code><span class="c">! Returns .true. if an input array parameter with the given name exists within</span>
 <span class="c">! the given input instance, false otherwise.</span>
-<span class="k">function </span><span class="n">input_has_array</span><span class="p">(</span><span class="n">input</span><span class="p">,</span><span class="w"> </span><span class="n">name</span><span class="p">)</span><span class="w"> </span><span class="k">result</span><span class="p">(</span><span class="n">has</span><span class="p">)</span><span class="w"></span>
-<span class="w">  </span><span class="k">class</span><span class="p">(</span><span class="n">input_t</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">input</span><span class="w"></span>
-<span class="w">  </span><span class="kt">character</span><span class="p">(</span><span class="nb">len</span><span class="o">=*</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">name</span><span class="w"></span>
-<span class="w">  </span><span class="kt">logical</span><span class="p">(</span><span class="kt">c_bool</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">has</span><span class="w"></span>
-<span class="k">end function</span><span class="w"></span>
+<span class="k">function </span><span class="n">input_has_array</span><span class="p">(</span><span class="n">input</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span> <span class="k">result</span><span class="p">(</span><span class="n">has</span><span class="p">)</span>
+  <span class="k">class</span><span class="p">(</span><span class="n">input_t</span><span class="p">),</span> <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span> <span class="kd">::</span> <span class="n">input</span>
+  <span class="kt">character</span><span class="p">(</span><span class="nb">len</span><span class="o">=*</span><span class="p">),</span> <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span>  <span class="kd">::</span> <span class="n">name</span>
+  <span class="kt">logical</span><span class="p">(</span><span class="kt">c_bool</span><span class="p">)</span> <span class="kd">::</span> <span class="n">has</span>
+<span class="k">end function</span>
 </code></pre></div>
 </div>
 </div>
@@ -1408,7 +1408,7 @@ for scalar input parameters.</p>
 </code></pre></div>
 </div>
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Input</span><span class="w"> </span><span class="k">final</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">Input</span><span class="w"> </span><span class="k">final</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
 <span class="w">  </span><span class="p">...</span><span class="w"></span>
 <span class="w">  </span><span class="c1">// Retrieves a (real-valued) array parameter with the given name, throwing an</span>
 <span class="w">  </span><span class="c1">// exception if it doesn&#39;t exist.</span>
@@ -1418,11 +1418,11 @@ for scalar input parameters.</p>
 </div>
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code><span class="c">! Retrieves the input array parameter with the given name.</span>
-<span class="k">function </span><span class="n">input_get_array_param</span><span class="p">(</span><span class="n">input</span><span class="p">,</span><span class="w"> </span><span class="n">name</span><span class="p">)</span><span class="w"> </span><span class="k">result</span><span class="p">(</span><span class="n">i_result</span><span class="p">)</span><span class="w"></span>
-<span class="w">  </span><span class="k">class</span><span class="p">(</span><span class="n">input_t</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w">   </span><span class="kd">::</span><span class="w"> </span><span class="n">input</span><span class="w"></span>
-<span class="w">  </span><span class="kt">character</span><span class="p">(</span><span class="nb">len</span><span class="o">=*</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">name</span><span class="w"></span>
-<span class="w">  </span><span class="k">type</span><span class="p">(</span><span class="n">input_array_result_t</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">i_result</span><span class="w"></span>
-<span class="k">end function</span><span class="w"></span>
+<span class="k">function </span><span class="n">input_get_array_param</span><span class="p">(</span><span class="n">input</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span> <span class="k">result</span><span class="p">(</span><span class="n">i_result</span><span class="p">)</span>
+  <span class="k">class</span><span class="p">(</span><span class="n">input_t</span><span class="p">),</span> <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span>   <span class="kd">::</span> <span class="n">input</span>
+  <span class="kt">character</span><span class="p">(</span><span class="nb">len</span><span class="o">=*</span><span class="p">),</span> <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span> <span class="kd">::</span> <span class="n">name</span>
+  <span class="k">type</span><span class="p">(</span><span class="n">input_array_result_t</span><span class="p">)</span> <span class="kd">::</span> <span class="n">i_result</span>
+<span class="k">end function</span>
 </code></pre></div>
 </div>
 </div>
@@ -1432,7 +1432,7 @@ parameters.</p>
 <div class="tabbed-set tabbed-alternate" data-tabs="21:2"><input checked="checked" id="__tabbed_21_1" name="__tabbed_21" type="radio" /><input id="__tabbed_21_2" name="__tabbed_21" type="radio" /><div class="tabbed-labels"><label for="__tabbed_21_1">C</label><label for="__tabbed_21_2">Fortran</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">sw_input_array_result_t</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<div class="highlight"><pre><span></span><code><span class="k">typedef</span><span class="w"> </span><span class="k">struct</span> <span class="nc">sw_input_array_result_t</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
 <span class="w">  </span><span class="n">sw_real_t</span><span class="w"> </span><span class="o">*</span><span class="n">values</span><span class="p">;</span><span class="w">         </span><span class="c1">// fetched values (if error_code == 0)</span>
 <span class="w">  </span><span class="kt">size_t</span><span class="w"> </span><span class="n">size</span><span class="p">;</span><span class="w">               </span><span class="c1">// number of values (if error_code == 0)</span>
 <span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">error_code</span><span class="p">;</span><span class="w">            </span><span class="c1">// error code indicating success or failure</span>
@@ -1441,12 +1441,12 @@ parameters.</p>
 </code></pre></div>
 </div>
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><span class="k">type</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">input_array_result_t</span><span class="w"></span>
-<span class="w">  </span><span class="kt">real</span><span class="p">(</span><span class="n">c_real</span><span class="p">),</span><span class="w"> </span><span class="k">dimension</span><span class="p">(:),</span><span class="w"> </span><span class="k">pointer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">values</span><span class="w"> </span><span class="c">! fetched values (if error_code == 0)</span>
-<span class="w">  </span><span class="kt">integer</span><span class="p">(</span><span class="kt">c_size_t</span><span class="p">)</span><span class="w">                   </span><span class="kd">::</span><span class="w"> </span><span class="n">size</span><span class="w">   </span><span class="c">! number of values (if error_code == 0)</span>
-<span class="w">  </span><span class="kt">integer</span><span class="p">(</span><span class="kt">c_int</span><span class="p">)</span><span class="w">                      </span><span class="kd">::</span><span class="w"> </span><span class="n">error_code</span><span class="w">    </span><span class="c">! error code indicating success or failure</span>
-<span class="w">  </span><span class="kt">character</span><span class="p">(</span><span class="nb">len</span><span class="o">=</span><span class="mi">255</span><span class="p">)</span><span class="w">                  </span><span class="kd">::</span><span class="w"> </span><span class="n">error_message</span><span class="w"> </span><span class="c">! text description of error</span>
-<span class="k">end type </span><span class="n">input_array_result_t</span><span class="w"></span>
+<div class="highlight"><pre><span></span><code><span class="k">type</span> <span class="kd">::</span> <span class="n">input_array_result_t</span>
+  <span class="kt">real</span><span class="p">(</span><span class="n">c_real</span><span class="p">),</span> <span class="k">dimension</span><span class="p">(:),</span> <span class="k">pointer</span> <span class="kd">::</span> <span class="n">values</span> <span class="c">! fetched values (if error_code == 0)</span>
+  <span class="kt">integer</span><span class="p">(</span><span class="kt">c_size_t</span><span class="p">)</span>                   <span class="kd">::</span> <span class="n">size</span>   <span class="c">! number of values (if error_code == 0)</span>
+  <span class="kt">integer</span><span class="p">(</span><span class="kt">c_int</span><span class="p">)</span>                      <span class="kd">::</span> <span class="n">error_code</span>    <span class="c">! error code indicating success or failure</span>
+  <span class="kt">character</span><span class="p">(</span><span class="nb">len</span><span class="o">=</span><span class="mi">255</span><span class="p">)</span>                  <span class="kd">::</span> <span class="n">error_message</span> <span class="c">! text description of error</span>
+<span class="k">end type </span><span class="n">input_array_result_t</span>
 </code></pre></div>
 </div>
 </div>
@@ -1460,11 +1460,11 @@ tries to fetch an array parameter and halts with <code>STOP</code> on failure.</
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code><span class="c">! Retrieves the input array parameter with the given name, halting on</span>
 <span class="c">! failure.</span>
-<span class="k">subroutine </span><span class="n">input_get_array</span><span class="p">(</span><span class="n">input</span><span class="p">,</span><span class="w"> </span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="n">values</span><span class="p">)</span><span class="w"></span>
-<span class="w">  </span><span class="k">class</span><span class="p">(</span><span class="n">input_t</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w">   </span><span class="kd">::</span><span class="w"> </span><span class="n">input</span><span class="w"></span>
-<span class="w">  </span><span class="kt">character</span><span class="p">(</span><span class="nb">len</span><span class="o">=*</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">name</span><span class="w"></span>
-<span class="w">  </span><span class="kt">real</span><span class="p">(</span><span class="n">c_real</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="p">,</span><span class="w"> </span><span class="k">dimension</span><span class="p">(:),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">values</span><span class="w"></span>
-<span class="k">end subroutine</span><span class="w"></span>
+<span class="k">subroutine </span><span class="n">input_get_array</span><span class="p">(</span><span class="n">input</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">values</span><span class="p">)</span>
+  <span class="k">class</span><span class="p">(</span><span class="n">input_t</span><span class="p">),</span> <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span>   <span class="kd">::</span> <span class="n">input</span>
+  <span class="kt">character</span><span class="p">(</span><span class="nb">len</span><span class="o">=*</span><span class="p">),</span> <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span> <span class="kd">::</span> <span class="n">name</span>
+  <span class="kt">real</span><span class="p">(</span><span class="n">c_real</span><span class="p">),</span> <span class="k">allocatable</span><span class="p">,</span> <span class="k">dimension</span><span class="p">(:),</span> <span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span> <span class="kd">::</span> <span class="n">values</span>
+<span class="k">end subroutine</span>
 </code></pre></div>
 </div>
 </div>
@@ -1489,7 +1489,7 @@ you can call a function to set the value of a named output parameter.</p>
 </code></pre></div>
 </div>
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Output</span><span class="w"> </span><span class="k">final</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">Output</span><span class="w"> </span><span class="k">final</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
 <span class="w">  </span><span class="p">...</span><span class="w"></span>
 <span class="w">  </span><span class="c1">// Sets a (real-valued) parameter with the given name. This operation</span>
 <span class="w">  </span><span class="c1">// cannot fail under normal circumstances.</span>
@@ -1501,11 +1501,11 @@ you can call a function to set the value of a named output parameter.</p>
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code><span class="c">! Sets a quantity with the given name and value within the given output</span>
 <span class="c">! instance. This operation cannot fail under normal circumstances.</span>
-<span class="k">subroutine </span><span class="n">output_set</span><span class="p">(</span><span class="n">output</span><span class="p">,</span><span class="w"> </span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="k">value</span><span class="p">)</span><span class="w"></span>
-<span class="w">  </span><span class="k">class</span><span class="p">(</span><span class="n">output_t</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">output</span><span class="w"></span>
-<span class="w">  </span><span class="kt">character</span><span class="p">(</span><span class="nb">len</span><span class="o">=*</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">name</span><span class="w"></span>
-<span class="w">  </span><span class="kt">real</span><span class="p">(</span><span class="n">c_real</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w">     </span><span class="kd">::</span><span class="w"> </span><span class="k">value</span>
-<span class="k">end subroutine</span><span class="w"></span>
+<span class="k">subroutine </span><span class="n">output_set</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="k">value</span><span class="p">)</span>
+  <span class="k">class</span><span class="p">(</span><span class="n">output_t</span><span class="p">),</span> <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span>  <span class="kd">::</span> <span class="n">output</span>
+  <span class="kt">character</span><span class="p">(</span><span class="nb">len</span><span class="o">=*</span><span class="p">),</span> <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span> <span class="kd">::</span> <span class="n">name</span>
+  <span class="kt">real</span><span class="p">(</span><span class="n">c_real</span><span class="p">),</span> <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span>     <span class="kd">::</span> <span class="k">value</span>
+<span class="k">end subroutine</span>
 </code></pre></div>
 </div>
 </div>
@@ -1528,7 +1528,7 @@ parameter by calling the appropriate function or subroutine.</p>
 </code></pre></div>
 </div>
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Output</span><span class="w"> </span><span class="k">final</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">Output</span><span class="w"> </span><span class="k">final</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
 <span class="w">  </span><span class="p">...</span><span class="w"></span>
 <span class="w">  </span><span class="c1">// Sets (real-valued) parameters in an array with the given name. This</span>
 <span class="w">  </span><span class="c1">// operation cannot fail under normal circumstances.</span>
@@ -1540,11 +1540,11 @@ parameter by calling the appropriate function or subroutine.</p>
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code><span class="c">! Sets an array of quantities with the given name and values to the given</span>
 <span class="c">! output instance. This operation cannot fail under normal circumstances.</span>
-<span class="k">subroutine </span><span class="n">output_set_array</span><span class="p">(</span><span class="n">output</span><span class="p">,</span><span class="w"> </span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="n">values</span><span class="p">)</span><span class="w"></span>
-<span class="w">  </span><span class="k">class</span><span class="p">(</span><span class="n">output_t</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">output</span><span class="w"></span>
-<span class="w">  </span><span class="kt">character</span><span class="p">(</span><span class="nb">len</span><span class="o">=*</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">name</span><span class="w"></span>
-<span class="w">  </span><span class="kt">real</span><span class="p">(</span><span class="n">c_real</span><span class="p">),</span><span class="w"> </span><span class="k">target</span><span class="p">,</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">),</span><span class="w"> </span><span class="k">dimension</span><span class="p">(:)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">values</span><span class="w"></span>
-<span class="k">end subroutine</span><span class="w"></span>
+<span class="k">subroutine </span><span class="n">output_set_array</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">values</span><span class="p">)</span>
+  <span class="k">class</span><span class="p">(</span><span class="n">output_t</span><span class="p">),</span> <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span>  <span class="kd">::</span> <span class="n">output</span>
+  <span class="kt">character</span><span class="p">(</span><span class="nb">len</span><span class="o">=*</span><span class="p">),</span> <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span> <span class="kd">::</span> <span class="n">name</span>
+  <span class="kt">real</span><span class="p">(</span><span class="n">c_real</span><span class="p">),</span> <span class="k">target</span><span class="p">,</span> <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">),</span> <span class="k">dimension</span><span class="p">(:)</span> <span class="kd">::</span> <span class="n">values</span>
+<span class="k">end subroutine</span>
 </code></pre></div>
 </div>
 </div>
@@ -1564,7 +1564,7 @@ data to a Python module that be postprocessed.</p>
 </code></pre></div>
 </div>
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Ensemble</span><span class="w"> </span><span class="k">final</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">Ensemble</span><span class="w"> </span><span class="k">final</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
 <span class="w">  </span><span class="p">...</span><span class="w"></span>
 <span class="w">  </span><span class="c1">// Writes input and output data within the ensemble to a Python module stored</span>
 <span class="w">  </span><span class="c1">// in the file with the given name.</span>
@@ -1576,11 +1576,11 @@ data to a Python module that be postprocessed.</p>
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code><span class="c">! Writes input and output data within the ensemble to a Python module stored</span>
 <span class="c">! in the file with the given name.</span>
-<span class="k">function </span><span class="n">ensemble_write_module</span><span class="p">(</span><span class="n">ensemble</span><span class="p">,</span><span class="w"> </span><span class="n">module_filename</span><span class="p">)</span><span class="w"> </span><span class="k">result</span><span class="w"> </span><span class="p">(</span><span class="n">w_result</span><span class="p">)</span><span class="w"></span>
-<span class="w">  </span><span class="k">class</span><span class="p">(</span><span class="n">ensemble_t</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">ensemble</span><span class="w"></span>
-<span class="w">  </span><span class="kt">character</span><span class="p">(</span><span class="nb">len</span><span class="o">=*</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">module_filename</span><span class="w"></span>
-<span class="w">  </span><span class="k">type</span><span class="p">(</span><span class="n">write_result_t</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">w_result</span><span class="w"></span>
-<span class="k">end subroutine</span><span class="w"></span>
+<span class="k">function </span><span class="n">ensemble_write_module</span><span class="p">(</span><span class="n">ensemble</span><span class="p">,</span> <span class="n">module_filename</span><span class="p">)</span> <span class="k">result</span> <span class="p">(</span><span class="n">w_result</span><span class="p">)</span>
+  <span class="k">class</span><span class="p">(</span><span class="n">ensemble_t</span><span class="p">),</span> <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span> <span class="kd">::</span> <span class="n">ensemble</span>
+  <span class="kt">character</span><span class="p">(</span><span class="nb">len</span><span class="o">=*</span><span class="p">),</span> <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span>  <span class="kd">::</span> <span class="n">module_filename</span>
+  <span class="k">type</span><span class="p">(</span><span class="n">write_result_t</span><span class="p">)</span> <span class="kd">::</span> <span class="n">w_result</span>
+<span class="k">end subroutine</span>
 </code></pre></div>
 </div>
 </div>
@@ -1591,17 +1591,17 @@ handle this failure.</p>
 <div class="tabbed-set tabbed-alternate" data-tabs="26:2"><input checked="checked" id="__tabbed_26_1" name="__tabbed_26" type="radio" /><input id="__tabbed_26_2" name="__tabbed_26" type="radio" /><div class="tabbed-labels"><label for="__tabbed_26_1">C</label><label for="__tabbed_26_2">Fortran</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">sw_write_result_t</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<div class="highlight"><pre><span></span><code><span class="k">typedef</span><span class="w"> </span><span class="k">struct</span> <span class="nc">sw_write_result_t</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
 <span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">error_code</span><span class="p">;</span><span class="w">            </span><span class="c1">// error code indicating success or failure</span>
 <span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">error_message</span><span class="p">;</span><span class="w"> </span><span class="c1">// text description of error</span>
 <span class="p">}</span><span class="w"> </span><span class="n">sw_write_result_t</span><span class="p">;</span><span class="w"></span>
 </code></pre></div>
 </div>
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><span class="k">type</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">write_result_t</span><span class="w"></span>
-<span class="w">  </span><span class="kt">integer</span><span class="p">(</span><span class="kt">c_int</span><span class="p">)</span><span class="w">     </span><span class="kd">::</span><span class="w"> </span><span class="n">error_code</span><span class="w">    </span><span class="c">! error code indicating success or failure</span>
-<span class="w">  </span><span class="kt">character</span><span class="p">(</span><span class="nb">len</span><span class="o">=</span><span class="mi">255</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">error_message</span><span class="w"> </span><span class="c">! text description of error</span>
-<span class="k">end type </span><span class="n">write_result_t</span><span class="w"></span>
+<div class="highlight"><pre><span></span><code><span class="k">type</span> <span class="kd">::</span> <span class="n">write_result_t</span>
+  <span class="kt">integer</span><span class="p">(</span><span class="kt">c_int</span><span class="p">)</span>     <span class="kd">::</span> <span class="n">error_code</span>    <span class="c">! error code indicating success or failure</span>
+  <span class="kt">character</span><span class="p">(</span><span class="nb">len</span><span class="o">=</span><span class="mi">255</span><span class="p">)</span> <span class="kd">::</span> <span class="n">error_message</span> <span class="c">! text description of error</span>
+<span class="k">end type </span><span class="n">write_result_t</span>
 </code></pre></div>
 </div>
 </div>
@@ -1615,10 +1615,10 @@ to write the ensemble data to the given file and halts on failure.</p>
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code><span class="c">! Writes input and output data within the ensemble to a Python module stored</span>
 <span class="c">! in the file with the given name, halting on failure.</span>
-<span class="k">subroutine </span><span class="n">ensemble_write</span><span class="p">(</span><span class="n">ensemble</span><span class="p">,</span><span class="w"> </span><span class="n">module_filename</span><span class="p">)</span><span class="w"></span>
-<span class="w">  </span><span class="k">class</span><span class="p">(</span><span class="n">ensemble_t</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">ensemble</span><span class="w"></span>
-<span class="w">  </span><span class="kt">character</span><span class="p">(</span><span class="nb">len</span><span class="o">=*</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">module_filename</span><span class="w"></span>
-<span class="k">end subroutine</span><span class="w"></span>
+<span class="k">subroutine </span><span class="n">ensemble_write</span><span class="p">(</span><span class="n">ensemble</span><span class="p">,</span> <span class="n">module_filename</span><span class="p">)</span>
+  <span class="k">class</span><span class="p">(</span><span class="n">ensemble_t</span><span class="p">),</span> <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span> <span class="kd">::</span> <span class="n">ensemble</span>
+  <span class="kt">character</span><span class="p">(</span><span class="nb">len</span><span class="o">=*</span><span class="p">),</span> <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span>  <span class="kd">::</span> <span class="n">module_filename</span>
+<span class="k">end subroutine</span>
 </code></pre></div>
 </div>
 </div>
@@ -1637,9 +1637,9 @@ simple function call.</p>
 </div>
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code><span class="c">! Destroys an ensemble, freeing all allocated resources.</span>
-<span class="k">subroutine </span><span class="n">ensemble_free</span><span class="p">(</span><span class="n">ensemble</span><span class="p">)</span><span class="w"></span>
-<span class="w">  </span><span class="k">class</span><span class="p">(</span><span class="n">ensemble_t</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">ensemble</span><span class="w"></span>
-<span class="k">end subroutine</span><span class="w"></span>
+<span class="k">subroutine </span><span class="n">ensemble_free</span><span class="p">(</span><span class="n">ensemble</span><span class="p">)</span>
+  <span class="k">class</span><span class="p">(</span><span class="n">ensemble_t</span><span class="p">),</span> <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span> <span class="kd">::</span> <span class="n">ensemble</span>
+<span class="k">end subroutine</span>
 </code></pre></div>
 </div>
 </div>
@@ -1671,8 +1671,8 @@ with a call to the appropriate function.</p>
 </div>
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code><span class="c">! Prints a banner containing Skywalker&#39;s version info to stderr.</span>
-<span class="k">subroutine </span><span class="n">print_banner</span><span class="p">()</span><span class="w"></span>
-<span class="k">end subroutine</span><span class="w"></span>
+<span class="k">subroutine </span><span class="n">print_banner</span><span class="p">()</span>
+<span class="k">end subroutine</span>
 </code></pre></div>
 </div>
 </div>
@@ -1690,7 +1690,7 @@ trying to use a newer feature of the library.</p>
 </code></pre></div>
 </div>
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Ensemble</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">Ensemble</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
 <span class="w">  </span><span class="p">...</span><span class="w"></span>
 <span class="w">  </span><span class="c1">// Returns the size of the ensemble (number of members).</span>
 <span class="w">  </span><span class="kt">size_t</span><span class="w"> </span><span class="n">size</span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="p">;</span><span class="w"></span>
@@ -1738,7 +1738,7 @@ given ensemble was built using the "lattice" or "enumeration" methods:</p>
 <div class="highlight"><pre><span></span><code><span class="c1">// Ensemble type (SW_LATTICE or SW_ENUMERATION).</span>
 <span class="k">using</span><span class="w"> </span><span class="n">EnsembleType</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sw_ens_type_t</span><span class="p">;</span><span class="w"></span>
 <span class="p">...</span><span class="w"></span>
-<span class="k">class</span><span class="w"> </span><span class="nc">Ensemble</span><span class="w"> </span><span class="k">final</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="k">class</span> <span class="nc">Ensemble</span><span class="w"> </span><span class="k">final</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
 <span class="w">  </span><span class="p">...</span><span class="w"></span>
 <span class="w">  </span><span class="c1">// Returns the type of the ensemble (SW_LATTICE or SW_ENUMERATION).</span>
 <span class="w">  </span><span class="n">EnsembleType</span><span class="w"> </span><span class="n">type</span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="p">;</span><span class="w"></span>
@@ -1822,10 +1822,10 @@ given ensemble was built using the "lattice" or "enumeration" methods:</p>
     <div class="md-dialog" data-md-component="dialog">
       <div class="md-dialog__inner md-typeset"></div>
     </div>
-    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.indices", "navigation.instant", "navigation.sections", "navigation.top"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.361d90f1.min.js"}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.indices", "navigation.instant", "navigation.sections", "navigation.top"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.0bbba5b5.min.js"}</script>
     
     
-      <script src="../assets/javascripts/bundle.289a2a4b.min.js"></script>
+      <script src="../assets/javascripts/bundle.649a939e.min.js"></script>
       
         <script src="../javascript/mathjax.js"></script>
       

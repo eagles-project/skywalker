@@ -9,7 +9,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-8.1.4">
+      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-8.1.2">
     
     
       
@@ -17,7 +17,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.bb3983ee.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.f7951f6f.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.e6a45f82.min.css">
@@ -756,48 +756,48 @@ and save it to a file with the indicated name.</p>
 <span class="normal">39</span>
 <span class="normal">40</span>
 <span class="normal">41</span>
-<span class="normal">42</span></pre></div></td><td class="code"><div class="highlight"><pre><span></span><code><span class="k">program </span><span class="n">surface</span><span class="w"></span>
-<span class="w">  </span><span class="k">use </span><span class="n">skywalker</span><span class="w"></span>
-<span class="w">  </span><span class="k">implicit none</span>
+<span class="normal">42</span></pre></div></td><td class="code"><div class="highlight"><pre><span></span><code><span class="k">program </span><span class="n">surface</span>
+  <span class="k">use </span><span class="n">skywalker</span>
+  <span class="k">implicit none</span>
 
-<span class="k">  </span><span class="kt">character</span><span class="p">(</span><span class="nb">len</span><span class="o">=</span><span class="mi">255</span><span class="p">)</span><span class="w">      </span><span class="kd">::</span><span class="w"> </span><span class="n">input_file</span><span class="p">,</span><span class="w"> </span><span class="n">output_file</span><span class="w"></span>
-<span class="w">  </span><span class="k">type</span><span class="p">(</span><span class="n">ensemble_result_t</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">load_result</span><span class="w"></span>
-<span class="w">  </span><span class="k">type</span><span class="p">(</span><span class="n">ensemble_t</span><span class="p">)</span><span class="w">        </span><span class="kd">::</span><span class="w"> </span><span class="n">ensemble</span><span class="w"></span>
-<span class="w">  </span><span class="k">type</span><span class="p">(</span><span class="n">input_t</span><span class="p">)</span><span class="w">           </span><span class="kd">::</span><span class="w"> </span><span class="n">input</span><span class="w"></span>
-<span class="w">  </span><span class="k">type</span><span class="p">(</span><span class="n">output_t</span><span class="p">)</span><span class="w">          </span><span class="kd">::</span><span class="w"> </span><span class="n">output</span><span class="w"></span>
-<span class="w">  </span><span class="kt">real</span><span class="p">(</span><span class="n">swp</span><span class="p">)</span><span class="w">               </span><span class="kd">::</span><span class="w"> </span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="n">y</span><span class="p">,</span><span class="w"> </span><span class="n">f</span><span class="w"></span>
+<span class="k">  </span><span class="kt">character</span><span class="p">(</span><span class="nb">len</span><span class="o">=</span><span class="mi">255</span><span class="p">)</span>      <span class="kd">::</span> <span class="n">input_file</span><span class="p">,</span> <span class="n">output_file</span>
+  <span class="k">type</span><span class="p">(</span><span class="n">ensemble_result_t</span><span class="p">)</span> <span class="kd">::</span> <span class="n">load_result</span>
+  <span class="k">type</span><span class="p">(</span><span class="n">ensemble_t</span><span class="p">)</span>        <span class="kd">::</span> <span class="n">ensemble</span>
+  <span class="k">type</span><span class="p">(</span><span class="n">input_t</span><span class="p">)</span>           <span class="kd">::</span> <span class="n">input</span>
+  <span class="k">type</span><span class="p">(</span><span class="n">output_t</span><span class="p">)</span>          <span class="kd">::</span> <span class="n">output</span>
+  <span class="kt">real</span><span class="p">(</span><span class="n">swp</span><span class="p">)</span>               <span class="kd">::</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">f</span>
 
-<span class="w">  </span><span class="c">! Specify the name of the input file.</span>
-<span class="w">  </span><span class="n">input_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;surface.yaml&quot;</span><span class="w"></span>
+  <span class="c">! Specify the name of the input file.</span>
+  <span class="n">input_file</span> <span class="o">=</span> <span class="s2">&quot;surface.yaml&quot;</span>
 
-<span class="w">  </span><span class="c">! Load the ensemble, exiting if the operation fails.</span>
-<span class="w">  </span><span class="n">load_result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">load_ensemble</span><span class="p">(</span><span class="nb">trim</span><span class="p">(</span><span class="n">input_file</span><span class="p">))</span><span class="w"></span>
-<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">load_result</span><span class="p">%</span><span class="n">error_code</span><span class="w"> </span><span class="o">/=</span><span class="w"> </span><span class="n">SW_SUCCESS</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
-<span class="k">    print</span><span class="w"> </span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Error: &quot;</span><span class="p">,</span><span class="w"> </span><span class="nb">trim</span><span class="p">(</span><span class="n">load_result</span><span class="p">%</span><span class="n">error_message</span><span class="p">)</span><span class="w"></span>
-<span class="w">    </span><span class="k">stop</span>
-<span class="k">  end if</span><span class="w"></span>
+  <span class="c">! Load the ensemble, exiting if the operation fails.</span>
+  <span class="n">load_result</span> <span class="o">=</span> <span class="n">load_ensemble</span><span class="p">(</span><span class="nb">trim</span><span class="p">(</span><span class="n">input_file</span><span class="p">))</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">load_result</span><span class="p">%</span><span class="n">error_code</span> <span class="o">/=</span> <span class="n">SW_SUCCESS</span><span class="p">)</span> <span class="k">then</span>
+<span class="k">    print</span> <span class="o">*</span><span class="p">,</span> <span class="s2">&quot;Error: &quot;</span><span class="p">,</span> <span class="nb">trim</span><span class="p">(</span><span class="n">load_result</span><span class="p">%</span><span class="n">error_message</span><span class="p">)</span>
+    <span class="k">stop</span>
+<span class="k">  end if</span>
 
-<span class="w">  </span><span class="c">! Iterate over all members of the ensemble.</span>
-<span class="w">  </span><span class="n">ensemble</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">load_result</span><span class="p">%</span><span class="n">ensemble</span><span class="w"></span>
-<span class="w">  </span><span class="k">do while</span><span class="w"> </span><span class="p">(</span><span class="n">ensemble</span><span class="p">%</span><span class="n">next</span><span class="p">(</span><span class="n">input</span><span class="p">,</span><span class="w"> </span><span class="n">output</span><span class="p">))</span><span class="w"></span>
-<span class="w">    </span><span class="c">! Fetch inputs.</span>
-<span class="w">    </span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">input</span><span class="p">%</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">)</span><span class="w"></span>
-<span class="w">    </span><span class="n">y</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">input</span><span class="p">%</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">)</span><span class="w"></span>
+  <span class="c">! Iterate over all members of the ensemble.</span>
+  <span class="n">ensemble</span> <span class="o">=</span> <span class="n">load_result</span><span class="p">%</span><span class="n">ensemble</span>
+  <span class="k">do while</span> <span class="p">(</span><span class="n">ensemble</span><span class="p">%</span><span class="n">next</span><span class="p">(</span><span class="n">input</span><span class="p">,</span> <span class="n">output</span><span class="p">))</span>
+    <span class="c">! Fetch inputs.</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">input</span><span class="p">%</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">input</span><span class="p">%</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">)</span>
 
-<span class="w">    </span><span class="c">! Compute f(x, y).</span>
-<span class="w">    </span><span class="n">f</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="nb">sin</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="nb">cos</span><span class="p">(</span><span class="n">y</span><span class="p">)</span><span class="w"></span>
+    <span class="c">! Compute f(x, y).</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="n">y</span> <span class="o">*</span> <span class="nb">sin</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">-</span> <span class="n">x</span> <span class="o">*</span> <span class="nb">cos</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
 
-<span class="w">    </span><span class="c">! Store f as an output variable.</span>
-<span class="w">    </span><span class="k">call </span><span class="n">output</span><span class="p">%</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;f&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">f</span><span class="p">);</span><span class="w"></span>
-<span class="w">  </span><span class="k">end do</span><span class="w"></span>
+    <span class="c">! Store f as an output variable.</span>
+    <span class="k">call </span><span class="n">output</span><span class="p">%</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;f&quot;</span><span class="p">,</span> <span class="n">f</span><span class="p">);</span>
+  <span class="k">end do</span>
 
-<span class="w">  </span><span class="c">! Write out a Python module.</span>
-<span class="w">  </span><span class="n">output_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;surface.py&quot;</span><span class="w"></span>
-<span class="w">  </span><span class="k">call </span><span class="n">ensemble</span><span class="p">%</span><span class="k">write</span><span class="p">(</span><span class="n">output_file</span><span class="p">)</span><span class="w"></span>
+  <span class="c">! Write out a Python module.</span>
+  <span class="n">output_file</span> <span class="o">=</span> <span class="s2">&quot;surface.py&quot;</span>
+  <span class="k">call </span><span class="n">ensemble</span><span class="p">%</span><span class="k">write</span><span class="p">(</span><span class="n">output_file</span><span class="p">)</span>
 
-<span class="w">  </span><span class="c">! Clean up.</span>
-<span class="w">  </span><span class="k">call </span><span class="n">ensemble</span><span class="p">%</span><span class="n">free</span><span class="p">();</span><span class="w"></span>
-<span class="k">end program</span><span class="w"></span>
+  <span class="c">! Clean up.</span>
+  <span class="k">call </span><span class="n">ensemble</span><span class="p">%</span><span class="n">free</span><span class="p">();</span>
+<span class="k">end program</span>
 </code></pre></div>
 </td></tr></table>
 </div>
@@ -969,10 +969,10 @@ also take a look at <a href="../example/">a more involved example</a> if that's 
     <div class="md-dialog" data-md-component="dialog">
       <div class="md-dialog__inner md-typeset"></div>
     </div>
-    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.indices", "navigation.instant", "navigation.sections", "navigation.top"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.361d90f1.min.js"}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.indices", "navigation.instant", "navigation.sections", "navigation.top"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.0bbba5b5.min.js"}</script>
     
     
-      <script src="../assets/javascripts/bundle.289a2a4b.min.js"></script>
+      <script src="../assets/javascripts/bundle.649a939e.min.js"></script>
       
         <script src="../javascript/mathjax.js"></script>
       
