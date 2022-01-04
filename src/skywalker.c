@@ -158,17 +158,14 @@ static void sw_settings_free(sw_settings_t *settings) {
   free(settings);
 }
 
-static sw_output_result_t sw_settings_set(sw_settings_t *settings,
-                                          const char *name,
-                                          const char *value) {
-  sw_output_result_t result = {.error_code = SW_SUCCESS};
+static void sw_settings_set(sw_settings_t *settings, const char *name,
+                            const char *value) {
   const char* n = dup_string(name);
   const char* v = dup_string(value);
   int ret;
   khiter_t iter = kh_put(string_map, settings->params, n, &ret);
   assert(ret == 1);
   kh_value(settings->params, iter) = v;
-  return result;
 }
 
 bool sw_settings_has(sw_settings_t *settings, const char* name) {
@@ -195,28 +192,21 @@ struct sw_input_t {
   khash_t(array_param_map) *array_params;
 };
 
-static sw_output_result_t sw_input_set(sw_input_t *input,
-                                       const char *name,
-                                       sw_real_t value) {
-  sw_output_result_t result = {.error_code = SW_SUCCESS};
+static void sw_input_set(sw_input_t *input, const char *name, sw_real_t value) {
   const char* n = dup_string(name);
   int ret;
   khiter_t iter = kh_put(param_map, input->params, n, &ret);
   assert(ret == 1);
   kh_value(input->params, iter) = value;
-  return result;
 }
 
-static sw_output_result_t sw_input_set_array(sw_input_t *input,
-                                             const char *name,
-                                             real_vec_t values) {
-  sw_output_result_t result = {.error_code = SW_SUCCESS};
+static void sw_input_set_array(sw_input_t *input, const char *name,
+                               real_vec_t values) {
   const char* n = dup_string(name);
   int ret;
   khiter_t iter = kh_put(array_param_map, input->array_params, n, &ret);
   assert(ret == 1);
   kh_value(input->array_params, iter) = values;
-  return result;
 }
 
 bool sw_input_has(sw_input_t *input, const char *name) {
@@ -264,23 +254,16 @@ struct sw_output_t {
   khash_t(array_param_map) *array_metrics;
 };
 
-sw_output_result_t sw_output_set(sw_output_t *output,
-                                 const char *name,
-                                 sw_real_t value) {
-  sw_output_result_t result = {.error_code = SW_SUCCESS};
+void sw_output_set(sw_output_t *output, const char *name, sw_real_t value) {
   const char* n = dup_string(name);
   int ret;
   khiter_t iter = kh_put(param_map, output->metrics, n, &ret);
   assert(ret == 1);
   kh_value(output->metrics, iter) = value;
-  return result;
 }
 
-sw_output_result_t sw_output_set_array(sw_output_t *output,
-                                       const char *name,
-                                       const sw_real_t* values,
-                                       const size_t *size) {
-  sw_output_result_t result = {.error_code = SW_SUCCESS};
+void sw_output_set_array(sw_output_t *output, const char *name,
+                         const sw_real_t* values, const size_t *size) {
   const char* n = dup_string(name);
   int ret;
   khiter_t iter = kh_put(array_param_map, output->array_metrics, n, &ret);
@@ -290,7 +273,6 @@ sw_output_result_t sw_output_set_array(sw_output_t *output,
   for (size_t i=0; i<*size; ++i)
     kv_push(sw_real_t, array, values[i]); // append
   kh_value(output->array_metrics, iter) = array;
-  return result;
 }
 
 // ensemble type
@@ -430,6 +412,8 @@ static void handle_yaml_event(yaml_event_t *event,
 
     // settings block
     } else if (!state->parsing_settings &&
+               state->settings_block &&
+               (state->settings_block[0] != '\0') && // exclude blank strings
                strcmp(value, state->settings_block) == 0) {
       assert(!state->current_setting);
       data->settings = sw_settings_new();
@@ -653,7 +637,7 @@ static yaml_data_t parse_yaml(FILE* file, const char* settings_block) {
   yaml_parser_delete(&parser);
 
   // Did we find a settings block?
-  if (data.settings == NULL) {
+  if (settings_block && (settings_block[0] != '\0') && !data.settings) {
     data.error_code = SW_SETTINGS_NOT_FOUND;
     data.error_message = new_string("The settings block '%s' was not found.",
                                     settings_block);
@@ -1118,8 +1102,9 @@ sw_ensemble_result_t sw_load_ensemble(const char* yaml_file,
   sw_ensemble_result_t result = {.error_code = 0};
 
   // Validate inputs.
-  if ((strcmp(settings_block, "type") == 0) ||
-      (strcmp(settings_block, "input") == 0)) {
+  if (settings_block &&
+      ((strcmp(settings_block, "type") == 0) ||
+       (strcmp(settings_block, "input") == 0))) {
     result.error_code = SW_INVALID_SETTINGS_BLOCK;
     result.error_message = new_string("Invalid settings block name: '%s'"
                                       " (cannot be 'type' or 'input')",
@@ -1197,12 +1182,24 @@ bool sw_ensemble_next(sw_ensemble_t *ensemble,
   return true;
 }
 
-void sw_ensemble_write(sw_ensemble_t *ensemble, const char *module_filename) {
+sw_write_result_t sw_ensemble_write(sw_ensemble_t *ensemble,
+                                    const char *module_filename) {
+  sw_write_result_t result = {.error_code = SW_SUCCESS};
+  if (ensemble->size == 0) {
+    result.error_code = SW_EMPTY_ENSEMBLE;
+    result.error_message = new_string("The given ensemble is empty!");
+    return result;
+  }
   FILE* file = fopen(module_filename, "w");
+  if (!file) {
+    result.error_code = SW_WRITE_FAILURE;
+    result.error_message = new_string("Could not write ensemble data to '%s'.",
+                                      module_filename);
+    return result;
+  }
   fprintf(file, "# This file was automatically generated by skywalker.\n\n");
   fprintf(file, "from math import nan as nan\n\n");
-  fprintf(
-      file,
+  fprintf(file,
       "# Object is just a dynamic container that stores input/output data.\n");
   fprintf(file, "class Object(object):\n");
   fprintf(file, "    pass\n\n");
@@ -1210,9 +1207,8 @@ void sw_ensemble_write(sw_ensemble_t *ensemble, const char *module_filename) {
   // Write input data.
   fprintf(file, "# Input is stored here.\n");
   fprintf(file, "input = Object()\n");
-  if (ensemble->size > 0) {
-    khash_t(param_map) *params_0 = ensemble->inputs[0].params;
-    for (khiter_t iter = kh_begin(params_0); iter != kh_end(params_0); ++iter) {
+  khash_t(param_map) *params_0 = ensemble->inputs[0].params;
+  for (khiter_t iter = kh_begin(params_0); iter != kh_end(params_0); ++iter) {
 
       if (!kh_exist(params_0, iter)) continue;
 
@@ -1225,26 +1221,26 @@ void sw_ensemble_write(sw_ensemble_t *ensemble, const char *module_filename) {
         fprintf(file, "%g, ", value);
       }
       fprintf(file, "]\n");
-    }
-    khash_t(array_param_map) *array_params_0 = ensemble->inputs[0].array_params;
-    for (khiter_t iter = kh_begin(array_params_0); iter != kh_end(array_params_0); ++iter) {
+  }
 
-      if (!kh_exist(array_params_0, iter)) continue;
+  khash_t(array_param_map) *array_params_0 = ensemble->inputs[0].array_params;
+  for (khiter_t iter = kh_begin(array_params_0); iter != kh_end(array_params_0); ++iter) {
 
-      const char *name = kh_key(array_params_0, iter);
-      fprintf(file, "input.%s = [", name);
-      for (size_t i = 0; i < ensemble->size; ++i) {
-        khash_t(array_param_map) *array_params_i = ensemble->inputs[i].array_params;
-        khiter_t iter = kh_get(array_param_map, array_params_i, name);
-        real_vec_t arrays = kh_val(array_params_i, iter);
-        size_t size = kv_size(arrays);
-        fprintf(file, "[");
-        for (size_t i=0; i<size; ++i)
-          fprintf(file, "%g, ", kv_A(arrays, i));
-        fprintf(file, "],");
-      }
-      fprintf(file, "]\n");
+    if (!kh_exist(array_params_0, iter)) continue;
+
+    const char *name = kh_key(array_params_0, iter);
+    fprintf(file, "input.%s = [", name);
+    for (size_t i = 0; i < ensemble->size; ++i) {
+      khash_t(array_param_map) *array_params_i = ensemble->inputs[i].array_params;
+      khiter_t iter = kh_get(array_param_map, array_params_i, name);
+      real_vec_t arrays = kh_val(array_params_i, iter);
+      size_t size = kv_size(arrays);
+      fprintf(file, "[");
+      for (size_t i=0; i<size; ++i)
+        fprintf(file, "%g, ", kv_A(arrays, i));
+      fprintf(file, "],");
     }
+    fprintf(file, "]\n");
   }
 
   // Write output data.
@@ -1297,6 +1293,7 @@ void sw_ensemble_write(sw_ensemble_t *ensemble, const char *module_filename) {
   }
 
   fclose(file);
+  return result;
 }
 
 void sw_ensemble_free(sw_ensemble_t *ensemble) {
@@ -1363,6 +1360,13 @@ void sw_input_get_array_f90(sw_input_t *input, const char *name,
     *values = result.values;
     *size = result.size;
   }
+  *error_code = result.error_code;
+  *error_message = result.error_message;
+}
+
+void sw_ensemble_write_f90(sw_ensemble_t *ensemble, const char *module_filename,
+                          int *error_code, const char **error_message) {
+  sw_write_result_t result = sw_ensemble_write(ensemble, module_filename);
   *error_code = result.error_code;
   *error_message = result.error_message;
 }

@@ -66,7 +66,8 @@ int main(int argc, char **argv) {
   fprintf(stderr, "array_param_test: Loading ensemble from %s\n", input_file);
   sw_ensemble_result_t load_result = sw_load_ensemble(input_file, "settings");
   if (load_result.error_code != SW_SUCCESS) {
-    printf("%s\n", load_result.error_message);
+    fprintf(stderr, "%s\n", load_result.error_message);
+    exit(-1);
   }
 
   // Ensemble data
@@ -119,13 +120,16 @@ int main(int argc, char **argv) {
     assert(in_result.error_message == NULL);
 
     // Add a "qoi" metric set to 4.
-    sw_output_result_t out_result = sw_output_set(output, "qoi", 4.0);
-    assert(out_result.error_code == SW_SUCCESS);
-    assert(out_result.error_message == NULL);
+    sw_output_set(output, "qoi", 4.0);
   }
 
   // Write out a Python module.
-  sw_ensemble_write(ensemble, "array_param_test.py");
+  sw_write_result_t w_result = sw_ensemble_write(ensemble,
+                                                 "array_param_test.py");
+  if (w_result.error_code != SW_SUCCESS) {
+    fprintf(stderr, "%s\n", w_result.error_message);
+    exit(-1);
+  }
 
   // Clean up.
   sw_ensemble_free(ensemble);

@@ -15,8 +15,8 @@ message(STATUS "Fortran compiler is ${CMAKE_Fortran_COMPILER} (${CMAKE_Fortran_C
 
 # Version numbers.
 set (SKYWALKER_MAJOR_VERSION 0)
-set (SKYWALKER_MINOR_VERSION 2)
-set (SKYWALKER_PATCH_VERSION 1)
+set (SKYWALKER_MINOR_VERSION 3)
+set (SKYWALKER_PATCH_VERSION 0)
 
 set (SKYWALKER_VERSION "${SKYWALKER_MAJOR_VERSION}.${SKYWALKER_MINOR_VERSION}.${SKYWALKER_PATCH_VERSION}")
 message(STATUS "Configuring skywalker v${SKYWALKER_VERSION}")
@@ -133,3 +133,6 @@ install(FILES ${PROJECT_BINARY_DIR}/share/skywalker.cmake
 
 # Source directory.
 add_subdirectory(src)
+
+# Examples.
+add_subdirectory(examples)
