@@ -10,7 +10,7 @@ software. To build it, you need
 
 ## Clone the Repository
 
-First, go get the [source code](https:/github.com/eagles-project/skywalker)
+First, go get the [source code](https://github.com/eagles-project/skywalker)
 at GitHub:
 
 === "SSH"
