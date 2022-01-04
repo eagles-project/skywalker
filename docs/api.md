@@ -272,8 +272,9 @@ also offers "shorthand" versions of functions that simply halt the program with
 the Fortran `STOP` command when an error occurs.
 
 The C++ interface does not define types to store the results of its functions.
-Instead, it directly returns the data requested, throwing an exception
-containing a string description if any issue occurs.
+Instead, it directly returns the data requested, throwing an exception (of type
+`skywalker::Exception`, a subclass of `std::exception`) containing a string
+description if any issue occurs.
 
 The [examples](https://github.com/eagles-project/skywalker/tree/main/examples)
 and [tests](https://github.com/eagles-project/skywalker/tree/main/src/tests)
@@ -455,10 +456,10 @@ be handled.
     end type settings_result_t
     ```
 
-On failure, the C++ interface throws an exception with a string description
-identical to the `error_message` description in the C and Fortran result types.
-For brevity, the Fortran interface also offers a function that halts your
-program if a setting is not found:
+On failure, the C++ interface throws a `skywalker::Exception` with a string
+description identical to the `error_message` description in the C and Fortran
+result types. For brevity, the Fortran interface also offers a function that
+halts your program if a setting is not found:
 
 === "Fortran"
     ``` fortran
