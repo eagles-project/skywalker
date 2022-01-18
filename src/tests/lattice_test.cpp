@@ -39,8 +39,7 @@
 
 #include <cassert>
 #include <iostream>
-#include <string.h>
-#include <tgmath.h>
+#include <cstring>
 
 void usage(const std::string& prog_name) {
   std::cerr << prog_name << ": usage:" << std::endl;
@@ -49,7 +48,7 @@ void usage(const std::string& prog_name) {
 }
 
 static bool approx_equal(sw_real_t x, sw_real_t y) {
-  return (fabs(x - y) < 1e-14);
+  return (std::abs(x - y) < 1e-14);
 }
 
 using namespace skywalker;
