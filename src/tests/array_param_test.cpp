@@ -41,6 +41,7 @@
 #include <cassert>
 #include <iostream>
 #include <cstring>
+#include <cmath>
 
 void usage(const std::string& prog_name) {
   std::cerr << prog_name << ": usage:" << std::endl;
@@ -71,19 +72,21 @@ int main(int argc, char **argv) {
   // Make sure everything is as it should be.
 
   // Ensemble data
-  assert(ensemble->size() == 11);
+  assert(ensemble->size() == 1331);
   ensemble->process([](const Input& input, Output& output) {
     // Fixed parameters
     assert(input.has_array("p1"));
     auto p1 = input.get_array("p1");
-    assert(p1.size() == 3);
-    assert(approx_equal(p1[0], 1.0));
-    assert(approx_equal(p1[1], 2.0));
-    assert(approx_equal(p1[2], 3.0));
+    assert(p1.size() == 4);
+    assert(p1[0] >= 1.0);
+    assert(p1[0] <= 11.0);
+    assert(approx_equal(p1[1], 1+p1[0]));
+    assert(approx_equal(p1[2], 2+p1[0]));
+    assert(approx_equal(p1[3], 3+p1[0]));
 
     assert(input.has_array("p2"));
     auto p2 = input.get_array("p2");
-    assert(p1.size() == 3);
+    assert(p2.size() == 3);
     assert(approx_equal(p2[0], 4.0));
     assert(approx_equal(p2[1], 5.0));
     assert(approx_equal(p2[2], 6.0));

@@ -102,14 +102,16 @@ program enumeration_test
 
   ! ensemble information
   ensemble = load_result%ensemble
-  assert(ensemble%size == 11)
+  assert(ensemble%size == 1331)
   do while (ensemble%next(input, output))
     assert(input%has_array("p1"))
     call input%get_array("p1", values)
-    assert(size(values) == 3)
-    assert(approx_equal(values(1), 1.0_swp))
-    assert(approx_equal(values(2), 2.0_swp))
-    assert(approx_equal(values(3), 3.0_swp))
+    assert(size(values) == 4)
+    assert(values(1) >= 1.0_swp);
+    assert(values(1) <= 11.0_swp);
+    assert(approx_equal(values(2), 1.0_swp+values(1)));
+    assert(approx_equal(values(3), 2.0_swp+values(1)));
+    assert(approx_equal(values(4), 3.0_swp+values(1)));
 
     assert(input%has_array("p2"))
     call input%get_array("p2", values)

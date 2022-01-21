@@ -41,6 +41,7 @@
 #include <cassert>
 #include <iostream>
 #include <cstring>
+#include <cmath>
 
 void usage(const std::string& prog_name) {
   std::cerr << prog_name << ": usage:" << std::endl;

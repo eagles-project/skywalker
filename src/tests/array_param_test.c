@@ -72,7 +72,7 @@ int main(int argc, char **argv) {
 
   // Ensemble data
   sw_ensemble_t *ensemble = load_result.ensemble;
-  assert(sw_ensemble_size(ensemble) == 11);
+  assert(sw_ensemble_size(ensemble) == 1331);
   sw_input_t *input;
   sw_output_t *output;
   while (sw_ensemble_next(ensemble, &input, &output)) {
@@ -83,10 +83,12 @@ int main(int argc, char **argv) {
     assert(sw_input_has_array(input, "p1"));
     in_array_result = sw_input_get_array(input, "p1");
     assert(in_array_result.error_code == SW_SUCCESS);
-    assert(in_array_result.size == 3);
-    assert(approx_equal(in_array_result.values[0], 1.0));
-    assert(approx_equal(in_array_result.values[1], 2.0));
-    assert(approx_equal(in_array_result.values[2], 3.0));
+    assert(in_array_result.size == 4);
+    assert(in_array_result.values[0] >= 1.0);
+    assert(in_array_result.values[0] <= 11.0);
+    assert(approx_equal(in_array_result.values[1], 1+in_array_result.values[0]));
+    assert(approx_equal(in_array_result.values[2], 2+in_array_result.values[0]));
+    assert(approx_equal(in_array_result.values[3], 3+in_array_result.values[0]));
     assert(in_array_result.error_message == NULL);
 
     assert(sw_input_has_array(input, "p2"));
