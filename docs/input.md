@@ -72,6 +72,8 @@ input:
   planetary_boundary_layer_height: 1100
   height: 500
   xi_nh3: 0
+  current_gas_mix_ratios: [[0.023, 0.033]]
+  wet_geo_mean_diameter: [[0.001, 0.002, 0.003],[0.004, 0.005, 0.006], [0.001, 0.001, 0.001]]
 ```
 
 Below, we describe the structure of each of these blocks, and give examples.
@@ -133,6 +135,13 @@ Look at the `input` block in the above example. There are 6 parameters:
 `planetary_boundary_layer_height`, `height`, and `xi_nh3`. The first two
 parameters assume more than one value, and the rest assume only a single value.
 
+Note the parameter `current_gas_mix_ratios`.  This is an example of a parameter that
+constists of an array of an array.  For some parameters there are multiple values
+for a single ensemble.  This array of arrays syntax covers this case.  For the
+`current_gas_mix_ratios`, an array of two values will be available for each ensemble
+created.  For lattice and enumeration purposes it is treated as a one (abet array
+valued) value the same as `planetary_boundary_layer_height`.
+
 ### Lists of Parameter Values and Uniform Spacing
 
 There are a few ways to specify multiple values for a parameter. The simplest
@@ -178,6 +187,7 @@ All other lists are interpreted as lists containing 3 values.
 These rules may seem arbitrary, but in practice, they will never prevent you
 from doing what you need to do.
 
+  
 ### Logarithmic Spacing
 
 Sometimes a parameter varies over several orders of magnitude, making it
@@ -238,12 +248,31 @@ parameter `n` assumes 4 values, each of which is a list of 3 numbers.
 
 This is a very powerful syntax, but it comes with ѕome caveats:
 
-* You can't use the uniform or logarithmic spacing options with array parameters
+* You can't use logarithmic spacing options with array parameters
 * Skywalker makes no attempt to verify that all values in a list of array
   parameters have the same length
 * Single values for array parameters must be surrounded by two sets of braces
   (e.g. `n: [[0.1, 0.3, 0.5]]`). Otherwise, Skywalker interprets the parameter
   as a list of multiple scalar parameters.
+
+```
+input:
+  ...
+  wet_geo_mean_diameter: [[0.001, 0.002, 0.003],[0.004, 0.005, 0.009], [0.001, 0.001, 0.002]]
+  ...
+```
+When using lattice input, This reads that the `wet_geo_mean_diameter` parameter assumes 
+an array value with uniform spacing for each ensemble.  
+The array value start at [0.001, 0.002, 0.003] and goes to
+[0.004, 0.005, 0.009] incrementing each individual array entry by [0.001, 0.001, 0.220]
+ for each ensemble.  The interpretation of the values as an expanded list is the same as 
+above for a scalar list:
+
+* The list contains 3 sub-lists
+* The each value in the first list is less than the corresponding value in the second list
+* The each value in the third list is less than the corresponding value in the second list
+
+All other lists are interpreted as lists containing 3 lists.
 
 Use array-valued parameters with caution.
 
