@@ -72,8 +72,13 @@ input:
   planetary_boundary_layer_height: 1100
   height: 500
   xi_nh3: 0
-  current_gas_mix_ratios: [[0.023, 0.033]]
-  wet_geo_mean_diameter: [[0.001, 0.002, 0.003],[0.004, 0.005, 0.006], [0.001, 0.001, 0.001]]
+  current_gas_mix_ratios: [[0.1, 0.3, 0.6], 
+                           [0, 0.4, 0.4], 
+                           [0.2, 0.8, 0], 
+                           [0.5, 0.25, 0.25]]
+  wet_geo_mean_diameter: [[0.001, 0.002, 0.003],
+                          [0.004, 0.005, 0.006], 
+                          [0.001, 0.001, 0.001]]
 ```
 
 Below, we describe the structure of each of these blocks, and give examples.
@@ -239,12 +244,12 @@ configurations of the fluid's concentrations:
 ```
 input:
   ...
-  n: [[0.1, 0.3, 0.6], [0, 0.4, 0.4], [0.2, 0.8, 0], [0.5, 0.25, 0.25]]
+  current_gas_mix_ratios: [[0.1, 0.3, 0.6], [0, 0.4, 0.4], [0.2, 0.8, 0], [0.5, 0.25, 0.25]]
   ...
 ```
 
 We have used two sets of braces (a "list of lists") to indicate that the
-parameter `n` assumes 4 values, each of which is a list of 3 numbers.
+parameter `current_gas_mix_ratios` assumes 4 values, each of which is a list of 3 numbers.
 
 This is a very powerful syntax, but it comes with ѕome caveats:
 
@@ -252,7 +257,7 @@ This is a very powerful syntax, but it comes with ѕome caveats:
 * Skywalker makes no attempt to verify that all values in a list of array
   parameters have the same length
 * Single values for array parameters must be surrounded by two sets of braces
-  (e.g. `n: [[0.1, 0.3, 0.5]]`). Otherwise, Skywalker interprets the parameter
+  (e.g. `current_gas_mix_ratios: [[0.1, 0.3, 0.5]]`). Otherwise, Skywalker interprets the parameter
   as a list of multiple scalar parameters.
 
 ```
@@ -263,16 +268,16 @@ input:
 ```
 When using lattice input, This reads that the `wet_geo_mean_diameter` parameter assumes 
 an array value with uniform spacing for each ensemble.  
-The array value start at [0.001, 0.002, 0.003] and goes to
-[0.004, 0.005, 0.009] incrementing each individual array entry by [0.001, 0.001, 0.220]
- for each ensemble.  The interpretation of the values as an expanded list is the same as 
+The array values start at [0.001, 0.002, 0.003] and goes to
+[0.004, 0.005, 0.009] incrementing each individual array entry by [0.001, 0.001, 0.002]
+ for each ensemble.  The interpretation of the values as a uniform spacing list is the same as 
 above for a scalar list:
 
 * The list contains 3 sub-lists
 * The each value in the first list is less than the corresponding value in the second list
 * The each value in the third list is less than the corresponding value in the second list
 
-All other lists are interpreted as lists containing 3 lists.
+All other lists are interpreted as a list containing 3 lists.
 
 Use array-valued parameters with caution.
 
