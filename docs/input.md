@@ -141,7 +141,7 @@ Look at the `input` block in the above example. There are 6 parameters:
 parameters assume more than one value, and the rest assume only a single value.
 
 Note the parameter `current_gas_mix_ratios`.  This is an example of a parameter that
-constists of an array of an array.  For some parameters there are multiple values
+consists of an array of an array.  For some parameters there are multiple values
 for a single ensemble.  This array of arrays syntax covers this case.  For the
 `current_gas_mix_ratios`, an array of two values will be available for each ensemble
 created.  For lattice and enumeration purposes it is treated as a one (abet array
@@ -266,7 +266,7 @@ input:
   wet_geo_mean_diameter: [[0.001, 0.002, 0.003],[0.004, 0.005, 0.009], [0.001, 0.001, 0.002]]
   ...
 ```
-When using lattice input, This reads that the `wet_geo_mean_diameter` parameter assumes 
+When using lattice input, this is interpreted as the `wet_geo_mean_diameter` parameter assumes 
 an array value with uniform spacing for each ensemble.  
 The array values start at [0.001, 0.002, 0.003] and goes to
 [0.004, 0.005, 0.009] incrementing each individual array entry by [0.001, 0.001, 0.002]
@@ -274,10 +274,10 @@ The array values start at [0.001, 0.002, 0.003] and goes to
 above for a scalar list:
 
 * The list contains 3 sub-lists
-* The each value in the first list is less than the corresponding value in the second list
-* The each value in the third list is less than the corresponding value in the second list
+* Each value in the first list is less than the corresponding value in the second list
+* Each value in the third list is less than the corresponding value in the second list
 
-All other lists are interpreted as a list containing 3 lists.
+All other lists are interpreted as lists containing 3 lists.
 
 Use array-valued parameters with caution.
 
