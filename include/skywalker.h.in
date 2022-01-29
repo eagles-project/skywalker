@@ -56,7 +56,7 @@ typedef enum sw_error_code_t {
   SW_SUCCESS = 0,            // no error occurred
   SW_YAML_FILE_NOT_FOUND,    // the specified YAML file was not found
   SW_INVALID_YAML,           // a problem was encountered parsing the YAML file
-  SW_INVALID_ENSEMBLE_TYPE,  // an invalid ensemble type was read from the YAML file
+  SW_INVALID_PARAM_TYPE,     // an invalid parameter type was encountered in YAML
   SW_INVALID_PARAM_VALUE,    // an invalid input value was read from the YAML file
   SW_INVALID_SETTINGS_BLOCK, // an invalid setting block name was given
   SW_SETTINGS_NOT_FOUND,     // the specified YAML settings block was not found
@@ -78,13 +78,6 @@ typedef @SKYWALKER_REAL_TYPE@ sw_real_t;
 // file. It's an opaque type whose innards cannot be manipulated.
 typedef struct sw_ensemble_t sw_ensemble_t;
 
-// This type identifies the type of a given ensemble're running a "lattice"
-// or "enumeration" ensemble.
-typedef enum sw_ens_type_t {
-  SW_LATTICE = 0, // ensemble members constructed from outer product of inputs
-  SW_ENUMERATION  // ensemble members constructed from an explicit list
-} sw_ens_type_t;
-
 // This opaque type stores named settings intended for use with Skywalker driver
 // programs.
 typedef struct sw_settings_t sw_settings_t;
@@ -103,8 +96,6 @@ typedef struct sw_ensemble_result_t {
   sw_settings_t *settings;
   // The ensemble loaded (or NULL on failure)
   sw_ensemble_t *ensemble;
-  // The ensemble's type
-  sw_ens_type_t type;
   // An error code indicating any problems encountered loading the ensemble
   // (zero = success, non-zero = failure)
   int error_code;

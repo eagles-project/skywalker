@@ -323,10 +323,10 @@ KHASH_MAP_INIT_STR(yaml_array_param_map, real_vec_vec_t)
 
 // This type stores data parsed from YAML.
 typedef struct yaml_data_t {
-  sw_ens_type_t ensemble_type;
   sw_settings_t *settings;
-  khash_t(yaml_param_map) *input;
-  khash_t(yaml_array_param_map) *array_input;
+  khash_t(yaml_param_map) *fixed_input, *lattice_input, *enumerated_input;
+  khash_t(yaml_array_param_map) *fixed_array_input, *lattice_array_input,
+                                *enumerated_array_input;
   int error_code;
   const char *error_message;
 } yaml_data_t;
@@ -337,18 +337,24 @@ static void free_yaml_data(yaml_data_t data) {
   kh_foreach_value(data.input, values,
     kv_destroy(values);
   );
-  kh_destroy(yaml_param_map, data.input);
-  kh_destroy(yaml_array_param_map, data.array_input);
+  kh_destroy(yaml_param_map, data.fixed_input);
+  kh_destroy(yaml_param_map, data.lattice_input);
+  kh_destroy(yaml_param_map, data.enumerated_input);
+  kh_destroy(yaml_array_param_map, data.fixed_array_input);
+  kh_destroy(yaml_array_param_map, data.lattice_array_input);
+  kh_destroy(yaml_array_param_map, data.enumerated_array_input);
   if (data.settings) sw_settings_free(data.settings);
 }
 
 // This type keeps track of the state of the YAML parser.
 typedef struct parser_state_t {
-  bool parsing_type;
   const char *settings_block;
   bool parsing_settings;
   const char *current_setting;
   bool parsing_input;
+  bool parsing_fixed_params;
+  bool parsing_lattice_params;
+  bool parsing_enumerated_params;
   bool parsing_input_sequence;
   bool parsing_input_array_sequence;
   const char *current_input;
@@ -396,25 +402,10 @@ static void handle_yaml_event(yaml_event_t *event,
 {
   if (event->type == YAML_SCALAR_EVENT) {
     const char *value = (const char*)(event->data.scalar.value);
-    // type block
-    if (!state->parsing_type && (strcmp(value, "type") == 0)) {
-      state->parsing_type = true;
-    } else if (state->parsing_type) {
-      if (strcmp(value, "lattice") == 0) {
-        data->ensemble_type = SW_LATTICE;
-      } else if (strcmp(value, "enumeration") == 0) {
-        data->ensemble_type = SW_ENUMERATION;
-      } else {
-        data->error_code = SW_INVALID_ENSEMBLE_TYPE;
-        data->error_message = new_string("Invalid ensemble type: %s", value);
-      }
-      state->parsing_type = false;
-
     // settings block
-    } else if (!state->parsing_settings &&
-               state->settings_block &&
-               (state->settings_block[0] != '\0') && // exclude blank strings
-               strcmp(value, state->settings_block) == 0) {
+    if (!state->parsing_settings && state->settings_block &&
+        (state->settings_block[0] != '\0') && // exclude blank strings
+        strcmp(value, state->settings_block) == 0) {
       assert(!state->current_setting);
       data->settings = sw_settings_new();
       state->parsing_settings = true;
@@ -429,7 +420,21 @@ static void handle_yaml_event(yaml_event_t *event,
     // input block
     } else if (!state->parsing_input && strcmp(value, "input") == 0) {
       state->parsing_input = true;
-    } else if (state->parsing_input) {
+    } else if ((state->parsing_input &&
+               !state->parsing_fixed_params &&
+               !state->parsing_lattice_params &&
+               !state->parsing_enumerated_params))
+      if (strcmp(value, "fixed") == 0) {
+        state->parsing_fixed_params = true;
+      } else if (strcmp(value, "lattice") == 0) {
+        state->parsing_lattice_params = true;
+      } else if (strcmp(value, "enumeration") == 0) {
+        state->parsing_enumerated_params = true;
+      } else {
+        data->error_code = SW_INVALID_PARAM_TYPE;
+        data->error_message = new_string("Invalid parameter type: %s", value);
+      }
+    } else {
       if (!state->current_input) { // parse the input value
         if (!is_valid_input_name(value, state->parsing_input_array_sequence)) {
           data->error_code = SW_INVALID_PARAM_NAME;
@@ -439,21 +444,31 @@ static void handle_yaml_event(yaml_event_t *event,
         }
         state->current_input = dup_yaml_string(value);
       } else { // stash the input value
-        // First, try to interpret the value as a real number.
-        char *endp;
-        sw_real_t real_value = strtod(value, &endp);
-        if (endp == value) { // invalid value!
-          data->error_code = SW_INVALID_PARAM_VALUE;
-          data->error_message = new_string(
-            "Invalid input value for parameter %s: %s", state->current_input,
-            value);
+        if (state->parsing_fixed_params) {
+          // Try to interpret the value as a real number.
+          char *endp;
+          sw_real_t real_value = strtod(value, &endp);
+          if (endp == value) { // invalid value!
+            data->error_code = SW_INVALID_PARAM_VALUE;
+            data->error_message = new_string(
+              "Invalid input value for fixed parameter %s: %s",
+              state->current_input, value);
           return;
         } else {
           // If we're in the middle of an array input, append this value to it.
           if (state->parsing_input_array_sequence) {
-            khiter_t iter = kh_get(yaml_array_param_map, data->array_input,
-                                   state->current_input);
-            if (iter == kh_end(data->array_input)) { // name not yet encountered
+            khash_t(yaml_array_param_map *array_input;
+            if (state->parsing_fixed_params) {
+              array_input = data->fixed_array_input;
+            } else if (state->parsing_lattice_params) {
+              array_input = data->lattice_array_input;
+            } else {
+              assert(state->parsing_enumerated_params);
+              array_input = data->enumerated_array_input;
+            }
+            khiter_t iter = kh_get(yaml_array_param_map, array_input,
+                            state->current_input);
+            if (iter == kh_end(array_input)) { // name not yet encountered
               // Create an array of arrays containing one empty array.
               real_vec_vec_t arrays;
               kv_init(arrays);
@@ -463,30 +478,36 @@ static void handle_yaml_event(yaml_event_t *event,
 
               // Add it to the array parameter map.
               int ret;
-              iter = kh_put(yaml_array_param_map, data->array_input,
+              iter = kh_put(yaml_array_param_map, array_input,
                             state->current_input, &ret);
               assert(ret == 1);
-              kh_value(data->array_input, iter) = arrays;
+              kh_value(array_input, iter) = arrays;
             }
             // Append this value to the last array in the list of arrays for
             // this input.
-            real_vec_vec_t arrays = kh_value(data->array_input, iter);
+            real_vec_vec_t arrays = kh_value(array_input, iter);
             size_t index = kv_size(arrays)-1;
             real_vec_t current_array = kv_A(arrays, index);
             kv_push(sw_real_t, current_array, real_value);
             kv_A(arrays, index) = current_array;
-            kh_value(data->array_input, iter) = arrays;
+            kh_value(array_input, iter) = arrays;
           } else {
             // Otherwise, append the value to the list of inputs with this name.
-            khiter_t iter = kh_get(yaml_param_map, data->input,
-                                   state->current_input);
-            if (iter == kh_end(data->input)) { // name not yet encountered
-              int ret;
-              iter = kh_put(yaml_param_map, data->input, state->current_input, &ret);
-              assert(ret == 1);
-              kv_init(kh_value(data->input, iter));
+            khash_t(yaml_param_map) *input;
+            if (state->parsing_lattice_params) {
+              input = data->lattice_input;
+            } else {
+              assert(state->parsing_enumerated_params);
+              input = data->enumerated_input;
             }
-            kv_push(sw_real_t, kh_value(data->input, iter), real_value);
+            khiter_t iter = kh_get(yaml_param_map, input, state->current_input);
+            if (iter == kh_end(input)) { // name not yet encountered
+              int ret;
+              iter = kh_put(yaml_param_map, input, state->current_input, &ret);
+              assert(ret == 1);
+              kv_init(kh_value(input, iter));
+            }
+            kv_push(sw_real_t, kh_value(input, iter), real_value);
           }
         }
         // Clear the current input if we're parsing a scalar.
@@ -504,8 +525,9 @@ static void handle_yaml_event(yaml_event_t *event,
         "Mapping encountered in input parameter %s", state->current_input);
     }
   } else if (event->type == YAML_MAPPING_END_EVENT) {
-    state->parsing_type = false;
-    state->parsing_input = false;
+    state->parsing_fixed_input = false;
+    state->parsing_lattice_input = false;
+    state->parsing_enumerated_input = false;
     state->parsing_settings = false;
   } else if (event->type == YAML_SEQUENCE_START_EVENT) {
     if (state->parsing_input_array_sequence) {
@@ -515,15 +537,22 @@ static void handle_yaml_event(yaml_event_t *event,
         state->current_input);
     } else if (state->parsing_input_sequence) {
       state->parsing_input_array_sequence = true;
-      khiter_t iter = kh_get(yaml_array_param_map, data->array_input,
+      khash_t(yaml_array_param_map) *array_input;
+      if (state->parsing_lattice_params) {
+        array_input = data->lattice_array_input;
+      } else {
+        assert(state->parsing_enumerated_params);
+        array_input = data->enumerated_input;
+      }
+      khiter_t iter = kh_get(yaml_array_param_map, array_input,
                              state->current_input);
-      if (iter != kh_end(data->array_input)) { // name already encountered
+      if (iter != kh_end(array_input)) { // name already encountered
         // Add new array to the array of arrays.
-        real_vec_vec_t arrays = kh_value(data->array_input, iter);
+        real_vec_vec_t arrays = kh_value(array_input, iter);
         real_vec_t array;
         kv_init(array);
         kv_push(real_vec_t, arrays, array);
-        kh_value(data->array_input, iter) = arrays;
+        kh_value(array_input, iter) = arrays;
       }
     } else if (state->parsing_input) {
       state->parsing_input_sequence = true;
@@ -538,15 +567,17 @@ static void handle_yaml_event(yaml_event_t *event,
   }
 }
 
-// Postprocess the input parameters in the YAML data.
-void postprocess_input_data(yaml_data_t *yaml_data) {
+// Postprocess non-array input parameters.
+static void postprocess_params(khash_t(yaml_param_map **params,
+                               int *error_code,
+                               const char **error_message) {
   // Expand any relevant 3-parameter lists.
-  for (khiter_t iter = kh_begin(yaml_data->input);
-      iter != kh_end(yaml_data->input); ++iter) {
+  for (khiter_t iter = kh_begin(*params);
+      iter != kh_end(*params); ++iter) {
 
-    if (!kh_exist(yaml_data->input, iter)) continue;
+    if (!kh_exist(*params, iter)) continue;
 
-    real_vec_t values = kh_value(yaml_data->input, iter);
+    real_vec_t values = kh_value(*params, iter);
 
     if (kv_size(values) == 3) {
       sw_real_t val0 = kv_A(values, 0),
@@ -559,75 +590,28 @@ void postprocess_input_data(yaml_data_t *yaml_data) {
         for (size_t i = 0; i < size; ++i) {
           kv_push(sw_real_t, expanded_values, val0 + i * val2);
         }
-        kh_value(yaml_data->input, iter) = expanded_values;
+        kh_value(*params, iter) = expanded_values;
         kv_destroy(values);
-      }
-    }
-  }
-  for (khiter_t iter = kh_begin(yaml_data->array_input);
-      iter != kh_end(yaml_data->array_input); ++iter) {
-
-    if (!kh_exist(yaml_data->array_input, iter)) continue;
-
-    real_vec_vec_t array_values = kh_value(yaml_data->array_input, iter);
-
-    if (kv_size(array_values) == 3) {
-      real_vec_t array_val0 = kv_A(array_values, 0),
-                 array_val1 = kv_A(array_values, 1),
-                 array_val2 = kv_A(array_values, 2);
-      size_t len = kv_size(array_val0);
-      if (len != kv_size(array_val1)) len = 0;
-      if (len != kv_size(array_val2)) len = 0;
-      size_t size = -1;
-      for (size_t l = 0; l < len; ++l) {
-        // find minimum distance from low to high.
-        sw_real_t val0 = kv_A(array_val0, l),
-                  val1 = kv_A(array_val1, l),
-                  val2 = kv_A(array_val2, l);
-        if ( 0 < val2) {
-          if ((val0 < val1) && (val2 < val1)) {
-             size_t s = (size_t)(ceil((val1 - val0) / val2) + 1);
-             if (s < size || -1 == size) size = s;
-          } else {
-             size = 0;
-          } 
-        }
-      }
-      if (0 < size) {
-        real_vec_vec_t expanded_array_values;
-        kv_init(expanded_array_values);
-        for (size_t i = 0; i < size; ++i) {
-          real_vec_t expanded_values;
-          kv_init(expanded_values);
-          for (size_t l = 0; l < len; ++l) {
-            sw_real_t val0 = kv_A(array_val0, l),
-                      val2 = kv_A(array_val2, l);
-            kv_push(sw_real_t, expanded_values, val0 + i * val2);
-          }
-          kv_push(real_vec_t, expanded_array_values, expanded_values);
-        }
-        kh_value(yaml_data->array_input, iter) = expanded_array_values;
-        kv_destroy(array_values);
       }
     }
   }
 
   // Exponentiate any log10 values, renaming "log10(x)" to "x".
   khash_t(yaml_param_map) *renamed_input = kh_init(yaml_param_map);
-  for (khiter_t iter = kh_begin(yaml_data->input);
-      iter != kh_end(yaml_data->input); ++iter) {
+  for (khiter_t iter = kh_begin(*params);
+      iter != kh_end(*params); ++iter) {
 
-    if (!kh_exist(yaml_data->input, iter)) continue;
+    if (!kh_exist(*params, iter)) continue;
 
-    const char *param_name = kh_key(yaml_data->input, iter);
+    const char *param_name = kh_key(*params, iter);
     size_t pname_len = strlen(param_name);
-    real_vec_t values = kh_value(yaml_data->input, iter);
+    real_vec_t values = kh_value(*params, iter);
 
     char new_param_name[pname_len+1];
     if (strstr(param_name, "log10(") == param_name) {
       if (param_name[pname_len-1] != ')') { // Did we close our parens?
-        yaml_data->error_code = SW_INVALID_PARAM_NAME;
-        yaml_data->error_message = new_string("Unclosed parens in parameter %s.",
+        *error_code = SW_INVALID_PARAM_NAME;
+        *error_message = new_string("Unclosed parens in parameter %s.",
           param_name);
         return;
       }
@@ -651,16 +635,72 @@ void postprocess_input_data(yaml_data_t *yaml_data) {
     kh_value(renamed_input, r_iter) = values;
   }
 
-  kh_destroy(yaml_param_map, yaml_data->input);
-  yaml_data->input = renamed_input;
+  kh_destroy(yaml_param_map, *params);
+  *params = renamed_input;
+}
+
+// Postprocess array input parameters.
+void postprocess_array_params(khash_t(yaml_array_param_map *params) {
+  // Expand any relevant 3-parameter lists.
+  for (khiter_t iter = kh_begin(params);
+      iter != kh_end(params); ++iter) {
+
+    if (!kh_exist(params, iter)) continue;
+
+    real_vec_vec_t array_values = kh_value(params, iter);
+
+    if (kv_size(array_values) == 3) {
+      real_vec_t array_val0 = kv_A(array_values, 0),
+                 array_val1 = kv_A(array_values, 1),
+                 array_val2 = kv_A(array_values, 2);
+      size_t len = kv_size(array_val0);
+      if (len != kv_size(array_val1)) len = 0;
+      if (len != kv_size(array_val2)) len = 0;
+      size_t size = -1;
+      for (size_t l = 0; l < len; ++l) {
+        // find minimum distance from low to high.
+        sw_real_t val0 = kv_A(array_val0, l),
+                  val1 = kv_A(array_val1, l),
+                  val2 = kv_A(array_val2, l);
+        if (val2 > 0) {
+          if ((val0 < val1) && (val2 < val1)) {
+            size_t s = (size_t)(ceil((val1 - val0) / val2) + 1);
+            if (s < size || -1 == size) size = s;
+          } else {
+            size = 0;
+          }
+        }
+      }
+      if (size > 0) {
+        real_vec_vec_t expanded_array_values;
+        kv_init(expanded_array_values);
+        for (size_t i = 0; i < size; ++i) {
+          real_vec_t expanded_values;
+          kv_init(expanded_values);
+          for (size_t l = 0; l < len; ++l) {
+            sw_real_t val0 = kv_A(array_val0, l),
+                      val2 = kv_A(array_val2, l);
+            kv_push(sw_real_t, expanded_values, val0 + i * val2);
+          }
+          kv_push(real_vec_t, expanded_array_values, expanded_values);
+        }
+        kh_value(params, iter) = expanded_array_values;
+        kv_destroy(array_values);
+      }
+    }
+  }
 }
 
 // Parses a YAML file, returning the results.
 static yaml_data_t parse_yaml(FILE* file, const char* settings_block) {
   yaml_data_t data = {.error_code = 0};
 
-  data.input = kh_init(yaml_param_map);
-  data.array_input = kh_init(yaml_array_param_map);
+  data.fixed_input = kh_init(yaml_param_map);
+  data.lattice_input = kh_init(yaml_param_map);
+  data.enumerated_input = kh_init(yaml_param_map);
+  data.fixed_array_input = kh_init(yaml_array_param_map);
+  data.lattice_array_input = kh_init(yaml_array_param_map);
+  data.enumerated_array_input = kh_init(yaml_array_param_map);
 
   yaml_parser_t parser;
   yaml_parser_initialize(&parser);
@@ -701,9 +741,17 @@ static yaml_data_t parse_yaml(FILE* file, const char* settings_block) {
     goto return_data;
   }
 
-  // Postprocess the scalar input parameters, expanding 3-element lists if
-  // needed, and applying log10 operations.
-  postprocess_input_data(&data);
+  // Postprocess input parameters, expanding 3-element lists if needed, and
+  // applying log10 operations.
+  postprocess_params(&(data.lattice_input), &(data.error_code),
+                     &(data.error_message));
+  if (!data.error_code) {
+    postprocess_params(&(data.enumerated_input), &(data.error_code),
+                       *(data.error_message));
+  }
+  if (!data.error_code) {
+    postprocess_array_params(data.enumerated_input);
+  }
 
 return_data:
   return data;
@@ -793,7 +841,7 @@ typedef struct sw_build_result_t {
   const char *error_message;
 } sw_build_result_t;
 
-// Generates an array of inputs for a lattice ensemble.
+// Generates an array of inputs for an ensemble.
 static sw_build_result_t build_lattice_ensemble(yaml_data_t yaml_data) {
   sw_build_result_t result = {.num_inputs = 1, .error_code = SW_SUCCESS};
   // Count up the number of inputs and parameters.
@@ -938,12 +986,7 @@ sw_ensemble_result_t sw_load_ensemble(const char* yaml_file,
 
   if (data.error_code == SW_SUCCESS) {
     result.type = data.ensemble_type;
-    sw_build_result_t build_result;
-    if (data.ensemble_type == SW_LATTICE) {
-      build_result = build_lattice_ensemble(data);
-    } else {
-      build_result = build_enumeration_ensemble(data);
-    }
+    sw_build_result_t build_result = build_ensemble(data);
     if (build_result.error_code != SW_SUCCESS) {
       result.error_code = build_result.error_code;
       result.error_message = build_result.error_message;

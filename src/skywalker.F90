@@ -50,7 +50,7 @@ module skywalker
   integer, parameter :: sw_success = 0
   integer, parameter :: sw_yaml_file_not_found = 1
   integer, parameter :: sw_invalid_yaml = 2
-  integer, parameter :: sw_invalid_ensemble_type = 3
+  integer, parameter :: sw_invalid_param_type = 3
   integer, parameter :: sw_invalid_param_value = 4
   integer, parameter :: sw_invalid_settings_block = 5
   integer, parameter :: sw_settings_not_found = 6
@@ -61,10 +61,6 @@ module skywalker
   integer, parameter :: sw_ensemble_too_large = 11
   integer, parameter :: sw_empty_ensemble = 12
   integer, parameter :: sw_write_failure = 13
-
-  ! Ensemble types
-  integer, parameter :: sw_lattice     = 0
-  integer, parameter :: sw_enumeration = 1
 
   ! This type represents an ensemble that has been loaded from a skywalker input
   ! YAML file. It's an opaque type whose innards cannot be manipulated.
@@ -155,8 +151,6 @@ module skywalker
     type(settings_t) :: settings
     ! The ensemble loaded (if no error occurred)
     type(ensemble_t) :: ensemble
-    ! The ensemble's type
-    integer :: type
     ! An error code indicating any problems encountered loading the ensemble
     ! (zero = success, non-zero = failure)
     integer :: error_code
