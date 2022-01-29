@@ -25,15 +25,14 @@ sets up the calculation of $f$ on these $(x, y)$ points:
 
 === "surface.yaml"
     ``` linenums="1"
-    type: lattice
-
     input:
-      x: [-6.2831853, 6.2831853, 0.0628]
-      y: [-6.2831853, 6.2831853, 0.0628]
+      lattice:
+        x: [-6.2831853, 6.2831853, 0.0628]
+        y: [-6.2831853, 6.2831853, 0.0628]
     ```
 
-Line 1 indicates that all values of $x$ are combined with all values of $y$.
-Lines 4 and 5 define 100 uniformly-spaced values between $−2\pi$ and $2\pi$ for
+Line 2 indicates that all values of $x$ are combined with all values of $y$.
+Lines 3 and 4 define 100 uniformly-spaced values between $−2\pi$ and $2\pi$ for
 $x$ and $y$. You can find detailed explanations of all these things in the
 [Input Format (YAML)](input.md) section.
 
