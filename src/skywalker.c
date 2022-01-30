@@ -323,9 +323,14 @@ static const char* dup_yaml_string(const char *s) {
   return (const char*)dup;
 }
 
-// A hash table whose keys are C strings and whose values are arrays of numbers.
+// A hash table whose keys are C strings and whose values are real numbers.
 KHASH_MAP_INIT_STR(yaml_param_map, real_vec_t)
+
+// A vector of vectors containing real numbers.
 typedef kvec_t(real_vec_t) real_vec_vec_t;
+
+// A hash table whose keys are C strings and whose values are arrays of real
+// numbers.
 KHASH_MAP_INIT_STR(yaml_array_param_map, real_vec_vec_t)
 
 // This type stores data parsed from YAML.
@@ -741,6 +746,11 @@ static void postprocess_array_params(khash_t(yaml_array_param_map) *params) {
           kv_push(real_vec_t, expanded_array_values, expanded_values);
         }
         kh_value(params, iter) = expanded_array_values;
+
+        // Destroy the unprocessed array.
+        for (size_t i = 0; i < kv_size(array_values); ++i) {
+          kv_destroy(kv_A(array_values, i));
+        }
         kv_destroy(array_values);
       }
     }
