@@ -171,12 +171,12 @@ module skywalker
     end subroutine
 
     subroutine sw_load_ensemble_f90(yaml_file, settings_block, &
-                                    settings, ensemble, type, &
-                                    error_code, error_message) bind(c)
+                                    settings, ensemble, error_code, &
+                                    error_message) bind(c)
       use iso_c_binding, only: c_ptr, c_int
       type(c_ptr), value, intent(in) :: yaml_file, settings_block
       type(c_ptr), intent(out) :: settings, ensemble, error_message
-      integer(c_int), intent(out) :: type, error_code
+      integer(c_int), intent(out) :: error_code
     end subroutine
 
     logical(c_bool) function sw_settings_has(settings, name) bind(c)
@@ -299,7 +299,7 @@ contains
     call sw_load_ensemble_f90(f_to_c_string(yaml_file), &
                               c_settings_block, &
                               e_result%settings%ptr, e_result%ensemble%ptr, &
-                              e_result%type, e_result%error_code, c_err_msg)
+                              e_result%error_code, c_err_msg)
 
     if (e_result%error_code == SW_SUCCESS) then
       e_result%ensemble%size = sw_ensemble_size(e_result%ensemble%ptr)

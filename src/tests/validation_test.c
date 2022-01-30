@@ -52,35 +52,13 @@ static void write_test_input(const char* yaml_text, const char* filename) {
   fclose(f);
 }
 
-// TODO: Not sure why libyaml doesn't seem to care about invalid YAML.
-//static void test_invalid_yaml() {
-//  const char* bad_yaml = "{ key = THIS IS NOT; value = VALID YAML!}\n\n";
-//  write_test_input(bad_yaml, "bad.yaml");
-//  sw_ensemble_result_t load_result = sw_load_ensemble("bad.yaml", "settings");
-//  assert(load_result.error_code == SW_INVALID_YAML);
-//  assert(load_result.error_message != NULL);
-//}
-
-static void test_invalid_ensemble_type() {
-  const char* bad_yaml =
-    "type: purple\n\n"
-    "settings:\n  a: 1\n\n"
-    "input:\n  x: 1\n  y: 2\n  z: 3\n";
-  write_test_input(bad_yaml, "invalid_ensemble_type.yaml");
-  sw_ensemble_result_t load_result =
-    sw_load_ensemble("invalid_ensemble_type.yaml", "settings");
-  assert(load_result.error_code == SW_INVALID_ENSEMBLE_TYPE);
-  assert(load_result.error_message != NULL);
-}
-
 static void test_invalid_settings_block() {
   const char* bad_yaml =
-    "type: lattice\n\n"
     "settings:\n  a: 1\n\n"
     "input:\n  x: 1\n  y: 2\n  z: 3\n";
   write_test_input(bad_yaml, "invalid_settings.yaml");
   sw_ensemble_result_t load_result =
-    sw_load_ensemble("invalid_settings.yaml", "type"); // can't use "type"!
+    sw_load_ensemble("invalid_settings.yaml", "input");
   assert(load_result.error_code == SW_INVALID_SETTINGS_BLOCK);
   assert(load_result.error_message != NULL);
 }
@@ -181,8 +159,6 @@ int main(int argc, char **argv) {
 
   // Now validate!
   test_nonexistent_file();
-//  test_invalid_yaml(); // See TODO above
-  test_invalid_ensemble_type();
   test_invalid_settings_block();
   test_missing_settings_block();
   test_invalid_param_name();

@@ -252,7 +252,7 @@ inline Ensemble* load_ensemble(const std::string& yaml_file,
                                const std::string& settings_block = "") {
   auto result = sw_load_ensemble(yaml_file.c_str(), settings_block.c_str());
   if (result.error_code == SW_SUCCESS) {
-    return new Ensemble(result.type, result.ensemble, result.settings);
+    return new Ensemble(result.ensemble, result.settings);
   } else {
     throw Exception(result.error_message);
   }
