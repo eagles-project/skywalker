@@ -1241,6 +1241,7 @@ void sw_ensemble_free(sw_ensemble_t *ensemble) {
       kh_foreach_value(ensemble->inputs[i].array_params, arrays,
         kv_destroy(arrays);
       );
+      kh_destroy(array_param_map, ensemble->inputs[i].array_params);
       kh_destroy(param_map, ensemble->outputs[i].metrics);
       kh_destroy(array_param_map, ensemble->outputs[i].array_metrics);
     }
