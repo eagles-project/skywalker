@@ -124,7 +124,7 @@ types of parameters that define an ensemble:
    number of values. For example, in an ensemble consisting a set of enumerated
    parameters with 1000 members, every parameter must assume 1000 values.
 
-Look at the `parameters` block in the above example. There are 8 parameters:
+Look at the `input` block in the above example. There are 8 parameters:
 4 fixed parameters and 4 lattice parameters. The fixed parameters assume a
 single value, and the lattice parameters assume several values.
 
