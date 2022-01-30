@@ -280,7 +280,7 @@ struct sw_ensemble_t {
   size_t size, position;
   sw_input_t *inputs;
   sw_output_t *outputs;
-  sw_settings_t *settings; // for freeing
+  sw_settings_t *settings; // for writing and freeing
 };
 
 //------------------------------------------------------------------------
@@ -1059,23 +1059,38 @@ sw_write_result_t sw_ensemble_write(sw_ensemble_t *ensemble,
   fprintf(file, "class Object(object):\n");
   fprintf(file, "    pass\n\n");
 
+  // Write settings (if present).
+  if (ensemble->settings) {
+    fprintf(file, "# Settings are stored here.\n");
+    fprintf(file, "settings = Object()\n");
+    khash_t(string_map) *settings = ensemble->settings.params;
+    for (khiter_t iter = kh_begin(settings); iter != kh_end(settings); ++iter) {
+
+      if (!kh_exist(s0, iter)) continue;
+
+      const char *name = kh_key(settings, iter);
+      const char* value = kh_val(settings, iter);
+      fprintf(file, "settings.%s = '%s'\n", name, value);
+    }
+  }
+
   // Write input data.
   fprintf(file, "# Input is stored here.\n");
   fprintf(file, "input = Object()\n");
   khash_t(param_map) *params_0 = ensemble->inputs[0].params;
   for (khiter_t iter = kh_begin(params_0); iter != kh_end(params_0); ++iter) {
 
-      if (!kh_exist(params_0, iter)) continue;
+    if (!kh_exist(params_0, iter)) continue;
 
-      const char *name = kh_key(params_0, iter);
-      fprintf(file, "input.%s = [", name);
-      for (size_t i = 0; i < ensemble->size; ++i) {
-        khash_t(param_map) *params_i = ensemble->inputs[i].params;
-        khiter_t iter = kh_get(param_map, params_i, name);
-        sw_real_t value = kh_val(params_i, iter);
-        fprintf(file, "%g, ", value);
-      }
-      fprintf(file, "]\n");
+    const char *name = kh_key(params_0, iter);
+    fprintf(file, "input.%s = [", name);
+    for (size_t i = 0; i < ensemble->size; ++i) {
+      khash_t(param_map) *params_i = ensemble->inputs[i].params;
+      khiter_t iter = kh_get(param_map, params_i, name);
+      sw_real_t value = kh_val(params_i, iter);
+      fprintf(file, "%g, ", value);
+    }
+    fprintf(file, "]\n");
   }
 
   khash_t(array_param_map) *array_params_0 = ensemble->inputs[0].array_params;
