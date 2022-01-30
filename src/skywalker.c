@@ -448,102 +448,103 @@ static void handle_yaml_event(yaml_event_t *event,
     // input block
     } else if (!state->parsing_input && strcmp(value, "input") == 0) {
       state->parsing_input = true;
-    } else if ((state->parsing_input &&
-               !state->parsing_fixed_params &&
-               !state->parsing_lattice_params &&
-               !state->parsing_enumerated_params)) {
-      if (strcmp(value, "fixed") == 0) {
-        state->parsing_fixed_params = true;
-      } else if (strcmp(value, "lattice") == 0) {
-        state->parsing_lattice_params = true;
-      } else if (strcmp(value, "enumeration") == 0) {
-        state->parsing_enumerated_params = true;
-      } else {
-        data->error_code = SW_INVALID_PARAM_TYPE;
-        data->error_message = new_string("Invalid parameter type: %s", value);
-      }
-    } else { // handle input name/value
-      if (!state->current_input) { // parse the input parameter name
-        if (!is_valid_input_name(value, state->parsing_input_array_sequence)) {
-          data->error_code = SW_INVALID_PARAM_NAME;
-          data->error_message = new_string(
-            "Invalid input parameter name: %s", value);
-          return;
+    } else if (state->parsing_input) {
+      if (!state->parsing_fixed_params &&
+          !state->parsing_lattice_params &&
+          !state->parsing_enumerated_params) {
+        if (strcmp(value, "fixed") == 0) {
+          state->parsing_fixed_params = true;
+        } else if (strcmp(value, "lattice") == 0) {
+          state->parsing_lattice_params = true;
+        } else if (strcmp(value, "enumerated") == 0) {
+          state->parsing_enumerated_params = true;
+        } else {
+          data->error_code = SW_INVALID_PARAM_TYPE;
+          data->error_message = new_string("Invalid parameter type: %s", value);
         }
-        state->current_input = dup_yaml_string(value);
-      } else { // we have an input name; parse its value
-        // Try to interpret the value as a real number.
-        char *endp;
-        sw_real_t real_value = strtod(value, &endp);
-        if (endp == value) { // invalid value!
-          data->error_code = SW_INVALID_PARAM_VALUE;
-          data->error_message = new_string(
-            "Invalid input value for fixed parameter %s: %s",
-            state->current_input, value);
-          return;
-        } else { // valid real value
-          // If we're in the middle of an array input, append this value to it.
-          if (state->parsing_input_array_sequence) {
-            khash_t(yaml_array_param_map) *array_input;
-            if (state->parsing_fixed_params) {
-              array_input = data->fixed_array_input;
-            } else if (state->parsing_lattice_params) {
-              array_input = data->lattice_array_input;
-            } else {
-              assert(state->parsing_enumerated_params);
-              array_input = data->enumerated_array_input;
-            }
-            khiter_t iter = kh_get(yaml_array_param_map, array_input,
-                                   state->current_input);
-            if (iter == kh_end(array_input)) { // name not yet encountered
-              // Create an array of arrays containing one empty array.
-              real_vec_vec_t arrays;
-              kv_init(arrays);
-              real_vec_t array;
-              kv_init(array);
-              kv_push(real_vec_t, arrays, array);
-
-              // Add it to the array parameter map.
-              int ret;
-              iter = kh_put(yaml_array_param_map, array_input,
-                            state->current_input, &ret);
-              assert(ret == 1);
-              kh_value(array_input, iter) = arrays;
-            }
-            // Append this value to the last array in the list of arrays for
-            // this input.
-            real_vec_vec_t arrays = kh_value(array_input, iter);
-            size_t index = kv_size(arrays)-1;
-            real_vec_t current_array = kv_A(arrays, index);
-            kv_push(sw_real_t, current_array, real_value);
-            kv_A(arrays, index) = current_array;
-            kh_value(array_input, iter) = arrays;
-          } else { // not in the middle of an array sequence
-            // Otherwise, append the value to the list of inputs with this name.
-            khash_t(yaml_param_map) *input;
-            if (state->parsing_lattice_params) {
-              input = data->lattice_input;
-            } else {
-              assert(state->parsing_enumerated_params);
-              input = data->enumerated_input;
-            }
-            khiter_t iter = kh_get(yaml_param_map, input, state->current_input);
-            if (iter == kh_end(input)) { // name not yet encountered
-              int ret;
-              iter = kh_put(yaml_param_map, input, state->current_input, &ret);
-              assert(ret == 1);
-              kv_init(kh_value(input, iter));
-            }
-            kv_push(sw_real_t, kh_value(input, iter), real_value);
+      } else { // handle input name/value
+        if (!state->current_input) { // parse the input parameter name
+          if (!is_valid_input_name(value, state->parsing_input_array_sequence)) {
+            data->error_code = SW_INVALID_PARAM_NAME;
+            data->error_message = new_string(
+                "Invalid input parameter name: %s", value);
+            return;
           }
-        } // valid value
+          state->current_input = dup_yaml_string(value);
+        } else { // we have an input name; parse its value
+          // Try to interpret the value as a real number.
+          char *endp;
+          sw_real_t real_value = strtod(value, &endp);
+          if (endp == value) { // invalid value!
+            data->error_code = SW_INVALID_PARAM_VALUE;
+            data->error_message = new_string(
+                "Invalid input value for fixed parameter %s: %s",
+                state->current_input, value);
+            return;
+          } else { // valid real value
+            // If we're in the middle of an array input, append this value to it.
+            if (state->parsing_input_array_sequence) {
+              khash_t(yaml_array_param_map) *array_input;
+              if (state->parsing_lattice_params) {
+                array_input = data->lattice_array_input;
+              } else {
+                assert(state->parsing_enumerated_params);
+                array_input = data->enumerated_array_input;
+              }
+              khiter_t iter = kh_get(yaml_array_param_map, array_input,
+                  state->current_input);
+              if (iter == kh_end(array_input)) { // name not yet encountered
+                // Create an array of arrays containing one empty array.
+                real_vec_vec_t arrays;
+                kv_init(arrays);
+                real_vec_t array;
+                kv_init(array);
+                kv_push(real_vec_t, arrays, array);
 
-        // Clear the current input if we're parsing a scalar.
-        if (!state->parsing_input_sequence) {
-          state->current_input = NULL;
-        }
-      } // handle input value
-    } // handle input name/value
+                // Add it to the array parameter map.
+                int ret;
+                iter = kh_put(yaml_array_param_map, array_input,
+                    state->current_input, &ret);
+                assert(ret == 1);
+                kh_value(array_input, iter) = arrays;
+              }
+              // Append this value to the last array in the list of arrays for
+              // this input.
+              real_vec_vec_t arrays = kh_value(array_input, iter);
+              size_t index = kv_size(arrays)-1;
+              real_vec_t current_array = kv_A(arrays, index);
+              kv_push(sw_real_t, current_array, real_value);
+              kv_A(arrays, index) = current_array;
+              kh_value(array_input, iter) = arrays;
+            } else { // not in the middle of an array sequence
+              // Otherwise, append the value to the list of inputs with this name.
+              khash_t(yaml_param_map) *input;
+              if (state->parsing_fixed_params) {
+                input = data->fixed_input;
+              } else if (state->parsing_lattice_params) {
+                input = data->lattice_input;
+              } else {
+                assert(state->parsing_enumerated_params);
+                input = data->enumerated_input;
+              }
+              khiter_t iter = kh_get(yaml_param_map, input, state->current_input);
+              if (iter == kh_end(input)) { // name not yet encountered
+                int ret;
+                iter = kh_put(yaml_param_map, input, state->current_input, &ret);
+                assert(ret == 1);
+                kv_init(kh_value(input, iter));
+              }
+              kv_push(sw_real_t, kh_value(input, iter), real_value);
+            }
+          } // valid value
+
+          // Clear the current input if we're parsing a scalar.
+          if (!state->parsing_input_sequence) {
+            state->current_input = NULL;
+          }
+        } // handle input value
+      } // handle input name/value
+    } // parsing input
 
   // validation for mappings
   } else if (event->type == YAML_MAPPING_START_EVENT) {
