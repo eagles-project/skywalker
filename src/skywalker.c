@@ -246,8 +246,7 @@ sw_input_array_result_t sw_input_get_array(sw_input_t *input, const char *name) 
   if (iter != kh_end(input->array_params)) {
     real_vec_t values = kh_val(input->array_params, iter);
     result.size = kv_size(values);
-    result.values = malloc(sizeof(sw_real_t) * result.size);
-    memcpy(result.values, values.a, sizeof(sw_real_t) * result.size);
+    result.values = values.a;
   } else {
     result.error_code = SW_PARAM_NOT_FOUND;
     const char *s = new_string("The input array parameter '%s' was not found.",
