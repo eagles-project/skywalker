@@ -485,7 +485,9 @@ static void handle_yaml_event(yaml_event_t *event,
             // If we're in the middle of an array input, append this value to it.
             if (state->parsing_input_array_sequence) {
               khash_t(yaml_array_param_map) *array_input;
-              if (state->parsing_lattice_params) {
+              if (state->parsing_fixed_params) {
+                array_input = data->fixed_array_input;
+              } else if (state->parsing_lattice_params) {
                 array_input = data->lattice_array_input;
               } else {
                 assert(state->parsing_enumerated_params);
@@ -567,7 +569,9 @@ static void handle_yaml_event(yaml_event_t *event,
     } else if (state->parsing_input_sequence) {
       state->parsing_input_array_sequence = true;
       khash_t(yaml_array_param_map) *array_input;
-      if (state->parsing_lattice_params) {
+      if (state->parsing_fixed_params) {
+        array_input = data->fixed_array_input;
+      } else if (state->parsing_lattice_params) {
         array_input = data->lattice_array_input;
       } else {
         assert(state->parsing_enumerated_params);
@@ -671,8 +675,7 @@ static void postprocess_params(khash_t(yaml_param_map) **params,
 // Postprocess array input parameters.
 static void postprocess_array_params(khash_t(yaml_array_param_map) *params) {
   // Expand any relevant 3-parameter lists.
-  for (khiter_t iter = kh_begin(params);
-      iter != kh_end(params); ++iter) {
+  for (khiter_t iter = kh_begin(params); iter != kh_end(params); ++iter) {
 
     if (!kh_exist(params, iter)) continue;
 
