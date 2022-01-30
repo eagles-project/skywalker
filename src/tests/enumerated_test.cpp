@@ -33,8 +33,8 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //-------------------------------------------------------------------------
 
-// This program tests Skywalker's C++ interface with an ensemble defined by an
-// enumeration.
+// This program tests Skywalker's C++ interface with an ensemble that contains
+// enumerated parameters.
 
 #include <skywalker.hpp>
 
@@ -66,24 +66,21 @@ int main(int argc, char **argv) {
   print_banner();
 
   // Load the ensemble. Any error encountered is fatal.
-  std::cerr << "enumeration_test: Loading ensemble from " << input_file << std::endl;
+  std::cerr << "enumerated_test: Loading ensemble from " << input_file << std::endl;
   Ensemble* ensemble = load_ensemble(input_file, "settings");
 
   // Make sure everything is as it should be.
 
-  // Ensemble type
-  assert(ensemble->type() == SW_ENUMERATION);
-
   // Settings
   Settings settings = ensemble->settings();
-  assert(settings.has("param1"));
-  assert(settings.get("param1") == "hello");
-  assert(settings.has("param2"));
-  assert(settings.get("param2") == "81");
-  assert(settings.has("param3"));
-  assert(settings.get("param3") == "3.14159265357");
+  assert(settings.has("setting1"));
+  assert(settings.get("setting1") == "hello");
+  assert(settings.has("setting2"));
+  assert(settings.get("setting2") == "81");
+  assert(settings.has("setting3"));
+  assert(settings.get("setting3") == "3.14159265357");
 
-  assert(not settings.has("nonexistent_param"));
+  assert(not settings.has("nonexistent_setting"));
 
   // Ensemble data
   assert(ensemble->size() == 11);
@@ -123,7 +120,7 @@ int main(int argc, char **argv) {
   });
 
   // Write out a Python module.
-  ensemble->write("enumeration_test_cpp.py");
+  ensemble->write("enumerated_test_cpp.py");
 
   // Clean up.
   delete ensemble;

@@ -66,15 +66,15 @@ int main(int argc, char **argv) {
   print_banner();
 
   // Load the ensemble. Any error encountered is fatal.
-  std::cerr << "enumeration_test: Loading ensemble from " << input_file << std::endl;
+  std::cerr << "array_param_test: Loading ensemble from " << input_file << std::endl;
   Ensemble* ensemble = load_ensemble(input_file, "settings");
 
   // Make sure everything is as it should be.
 
   // Ensemble data
-  assert(ensemble->size() == 1331);
+  assert(ensemble->size() == 11);
   ensemble->process([](const Input& input, Output& output) {
-    // Fixed parameters
+
     assert(input.has_array("p1"));
     auto p1 = input.get_array("p1");
     assert(p1.size() == 4);
@@ -93,15 +93,6 @@ int main(int argc, char **argv) {
 
     assert(input.has("p3"));
     assert(approx_equal(input.get("p3"), 3.0));
-
-    // Ensemble parameters
-    assert(input.has("tick"));
-    assert(input.get("tick") >= 0.0);
-    assert(input.get("tick") <= 10.0);
-
-    assert(input.has("tock"));
-    assert(input.get("tock") >= 1e1);
-    assert(input.get("tock") <= 1e11);
 
     // Add a "qoi" metric set to 4.
     output.set("qoi", 4.0);

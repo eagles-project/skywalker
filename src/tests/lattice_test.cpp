@@ -70,17 +70,14 @@ int main(int argc, char **argv) {
 
   // Make sure everything is as it should be.
 
-  // Ensemble type
-  assert(ensemble->type() == SW_LATTICE);
-
   // Settings
   Settings settings = ensemble->settings();
-  assert(settings.has("param1"));
-  assert(settings.get("param1") == "hello");
-  assert(settings.has("param2"));
-  assert(settings.get("param2") == "81");
-  assert(settings.has("param3"));
-  assert(settings.get("param3") == "3.14159265357");
+  assert(settings.has("setting1"));
+  assert(settings.get("setting1") == "hello");
+  assert(settings.has("setting2"));
+  assert(settings.get("setting2") == "81");
+  assert(settings.has("setting3"));
+  assert(settings.get("setting3") == "3.14159265357");
 
   assert(not settings.has("nonexistent_param"));
 

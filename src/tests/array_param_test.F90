@@ -102,7 +102,7 @@ program enumeration_test
 
   ! ensemble information
   ensemble = load_result%ensemble
-  assert(ensemble%size == 1331)
+  assert(ensemble%size == 11)
   do while (ensemble%next(input, output))
     assert(input%has_array("p1"))
     call input%get_array("p1", values)
@@ -122,14 +122,6 @@ program enumeration_test
 
     assert(input%has("p3"))
     assert(approx_equal(input%get("p3"), 3.0_swp))
-
-    assert(input%has("tick"))
-    assert(input%get("tick") >= 0.0_swp)
-    assert(input%get("tick") <= 10.0_swp)
-
-    assert(input%has("tock"))
-    assert(input%get("tock") >= 1e1_swp)
-    assert(input%get("tock") <= 1e11_swp)
 
     ! Add a "qoi" metric set to 4.
     call output%set("qoi", 4.0_swp)

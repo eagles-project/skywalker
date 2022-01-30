@@ -33,7 +33,8 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //-------------------------------------------------------------------------
 
-// This program tests Skywalker's C interface with a lattice ensemble.
+// This program tests Skywalker's C interface with an ensemble that contains
+// lattice parameters.
 
 #include <skywalker.h>
 
@@ -71,32 +72,29 @@ int main(int argc, char **argv) {
 
   // Make sure everything is as it should be.
 
-  // Ensemble type
-  assert(load_result.type == SW_LATTICE);
-
   // Settings
   sw_settings_t *settings = load_result.settings;
   sw_settings_result_t settings_result;
 
-  assert(sw_settings_has(settings, "param1"));
-  settings_result = sw_settings_get(settings, "param1");
+  assert(sw_settings_has(settings, "setting1"));
+  settings_result = sw_settings_get(settings, "setting1");
   assert(settings_result.error_code == 0);
   assert(strcmp(settings_result.value, "hello") == 0);
   assert(settings_result.error_message == NULL);
 
-  assert(sw_settings_has(settings, "param2"));
-  settings_result = sw_settings_get(settings, "param2");
+  assert(sw_settings_has(settings, "setting2"));
+  settings_result = sw_settings_get(settings, "setting2");
   assert(settings_result.error_code == 0);
   assert(strcmp(settings_result.value, "81") == 0);
   assert(settings_result.error_message == NULL);
 
-  assert(sw_settings_has(settings, "param3"));
-  settings_result = sw_settings_get(settings, "param3");
+  assert(sw_settings_has(settings, "setting3"));
+  settings_result = sw_settings_get(settings, "setting3");
   assert(settings_result.error_code == 0);
   assert(strcmp(settings_result.value, "3.14159265357") == 0);
   assert(settings_result.error_message == NULL);
 
-  assert(!sw_settings_has(settings, "nonexistent_param"));
+  assert(!sw_settings_has(settings, "nonexistent_setting"));
 
   // Ensemble data
   sw_ensemble_t *ensemble = load_result.ensemble;

@@ -72,14 +72,13 @@ int main(int argc, char **argv) {
 
   // Ensemble data
   sw_ensemble_t *ensemble = load_result.ensemble;
-  assert(sw_ensemble_size(ensemble) == 1331);
+  assert(sw_ensemble_size(ensemble) == 11);
   sw_input_t *input;
   sw_output_t *output;
   while (sw_ensemble_next(ensemble, &input, &output)) {
     sw_input_result_t in_result;
     sw_input_array_result_t in_array_result;
 
-    // Fixed parameters
     assert(sw_input_has_array(input, "p1"));
     in_array_result = sw_input_get_array(input, "p1");
     assert(in_array_result.error_code == SW_SUCCESS);
@@ -104,21 +103,6 @@ int main(int argc, char **argv) {
     in_result = sw_input_get(input, "p3");
     assert(in_result.error_code == SW_SUCCESS);
     assert(approx_equal(in_result.value, 3.0));
-    assert(in_result.error_message == NULL);
-
-    // Ensemble parameters
-    assert(sw_input_has(input, "tick"));
-    in_result = sw_input_get(input, "tick");
-    assert(in_result.error_code == SW_SUCCESS);
-    assert(in_result.value >= 0.0);
-    assert(in_result.value <= 10.0);
-    assert(in_result.error_message == NULL);
-
-    assert(sw_input_has(input, "tock"));
-    in_result = sw_input_get(input, "tock");
-    assert(in_result.error_code == SW_SUCCESS);
-    assert(in_result.value >= 1e1);
-    assert(in_result.value <= 1e11);
     assert(in_result.error_message == NULL);
 
     // Add a "qoi" metric set to 4.

@@ -103,19 +103,18 @@ program enumeration_test
     print *, "enumeration_test_f90: ", trim(load_result%error_message)
     stop
   end if
-  assert(load_result%type == sw_enumeration)
 
   ! check settings
   settings = load_result%settings
 
-  assert(settings%has("param1"))
-  assert(trim(settings%get("param1")) == "hello")
-  assert(settings%has("param2"))
-  assert(trim(settings%get("param2")) == "81")
-  assert(settings%has("param3"))
-  assert(trim(settings%get("param3")) == "3.14159265357")
+  assert(settings%has("setting1"))
+  assert(trim(settings%get("setting1")) == "hello")
+  assert(settings%has("setting2"))
+  assert(trim(settings%get("setting2")) == "81")
+  assert(settings%has("setting3"))
+  assert(trim(settings%get("setting3")) == "3.14159265357")
 
-  assert(.not. settings%has("nonexistent_param"))
+  assert(.not. settings%has("nonexistent_setting"))
 
   ! ensemble information
   ensemble = load_result%ensemble
@@ -153,7 +152,7 @@ program enumeration_test
   end do
 
   ! Now we write out a Python module containing the output data.
-  call ensemble%write("enumeration_test_f90.py")
+  call ensemble%write("enumerated_test_f90.py")
 
   ! Clean up.
   call ensemble%free()

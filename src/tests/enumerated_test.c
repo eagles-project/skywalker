@@ -33,8 +33,8 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //-------------------------------------------------------------------------
 
-// This program tests Skywalker's C interface with an ensemble defined by an
-// enumeration.
+// This program tests Skywalker's C interface with an ensemble that contains
+// enumerated parameters.
 
 #include <skywalker.h>
 
@@ -63,7 +63,7 @@ int main(int argc, char **argv) {
   sw_print_banner();
 
   // Load the ensemble. Any error encountered is fatal.
-  fprintf(stderr, "enumeration_test: Loading ensemble from %s\n", input_file);
+  fprintf(stderr, "enumerated_test: Loading ensemble from %s\n", input_file);
   sw_ensemble_result_t load_result = sw_load_ensemble(input_file, "settings");
   if (load_result.error_code != SW_SUCCESS) {
     printf("%s\n", load_result.error_message);
@@ -76,32 +76,29 @@ int main(int argc, char **argv) {
 
   // Make sure everything is as it should be.
 
-  // Ensemble type
-  assert(load_result.type == SW_ENUMERATION);
-
   // Settings
   sw_settings_t *settings = load_result.settings;
   sw_settings_result_t settings_result;
 
-  assert(sw_settings_has(settings, "param1"));
-  settings_result = sw_settings_get(settings, "param1");
+  assert(sw_settings_has(settings, "setting1"));
+  settings_result = sw_settings_get(settings, "setting1");
   assert(settings_result.error_code == 0);
   assert(strcmp(settings_result.value, "hello") == 0);
   assert(settings_result.error_message == NULL);
 
-  assert(sw_settings_has(settings, "param2"));
-  settings_result = sw_settings_get(settings, "param2");
+  assert(sw_settings_has(settings, "setting2"));
+  settings_result = sw_settings_get(settings, "setting2");
   assert(settings_result.error_code == 0);
   assert(strcmp(settings_result.value, "81") == 0);
   assert(settings_result.error_message == NULL);
 
-  assert(sw_settings_has(settings, "param3"));
-  settings_result = sw_settings_get(settings, "param3");
+  assert(sw_settings_has(settings, "setting3"));
+  settings_result = sw_settings_get(settings, "setting3");
   assert(settings_result.error_code == 0);
   assert(strcmp(settings_result.value, "3.14159265357") == 0);
   assert(settings_result.error_message == NULL);
 
-  assert(!sw_settings_has(settings, "nonexistent_param"));
+  assert(!sw_settings_has(settings, "nonexistent_setting"));
 
   // Ensemble data
   sw_ensemble_t *ensemble = load_result.ensemble;
@@ -157,7 +154,7 @@ int main(int argc, char **argv) {
 
   // Write out a Python module.
   sw_write_result_t w_result = sw_ensemble_write(ensemble,
-                                                 "enumeration_test.py");
+                                                 "enumerated_test.py");
   if (w_result.error_code != SW_SUCCESS) {
     fprintf(stderr, "%s\n", w_result.error_message);
     exit(-1);
