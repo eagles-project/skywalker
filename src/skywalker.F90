@@ -606,16 +606,16 @@ contains
     type(c_ptr) :: c_string
 
     interface
-        function sw_new_c_string(f_str_ptr, f_str_len) bind (c) result(c_string)
+        function sw_new_c_string_f90(f_str_ptr, f_str_len) bind (c) result(c_string)
         use, intrinsic :: iso_c_binding
             type(c_ptr), value :: f_str_ptr
             integer(c_int), value :: f_str_len
             type(c_ptr) :: c_string
-        end function sw_new_c_string
+        end function
     end interface
 
     f_ptr => f_string
-    c_string = sw_new_c_string(c_loc(f_ptr), len(f_string))
+    c_string = sw_new_c_string_f90(c_loc(f_ptr), len(f_string))
   end function
 
 end module

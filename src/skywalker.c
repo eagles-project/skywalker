@@ -1185,8 +1185,6 @@ void sw_ensemble_free(sw_ensemble_t *ensemble) {
 // Skywalker Fortran bindings
 //----------------------------
 
-#ifdef SKYWALKER_F90
-
 void sw_load_ensemble_f90(const char *yaml_file, const char *settings_block,
                           sw_settings_t **settings, sw_ensemble_t **ensemble,
                           int *type, int *error_code,
@@ -1243,15 +1241,13 @@ void sw_ensemble_write_f90(sw_ensemble_t *ensemble, const char *module_filename,
 
 // Returns a newly-allocated C string for the given Fortran string pointer with
 // the given length. Strings of this sort are freed at program exit.
-const char* sw_new_c_string(char* f_str_ptr, int f_str_len) {
+const char* sw_new_c_string_f90(char* f_str_ptr, int f_str_len) {
   char* s = malloc(sizeof(char) * (f_str_len+1));
   memcpy(s, f_str_ptr, sizeof(char) * f_str_len);
   s[f_str_len] = '\0';
   append_string((const char*)s);
   return (const char*)s;
 }
-
-#endif // SKYWALKER_F90
 
 #ifdef __cplusplus
 } // extern "C"
