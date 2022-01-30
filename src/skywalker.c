@@ -491,8 +491,10 @@ static void handle_yaml_event(yaml_event_t *event,
                 state->current_param, value);
             return;
           } else { // valid real value
-            // If we're in the middle of an array input, append this value to it.
-            if (state->parsing_input_array_sequence) {
+            // If we're parsing array input, append this value to it.
+            if ((state->parsing_input_sequence &&
+                 state->parsing_fixed_params) ||
+                (state->parsing_input_array_sequence)) {
               khash_t(yaml_array_param_map) *array_input;
               if (state->parsing_fixed_params) {
                 array_input = data->fixed_array_input;
@@ -576,11 +578,16 @@ static void handle_yaml_event(yaml_event_t *event,
         "Cannot parse a sequence of array sequences for input parameter %s",
         state->current_param);
     } else if (state->parsing_input_sequence) {
+      if (state->parsing_fixed_params) {
+        data->error_code = SW_INVALID_PARAM_VALUE;
+        data->error_message = new_string(
+          "Cannot parse a sequence of arrays for fixed input parameter %s",
+          state->current_param);
+        return;
+      }
       state->parsing_input_array_sequence = true;
       khash_t(yaml_array_param_map) *array_input;
-      if (state->parsing_fixed_params) {
-        array_input = data->fixed_array_input;
-      } else if (state->parsing_lattice_params) {
+      if (state->parsing_lattice_params) {
         array_input = data->lattice_array_input;
       } else {
         assert(state->parsing_enumerated_params);

@@ -208,19 +208,26 @@ values. For example, the concentrations in a miscible fluid can be considered
 the components of a single variable, as long as their ordering is well defined.
 
 Here, Skywalker takes advantage of the flexibility in the YAML format. Suppose
-you have a variable `n` representing the various concentrations in a fluid, and
-that there are 3 components. Here's how you would specify 4 different
+you have a variable `densities` representing the various densities in a fluid
+mixture, and that there are 3 components. Here's how you would specify 4 different
 configurations of the fluid's concentrations:
 
 ```
 input:
-  ...
-  lattice:
-    current_gas_mix_ratios: [[0.1, 0.3, 0.6], [0, 0.4, 0.4], [0.2, 0.8, 0], [0.5, 0.25, 0.25]]
+  fixed:
+    densities: [1e-5, 1e-9, 1e-7]
   ...
 ```
 
-We have used two sets of braces (a "list of lists") to indicate that the
+In addition, you can also define lattice parameters that are arrays, such
+as:
+```
+input:
+  lattice:
+    current_gas_mix_ratios: [[0.1, 0.3, 0.6], [0, 0.4, 0.4], [0.2, 0.8, 0], [0.5, 0.25, 0.25]]
+```
+
+Here, we have used two sets of braces (a "list of lists") to indicate that the
 parameter `current_gas_mix_ratios` assumes 4 values, each of which is a list of 3 numbers.
 
 This is a very powerful syntax, but it comes with ѕome caveats:
@@ -228,9 +235,9 @@ This is a very powerful syntax, but it comes with ѕome caveats:
 * You can't use logarithmic spacing options with array parameters
 * Skywalker makes no attempt to verify that all values in a list of array
   parameters have the same length
-* Single values for array parameters must be surrounded by two sets of braces
-  (e.g. `current_gas_mix_ratios: [[0.1, 0.3, 0.5]]`). Otherwise, Skywalker interprets the parameter
-  as a list of multiple scalar parameters.
+
+The three-parameter uniform spacing option is also available to array
+parameters:
 
 ```
 input:
@@ -240,14 +247,14 @@ input:
   ...
 ```
 
-This means that the `wet_geo_mean_diameter` parameter assumes an array value
+In the input above, the `wet_geo_mean_diameter` parameter assumes an array value
 with uniform spacing for each ensemble. The array values start at
 `[0.001, 0.002, 0.003]` and go to `[0.004, 0.005, 0.009]`, incrementing each
 individual array entry by `[0.001, 0.001, 0.002]` for each ensemble. The
 interpretation of the values as a uniform spacing list is the same as above for
 a scalar list:
 
-* The list contains 3 sub-lists
+* The list contains 3 arrays
 * Each value in the first list is less than the corresponding value in the second list
 * Each value in the third list is less than the corresponding value in the second list
 
