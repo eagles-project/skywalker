@@ -83,7 +83,6 @@ int main(int argc, char **argv) {
     in_array_result = sw_input_get_array(input, "p1");
     assert(in_array_result.error_code == SW_SUCCESS);
     assert(in_array_result.size == 4);
-    printf("1 ?<= %g ?<= 11]\n", in_array_result.values[0]);
     assert(in_array_result.values[0] >= 1.0);
     assert(in_array_result.values[0] <= 11.0);
     assert(approx_equal(in_array_result.values[1], 1+in_array_result.values[0]));

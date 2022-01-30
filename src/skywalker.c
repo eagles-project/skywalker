@@ -204,9 +204,17 @@ static void sw_input_set_array(sw_input_t *input, const char *name,
                                real_vec_t values) {
   const char* n = dup_string(name);
   int ret;
+  // Make a copy of the array values.
+  real_vec_t my_values;
+  kv_init(my_values);
+  for (size_t i = 0; i < kv_size(values); ++i) {
+    kv_push(sw_real_t, my_values, kv_A(values, i));
+  }
+
+  // Insert the copy.
   khiter_t iter = kh_put(array_param_map, input->array_params, n, &ret);
   assert(ret == 1);
-  kh_value(input->array_params, iter) = values;
+  kh_value(input->array_params, iter) = my_values;
 }
 
 bool sw_input_has(sw_input_t *input, const char *name) {
@@ -1230,6 +1238,10 @@ void sw_ensemble_free(sw_ensemble_t *ensemble) {
   if (ensemble->inputs) {
     for (size_t i = 0; i < ensemble->size; ++i) {
       kh_destroy(param_map, ensemble->inputs[i].params);
+      real_vec_t arrays;
+      kh_foreach_value(ensemble->inputs[i].array_params, arrays,
+        kv_destroy(arrays);
+      );
       kh_destroy(param_map, ensemble->outputs[i].metrics);
       kh_destroy(array_param_map, ensemble->outputs[i].array_metrics);
     }
