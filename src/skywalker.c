@@ -1035,7 +1035,10 @@ static sw_build_result_t build_ensemble(yaml_data_t yaml_data) {
       assign_fixed_params(yaml_data, &result.inputs[l]);
       assign_fixed_array_params(yaml_data, &result.inputs[l]);
       if (num_lattice_params > 0) {
-        size_t lattice_index = (num_enumerated_params > 0) ? l / num_enumerated_params : l;
+        size_t lattice_index = l;
+        if (yaml_data.num_enumerated_inputs > 0) {
+          lattice_index = l / yaml_data.num_enumerated_inputs;
+        }
         assign_lattice_params(yaml_data, lattice_index, num_lattice_params,
                               &result.inputs[l]);
       }
