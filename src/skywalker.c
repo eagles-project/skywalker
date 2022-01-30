@@ -341,6 +341,7 @@ typedef struct yaml_data_t {
 
 // This frees any resources allocated for the yaml data struct.
 static void free_yaml_data(yaml_data_t data) {
+  // Destroy parsed scalars.
   {
     real_vec_t values;
     kh_foreach_value(data.fixed_input, values,
@@ -357,6 +358,7 @@ static void free_yaml_data(yaml_data_t data) {
   kh_destroy(yaml_param_map, data.lattice_input);
   kh_destroy(yaml_param_map, data.enumerated_input);
 
+  // Destroy parsed arrays.
   {
     real_vec_vec_t values;
     kh_foreach_value(data.fixed_array_input, values,
@@ -392,7 +394,7 @@ typedef struct parser_state_t {
   bool parsing_enumerated_params;
   bool parsing_input_sequence;
   bool parsing_input_array_sequence;
-  const char *current_input;
+  const char *current_param;
 } parser_state_t;
 
 // Returns true if the given input parameter name is valid, false otherwise,
@@ -470,14 +472,14 @@ static void handle_yaml_event(yaml_event_t *event,
           data->error_message = new_string("Invalid parameter type: %s", value);
         }
       } else { // handle input name/value
-        if (!state->current_input) { // parse the input parameter name
+        if (!state->current_param) { // parse the input parameter name
           if (!is_valid_input_name(value, state->parsing_input_array_sequence)) {
             data->error_code = SW_INVALID_PARAM_NAME;
             data->error_message = new_string(
                 "Invalid input parameter name: %s", value);
             return;
           }
-          state->current_input = dup_yaml_string(value);
+          state->current_param = dup_yaml_string(value);
         } else { // we have an input name; parse its value
           // Try to interpret the value as a real number.
           char *endp;
@@ -486,7 +488,7 @@ static void handle_yaml_event(yaml_event_t *event,
             data->error_code = SW_INVALID_PARAM_VALUE;
             data->error_message = new_string(
                 "Invalid input value for fixed parameter %s: %s",
-                state->current_input, value);
+                state->current_param, value);
             return;
           } else { // valid real value
             // If we're in the middle of an array input, append this value to it.
@@ -501,7 +503,7 @@ static void handle_yaml_event(yaml_event_t *event,
                 array_input = data->enumerated_array_input;
               }
               khiter_t iter = kh_get(yaml_array_param_map, array_input,
-                  state->current_input);
+                  state->current_param);
               if (iter == kh_end(array_input)) { // name not yet encountered
                 // Create an array of arrays containing one empty array.
                 real_vec_vec_t arrays;
@@ -513,7 +515,7 @@ static void handle_yaml_event(yaml_event_t *event,
                 // Add it to the array parameter map.
                 int ret;
                 iter = kh_put(yaml_array_param_map, array_input,
-                    state->current_input, &ret);
+                    state->current_param, &ret);
                 assert(ret == 1);
                 kh_value(array_input, iter) = arrays;
               }
@@ -521,9 +523,9 @@ static void handle_yaml_event(yaml_event_t *event,
               // this input.
               real_vec_vec_t arrays = kh_value(array_input, iter);
               size_t index = kv_size(arrays)-1;
-              real_vec_t current_array = kv_A(arrays, index);
-              kv_push(sw_real_t, current_array, real_value);
-              kv_A(arrays, index) = current_array;
+              real_vec_t last_array = kv_A(arrays, index);
+              kv_push(sw_real_t, last_array, real_value);
+              kv_A(arrays, index) = last_array;
               kh_value(array_input, iter) = arrays;
             } else { // not in the middle of an array sequence
               // Otherwise, append the value to the list of inputs with this name.
@@ -536,10 +538,10 @@ static void handle_yaml_event(yaml_event_t *event,
                 assert(state->parsing_enumerated_params);
                 input = data->enumerated_input;
               }
-              khiter_t iter = kh_get(yaml_param_map, input, state->current_input);
+              khiter_t iter = kh_get(yaml_param_map, input, state->current_param);
               if (iter == kh_end(input)) { // name not yet encountered
                 int ret;
-                iter = kh_put(yaml_param_map, input, state->current_input, &ret);
+                iter = kh_put(yaml_param_map, input, state->current_param, &ret);
                 assert(ret == 1);
                 kv_init(kh_value(input, iter));
               }
@@ -549,7 +551,7 @@ static void handle_yaml_event(yaml_event_t *event,
 
           // Clear the current input if we're parsing a scalar.
           if (!state->parsing_input_sequence) {
-            state->current_input = NULL;
+            state->current_param = NULL;
           }
         } // handle input value
       } // handle input name/value
@@ -557,10 +559,10 @@ static void handle_yaml_event(yaml_event_t *event,
 
   // validation for mappings
   } else if (event->type == YAML_MAPPING_START_EVENT) {
-    if (state->current_input) { // we're already parsing an input value
+    if (state->current_param) { // we're already parsing an input value
       data->error_code = SW_INVALID_PARAM_VALUE;
       data->error_message = new_string(
-        "Mapping encountered in input parameter %s", state->current_input);
+        "Mapping encountered in input parameter %s", state->current_param);
     }
   } else if (event->type == YAML_MAPPING_END_EVENT) {
     state->parsing_fixed_params = false;
@@ -572,7 +574,7 @@ static void handle_yaml_event(yaml_event_t *event,
       data->error_code = SW_INVALID_PARAM_VALUE;
       data->error_message = new_string(
         "Cannot parse a sequence of array sequences for input parameter %s",
-        state->current_input);
+        state->current_param);
     } else if (state->parsing_input_sequence) {
       state->parsing_input_array_sequence = true;
       khash_t(yaml_array_param_map) *array_input;
@@ -585,7 +587,7 @@ static void handle_yaml_event(yaml_event_t *event,
         array_input = data->enumerated_array_input;
       }
       khiter_t iter = kh_get(yaml_array_param_map, array_input,
-                             state->current_input);
+                             state->current_param);
       if (iter != kh_end(array_input)) { // name already encountered
         // Add new array to the array of arrays.
         real_vec_vec_t arrays = kh_value(array_input, iter);
@@ -602,7 +604,7 @@ static void handle_yaml_event(yaml_event_t *event,
       state->parsing_input_array_sequence = false;
     } else { // sequence of scalar or array inputs
       state->parsing_input_sequence = false;
-      state->current_input = NULL;
+      state->current_param = NULL;
     }
   }
 }
@@ -647,7 +649,11 @@ static void postprocess_params(khash_t(yaml_param_map) **params,
     size_t pname_len = strlen(param_name);
     real_vec_t values = kh_value(*params, iter);
 
+#ifdef __STDC_NO_VLA__
+    char *new_param_name = malloc(sizeof(char)*(pname_len+1));
+#else
     char new_param_name[pname_len+1];
+#endif
     if (strstr(param_name, "log10(") == param_name) {
       if (param_name[pname_len-1] != ')') { // Did we close our parens?
         *error_code = SW_INVALID_PARAM_NAME;
@@ -673,6 +679,10 @@ static void postprocess_params(khash_t(yaml_param_map) **params,
                              dup_yaml_string(new_param_name), &ret);
     assert(ret == 1);
     kh_value(renamed_input, r_iter) = values;
+
+#ifdef __STDC_NO_VLA__
+    free(new_param_name);
+#endif
   }
 
   kh_destroy(yaml_param_map, *params);
