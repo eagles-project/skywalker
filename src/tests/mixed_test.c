@@ -144,7 +144,7 @@ int main(int argc, char **argv) {
     in_result = sw_input_get(input, "e2");
     assert(in_result.error_code == SW_SUCCESS);
     assert(in_result.value >= 0.05);
-    assert(in_result.value <= 0.3);
+    assert(in_result.value <= 0.3 + SW_EPSILON);
     assert(in_result.error_message == NULL);
 
     // Look for a parameter that doesn't exist.

@@ -83,6 +83,8 @@ int main(int argc, char **argv) {
   // Ensemble data
   assert(ensemble->size() == 726);
   ensemble->process([](const Input& input, Output& output) {
+    const auto epsilon = std::numeric_limits<skywalker::Real>::epsilon();
+
     // Fixed parameters
     assert(input.has("f1"));
     assert(approx_equal(input.get("f1"), 1.0));
@@ -109,7 +111,7 @@ int main(int argc, char **argv) {
 
     assert(input.has("e2"));
     assert(input.get("e2") >= 0.05);
-    assert(input.get("e2") <= 0.3);
+    assert(input.get("e2") <= 0.3 + epsilon);
 
     assert(not input.has("invalid_param"));
     bool caught = false;

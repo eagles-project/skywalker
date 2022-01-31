@@ -36,6 +36,7 @@
 #ifndef SKYWALKER_H
 #define SKYWALKER_H
 
+#include <float.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -72,6 +73,7 @@ typedef enum sw_error_code_t {
 
 // Precision of real numbers
 typedef @SKYWALKER_REAL_TYPE@ sw_real_t;
+#define SW_EPSILON @SKYWALKER_EPSILON@
 
 // This type represents an ensemble that has been loaded from a skywalker input
 // file. It's an opaque type whose innards cannot be manipulated.
