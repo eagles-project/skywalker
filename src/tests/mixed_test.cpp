@@ -39,9 +39,10 @@
 #include <skywalker.hpp>
 
 #include <cassert>
-#include <iostream>
 #include <cstring>
 #include <cmath>
+#include <iostream>
+#include <limits>
 
 void usage(const std::string& prog_name) {
   std::cerr << prog_name << ": usage:" << std::endl;
