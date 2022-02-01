@@ -44,7 +44,7 @@ Skywalker program.
 
 ## Data Types
 
-### Ensemble parameter type
+### Real number type
 
 Skywalker supports exactly one value type that stores real-valued ensemble
 parameters. By default this type is a double-precision floating point number,
@@ -74,6 +74,17 @@ In Fortran, the `swp` kind is used to store input parameters and output values,
 and is set to either the `c_double` or `c_float` interoperable types defined
 by the Fortran 2003 ISO C bindings.
 
+The C interface also defines the following macros:
+
+* `SW_EPSILON`: the "machine epsilon" value, an upper bound on the relative
+  relative approximation error due to rounding in floating point arithmetic.
+  This maps either to `FLT_EPSILON` or `DBL_EPSILON` as defined in `float.h`,
+  depending on Skywalker's precision.
+* `SW_MIN`: the minimum representable floating point number. Maps to
+  `FLT_MIN` or `DBL_MIN` as defined in `float.h`.
+* `SW_MAX`: the maximum representable floating point number. Maps to
+  `FLT_MAX` or `DBL_MAX` as defined in `float.h`.
+
 ### Interface types
 
 Each of the essential concepts in the library has an associated type.
@@ -90,9 +101,6 @@ Each of the essential concepts in the library has an associated type.
     ``` c++
     class Ensemble final {
      public:
-      // Returns the type of the ensemble (SW_LATTICE or SW_ENUMERATION).
-      EnsembleType type() const;
-
       // Returns the settings associated with this ensemble.
       const Settings& settings() const;
 
@@ -336,8 +344,6 @@ settings, as well as error handling information.
       sw_settings_t *settings;
       // The ensemble loaded (or NULL on failure)
       sw_ensemble_t *ensemble;
-      // The ensemble's type
-      sw_ens_type_t type;
       // An error code indicating any problems encountered loading the ensemble
       // (zero = success, non-zero = failure)
       int error_code;
@@ -972,46 +978,4 @@ Sometimes it helps to know how many members an ensemble contains.
 === "Fortran"
     The ensemble's size is stored in the `size` field of the `ensemble_t`
     derived type.
-
-### Getting the method used to construct the ensemble
-
-Skywalker offers two methods for constructing an ensemble:
-
-1. The **lattice** method constructs an ensemble using the "outer product" of
-   all parameters listed in the input YAML file. Parameter "lattices" can be
-   constructed for up to seven parameters.
-
-2. The **enumeration** method constructs an ensemble by walking all input
-   parameters defined in the YAML file in lockstep. This method requires that
-   all parameter value lists are the same length or single values.
-
-It is possible to imagine circumstances under which a Skywalker program is
-designed specifically for ensembles built using one or the other of these
-methods. If you need to know how the ensemble was constructed for your
-program, Skywalker can give you that information.
-
-The C and Fortran interfaces expose two (integer) values to indicate whether a
-given ensemble was built using the "lattice" or "enumeration" methods:
-
-* `SW_LATTICE` (0)
-* `SW_ENUMERATION` (1)
-
-=== "C"
-    You can compare these values with the `type` field of the
-    `sw_ensemble_result_t` variable returned by `load_ensemble`.
-=== "C++"
-    ``` c++
-    // Ensemble type (SW_LATTICE or SW_ENUMERATION).
-    using EnsembleType = sw_ens_type_t;
-    ...
-    class Ensemble final {
-      ...
-      // Returns the type of the ensemble (SW_LATTICE or SW_ENUMERATION).
-      EnsembleType type() const;
-      ...
-    };
-    ```
-=== "Fortran"
-    You can compare these values with the `type` field of the
-    `ensemble_result_t` variable returned by `load_ensemble`.
 

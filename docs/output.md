@@ -11,6 +11,9 @@ contains two Python variables:
 2. `output`, an object whose fields list all of the output parameters
    corresponding to the input paramaters, in the same order as the input
    parameters.
+3. `settings` (if settings are present), an object whose fields list all of the
+   driver-specific settings used to process the ensemble. All settings fields
+   are strings.
 
 Consider the `input` block from the example input file in the
 [Input Format](input.md) section:

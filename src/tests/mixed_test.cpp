@@ -33,14 +33,16 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //-------------------------------------------------------------------------
 
-// This program tests Skywalker's C++ interface with a lattice ensemble.
+// This program tests Skywalker's C++ interface with an ensemble that contains
+// both lattice and enumerated parameters.
 
 #include <skywalker.hpp>
 
 #include <cassert>
-#include <iostream>
 #include <cstring>
 #include <cmath>
+#include <iostream>
+#include <limits>
 
 void usage(const std::string& prog_name) {
   std::cerr << prog_name << ": usage:" << std::endl;
@@ -72,58 +74,46 @@ int main(int argc, char **argv) {
 
   // Settings
   Settings settings = ensemble->settings();
-  assert(settings.has("setting1"));
-  assert(settings.get("setting1") == "hello");
-  assert(settings.has("setting2"));
-  assert(settings.get("setting2") == "81");
-  assert(settings.has("setting3"));
-  assert(settings.get("setting3") == "3.14159265357");
+  assert(settings.has("s1"));
+  assert(settings.get("s1") == "primary");
+  assert(settings.has("s2"));
+  assert(settings.get("s2") == "algebraic");
 
   assert(not settings.has("nonexistent_param"));
 
   // Ensemble data
-  assert(ensemble->size() == 245520);
+  assert(ensemble->size() == 726);
   ensemble->process([](const Input& input, Output& output) {
+    const auto epsilon = std::numeric_limits<skywalker::Real>::epsilon();
+
     // Fixed parameters
-    assert(input.has("p1"));
-    assert(approx_equal(input.get("p1"), 1.0));
+    assert(input.has("f1"));
+    assert(approx_equal(input.get("f1"), 1.0));
 
-    assert(input.has("p2"));
-    assert(approx_equal(input.get("p2"), 2.0));
+    assert(input.has("f2"));
+    assert(approx_equal(input.get("f2"), 2.0));
 
-    assert(input.has("p3"));
-    assert(approx_equal(input.get("p3"), 3.0));
+    assert(input.has("f3"));
+    assert(approx_equal(input.get("f3"), 3.0));
 
-    // Ensemble parameters
-    assert(input.has("tick"));
-    assert(input.get("tick") >= 0.0);
-    assert(input.get("tick") <= 10.0);
+    // Lattice parameters
+    assert(input.has("l1"));
+    assert(input.get("l1") >= 0.0);
+    assert(input.get("l1") <= 10.0);
 
-    assert(input.has("tock"));
-    assert(input.get("tock") >= 1e1);
-    assert(input.get("tock") <= 1e11);
+    assert(input.has("l2"));
+    assert(input.get("l2") >= 1e1);
+    assert(input.get("l2") <= 1e11);
 
-    assert(input.has("pair"));
-    assert(input.get("pair") >= 1.0);
-    assert(input.get("pair") <= 2.0);
+    // Enumerated parameters
+    assert(input.has("e1"));
+    assert(input.get("e1") >= 1.0);
+    assert(input.get("e1") <= 6.0);
 
-    assert(input.has("triple"));
-    assert(input.get("triple") >= 1.0);
-    assert(input.get("triple") <= 3.0);
+    assert(input.has("e2"));
+    assert(input.get("e2") >= 0.05);
+    assert(input.get("e2") <= 0.3 + epsilon);
 
-    assert(input.has("quartet"));
-    assert(input.get("quartet") >= 1.0);
-    assert(input.get("quartet") <= 4.0);
-
-    assert(input.has("quintet"));
-    assert(input.get("quintet") >= 1.0);
-    assert(input.get("quintet") <= 5.0);
-
-    assert(input.has("sextet"));
-    assert(input.get("sextet") >= 1.0);
-    assert(input.get("sextet") <= 6.0);
-
-    // Look for a parameter that doesn't exist.
     assert(not input.has("invalid_param"));
     bool caught = false;
     try {
@@ -139,7 +129,7 @@ int main(int argc, char **argv) {
   });
 
   // Write out a Python module.
-  ensemble->write("lattice_test_cpp.py");
+  ensemble->write("mixed_test_cpp.py");
 
   // Clean up.
   delete ensemble;

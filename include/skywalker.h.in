@@ -36,6 +36,7 @@
 #ifndef SKYWALKER_H
 #define SKYWALKER_H
 
+#include <float.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -56,15 +57,14 @@ typedef enum sw_error_code_t {
   SW_SUCCESS = 0,            // no error occurred
   SW_YAML_FILE_NOT_FOUND,    // the specified YAML file was not found
   SW_INVALID_YAML,           // a problem was encountered parsing the YAML file
-  SW_INVALID_ENSEMBLE_TYPE,  // an invalid ensemble type was read from the YAML file
+  SW_INVALID_PARAM_TYPE,     // an invalid parameter type was found in YAML
   SW_INVALID_PARAM_VALUE,    // an invalid input value was read from the YAML file
   SW_INVALID_SETTINGS_BLOCK, // an invalid setting block name was given
   SW_SETTINGS_NOT_FOUND,     // the specified YAML settings block was not found
   SW_INVALID_PARAM_NAME,     // the specified parameter name is invalid
   SW_PARAM_NOT_FOUND,        // the specified setting/input parameter was not found
   SW_TOO_MANY_LATTICE_PARAMS,// the specified lattice ensemble has > 7 parameters
-  SW_INVALID_ENUMERATION,    // the specified enumeration ensemble has an invalid
-                             // enumeration
+  SW_INVALID_ENUMERATION,    // an invalid enumerated parameter was found in YAML
   SW_ENSEMBLE_TOO_LARGE,     // the specified ensemble doesn't fit into memory
   SW_EMPTY_ENSEMBLE,         // the specified ensemble has no members
   SW_WRITE_FAILURE           // an attempt to write the ensemble to a Python
@@ -74,16 +74,16 @@ typedef enum sw_error_code_t {
 // Precision of real numbers
 typedef @SKYWALKER_REAL_TYPE@ sw_real_t;
 
+// Machine epsilon
+#define SW_EPSILON @SKYWALKER_EPSILON@
+
+// Minimum and maximum representable floating point numbers
+#define SW_MIN @SKYWALKER_MIN@
+#define SW_MAX @SKYWALKER_MAX@
+
 // This type represents an ensemble that has been loaded from a skywalker input
 // file. It's an opaque type whose innards cannot be manipulated.
 typedef struct sw_ensemble_t sw_ensemble_t;
-
-// This type identifies the type of a given ensemble're running a "lattice"
-// or "enumeration" ensemble.
-typedef enum sw_ens_type_t {
-  SW_LATTICE = 0, // ensemble members constructed from outer product of inputs
-  SW_ENUMERATION  // ensemble members constructed from an explicit list
-} sw_ens_type_t;
 
 // This opaque type stores named settings intended for use with Skywalker driver
 // programs.
@@ -103,8 +103,6 @@ typedef struct sw_ensemble_result_t {
   sw_settings_t *settings;
   // The ensemble loaded (or NULL on failure)
   sw_ensemble_t *ensemble;
-  // The ensemble's type
-  sw_ens_type_t type;
   // An error code indicating any problems encountered loading the ensemble
   // (zero = success, non-zero = failure)
   int error_code;

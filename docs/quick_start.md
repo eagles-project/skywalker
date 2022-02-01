@@ -25,15 +25,14 @@ sets up the calculation of $f$ on these $(x, y)$ points:
 
 === "surface.yaml"
     ``` linenums="1"
-    type: lattice
-
     input:
-      x: [-6.2831853, 6.2831853, 0.0628]
-      y: [-6.2831853, 6.2831853, 0.0628]
+      lattice:
+        x: [-6.2831853, 6.2831853, 0.0628]
+        y: [-6.2831853, 6.2831853, 0.0628]
     ```
 
-Line 1 indicates that all values of $x$ are combined with all values of $y$.
-Lines 4 and 5 define 100 uniformly-spaced values between $−2\pi$ and $2\pi$ for
+Line 2 indicates that all values of $x$ are combined with all values of $y$.
+Lines 3 and 4 define 100 uniformly-spaced values between $−2\pi$ and $2\pi$ for
 $x$ and $y$. You can find detailed explanations of all these things in the
 [Input Format (YAML)](input.md) section.
 
@@ -207,7 +206,7 @@ now, let's just try to build it and run it.
 
 Everyone has their own setup for building programs, so let's keep it simple:
 we'll compile the program and link it against the appropriate Skywalker library
-in one step:
+(or libraries) in one step:
 
 === "C"
     ```
@@ -219,7 +218,7 @@ in one step:
     ```
 === "Fortran"
     ```
-    gfortran surface.F90 -I/path/to/include -L/path/to/lib -lskywalker_f90_double -o surface
+    gfortran surface.F90 -I/path/to/include -L/path/to/lib -lskywalker_f90_double -lskywalker_double -o surface
     ```
 
 If you use a different compiler, substitute it above. A few things to note:
@@ -238,8 +237,8 @@ If you use a different compiler, substitute it above. A few things to note:
 
 * The `-l` parameter indicates the library to link your program against. C and
   C++ programs must be linked against `libskywalker_double.a`, while Fortran
-  programs must use `libskywalker_f90_double.a`. If you've configured Skywalker
-  to use single precision floating point numbers with
+  programs must additionally use `libskywalker_f90_double.a`. If you've
+  configured Skywalker to use single precision floating point numbers with
   `-DSKYWALKER_PRECISION=single`, replace `double` with `single`.
 
 If all goes well, you'll end up with a `surface` executable.

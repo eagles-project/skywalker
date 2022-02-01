@@ -40,12 +40,9 @@ annotate YAML files with comments.
 Skywalker looks for the following information in an input file, each of which
 belongs in its own block:
 
-* an **ensemble type** block that defines the method used to construct an
-  ensemble
 * an optional **settings** block that conveys information from the user to a
   Skywalker program
-* an **input** block that defines the members of the ensemble using the method
-  selected in the **ensemble type** block.
+* an **input** block that defines the members of the ensemble.
 
 Here's an example of a Skywalker input file used to test an aerosol
 parameterization that appears in two different scientific codes:
@@ -53,8 +50,6 @@ parameterization that appears in two different scientific codes:
 ```
 # Computes the rate of binary nucleation as a function of relative humidity [-]
 # and temperature [K]
-
-type: lattice
 
 driver1: # settings for driver1
   nucleation_method: 2
@@ -66,47 +61,22 @@ driver2: # settings for driver2
   pbl_nuc_wang2008_user_choice: 0
 
 input:
-  relative_humidity: [0.01, 1.00, 0.01]
-  temperature: [230.15, 300.15, 1]
-  c_h2so4: 5e8 # [#/cc]
-  planetary_boundary_layer_height: 1100
-  height: 500
-  xi_nh3: 0
-  current_gas_mix_ratios: [[0.1, 0.3, 0.6], 
-                           [0, 0.4, 0.4], 
-                           [0.2, 0.8, 0], 
-                           [0.5, 0.25, 0.25]]
-  wet_geo_mean_diameter: [[0.001, 0.002, 0.003],
-                          [0.004, 0.005, 0.006], 
-                          [0.001, 0.001, 0.001]]
+  fixed:
+    c_h2so4: 5e8 # [#/cc]
+    planetary_boundary_layer_height: 1100
+    height: 500
+    xi_nh3: 0
+  lattice:
+    relative_humidity: [0.01, 1.00, 0.01]
+    temperature: [230.15, 300.15, 1]
 ```
 
 Below, we describe the structure of each of these blocks, and give examples.
 Skywalker parses the input YAML file for you, so there's no need to worry about
 types, comments, or any of the details of the YAML format.
 
-These blocks can appear in any order within a YAML file.
-
-## Ensemble Type
-
-Skywalker looks for a block named `type` to decide how to build an ensemble. Two
-ensemble "types" are supported:
-
-1. `lattice`: A **lattice ensemble** is constructed by combining every parameter
-   values with all other parameter values. For example, a lattice of 3
-   parameters each assuming 10 values creates an ensemble of $10^3 = 1000$
-   members. The order in which parameter values are specified is not important
-   for lattice ensembles.
-2. `enumeration`: An **enumeration ensemble** is constructed by traversing all
-   ensemble parameter values in lockstep. The first ensemble member assumes the
-   first specified value of each parameter, the second member assumes the second
-   value of each, and so on. In an enumeration ensemble, each parameter must
-   have the same number of values (or assume only a single value). For example,
-   in an enumeration ensemble consisting of 1000 members, every parameter must
-   either assume 1000 values or a single value.
-
-In either case, any parameter that assumes only one value will have that value
-in every member of the ensemble.
+These blocks can appear in any order within a YAML file. A Skywalker program
+ignores all blocks aside from settings and `input` blocks.
 
 ## Settings
 
@@ -132,20 +102,36 @@ Settings blocks are entirely optional and can be omitted if you don't need them.
 
 ## Input
 
-Skywalker looks for parameter values in an `input` block. Each parameter has a
-name and either a single value or a list of values.
+Skywalker looks for parameter values in a `input` block. There are three
+types of parameters that define an ensemble:
 
-Look at the `input` block in the above example. There are 6 parameters:
-`relative_humidity`, `temperature`, `c_h2so4`,
-`planetary_boundary_layer_height`, `height`, and `xi_nh3`. The first two
-parameters assume more than one value, and the rest assume only a single value.
+1. `fixed`: A **fixed parameter** assumes a single value for every member of
+   an ensemble.
+2. `lattice`: A **lattice parameter** is a parameter that assumes several values
+   over different ensemble members and is combined with all other lattice
+   parameters to form a *lattice* spanned by the ensemble. When Skywalker
+   constructs an ensemble, it takes the *outer product* of all values for
+   lattice parameters. In everyday language, this means that there exists an
+   ensemble member for every possible combination of all lattice parameters.
+   For example, a lattice of 3 parameters each assuming 10 values creates an
+   ensemble of $10\times10\times10 = 1000$ members. The order in which parameter
+   values are specified is not specified or controllable.
+3. `enumerated`: An **enumerated parmeter** adopts a specific set of values in
+   tandem with all other enumerated parameters in lockstep, to construct
+   ensemble members that have these values. The first ensemble member assumes
+   the first specified value of each parameter, a second member assumes the
+   second value of each, and so on. All ensemble parameters must have the same
+   number of values. For example, in an ensemble consisting a set of enumerated
+   parameters with 1000 members, every parameter must assume 1000 values.
 
-Note the parameter `current_gas_mix_ratios`.  This is an example of a parameter that
-consists of an array of an array.  For some parameters there are multiple values
-for a single ensemble.  This array of arrays syntax covers this case.  For the
-`current_gas_mix_ratios`, an array of two values will be available for each ensemble
-created.  For lattice and enumeration purposes it is treated as a one (abet array
-valued) value the same as `planetary_boundary_layer_height`.
+Look at the `input` block in the above example. There are 8 parameters:
+4 fixed parameters and 4 lattice parameters. The fixed parameters assume a
+single value, and the lattice parameters assume several values.
+
+You can easily construct an ensemble using a combination of lattice and
+enumerated parameters. To figure out the number of members in such an ensemble,
+simply multiply the number of members in the generated lattice by the number of
+enumerated values in any of the ensemble parameters.
 
 ### Lists of Parameter Values and Uniform Spacing
 
@@ -192,7 +178,6 @@ All other lists are interpreted as lists containing 3 values.
 These rules may seem arbitrary, but in practice, they will never prevent you
 from doing what you need to do.
 
-  
 ### Logarithmic Spacing
 
 Sometimes a parameter varies over several orders of magnitude, making it
@@ -216,20 +201,6 @@ scale.
 You can use this logarithmic option for parameters with explicitly listed values
 as well, but it's most uѕeful when combined with the uniform spacing above.
 
-### Single-Valued Parameters
-
-To specify a parameter with a single value, you can use a scalar value for that
-parameter, as is done above with the `c_h2so4`,
-`planetary_boundary_layer_height`, `height`, and `xi_nh3` parameters. You can
-also use a list that contains only 1 parameter:
-
-```
-input:
-  ...
-  c_h2so4: [5e8] # this does the same thing as the original example
-  ...
-```
-
 ### Array-Valued Parameters
 
 Occasionally, it's useful to use a single parameter name for a collection of
@@ -237,18 +208,26 @@ values. For example, the concentrations in a miscible fluid can be considered
 the components of a single variable, as long as their ordering is well defined.
 
 Here, Skywalker takes advantage of the flexibility in the YAML format. Suppose
-you have a variable `n` representing the various concentrations in a fluid, and
-that there are 3 components. Here's how you would specify 4 different
+you have a variable `densities` representing the various densities in a fluid
+mixture, and that there are 3 components. Here's how you would specify 4 different
 configurations of the fluid's concentrations:
 
 ```
 input:
-  ...
-  current_gas_mix_ratios: [[0.1, 0.3, 0.6], [0, 0.4, 0.4], [0.2, 0.8, 0], [0.5, 0.25, 0.25]]
+  fixed:
+    densities: [1e-5, 1e-9, 1e-7]
   ...
 ```
 
-We have used two sets of braces (a "list of lists") to indicate that the
+In addition, you can also define lattice parameters that are arrays, such
+as:
+```
+input:
+  lattice:
+    current_gas_mix_ratios: [[0.1, 0.3, 0.6], [0, 0.4, 0.4], [0.2, 0.8, 0], [0.5, 0.25, 0.25]]
+```
+
+Here, we have used two sets of braces (a "list of lists") to indicate that the
 parameter `current_gas_mix_ratios` assumes 4 values, each of which is a list of 3 numbers.
 
 This is a very powerful syntax, but it comes with ѕome caveats:
@@ -256,24 +235,26 @@ This is a very powerful syntax, but it comes with ѕome caveats:
 * You can't use logarithmic spacing options with array parameters
 * Skywalker makes no attempt to verify that all values in a list of array
   parameters have the same length
-* Single values for array parameters must be surrounded by two sets of braces
-  (e.g. `current_gas_mix_ratios: [[0.1, 0.3, 0.5]]`). Otherwise, Skywalker interprets the parameter
-  as a list of multiple scalar parameters.
+
+The three-parameter uniform spacing option is also available to array
+parameters:
 
 ```
 input:
   ...
-  wet_geo_mean_diameter: [[0.001, 0.002, 0.003],[0.004, 0.005, 0.009], [0.001, 0.001, 0.002]]
+  lattice:
+    wet_geo_mean_diameter: [[0.001, 0.002, 0.003],[0.004, 0.005, 0.009], [0.001, 0.001, 0.002]]
   ...
 ```
-When using lattice input, this is interpreted as the `wet_geo_mean_diameter` parameter assumes 
-an array value with uniform spacing for each ensemble.  
-The array values start at [0.001, 0.002, 0.003] and goes to
-[0.004, 0.005, 0.009] incrementing each individual array entry by [0.001, 0.001, 0.002]
- for each ensemble.  The interpretation of the values as a uniform spacing list is the same as 
-above for a scalar list:
 
-* The list contains 3 sub-lists
+In the input above, the `wet_geo_mean_diameter` parameter assumes an array value
+with uniform spacing for each ensemble. The array values start at
+`[0.001, 0.002, 0.003]` and go to `[0.004, 0.005, 0.009]`, incrementing each
+individual array entry by `[0.001, 0.001, 0.002]` for each ensemble. The
+interpretation of the values as a uniform spacing list is the same as above for
+a scalar list:
+
+* The list contains 3 arrays
 * Each value in the first list is less than the corresponding value in the second list
 * Each value in the third list is less than the corresponding value in the second list
 

@@ -34,14 +34,13 @@
 ! -------------------------------------------------------------------------
 
 ! This program tests Skywalker's Fortran 90 interface with a user-defined
-! configuration.
+! configuration that uses an "enumeration" ensemble.
 
-module lattice_test_mod
+module enumeration_test_mod
   use iso_c_binding, only: c_float, c_double
   implicit none
 
 contains
-
   subroutine fatal_error(message, line)
     character(len=*), intent(in) :: message
     integer :: line
@@ -61,52 +60,53 @@ contains
       equal = .false.
     end if
   end function
-end module lattice_test_mod
+end module enumeration_test_mod
 
 ! This macro halts the program if the predicate x isn't true.
 #define assert(x) if (.not. (x)) call fatal_error("Assertion failed at line", __LINE__)
 
-program lattice_test
+program enumeration_test
 
-  use lattice_test_mod
+  use enumeration_test_mod
   use skywalker
 
   implicit none
 
-  character(len=255)      :: input_file = "lattice_test.yaml"
+  character(len=255)      :: input_file
   type(ensemble_result_t) :: load_result
   type(settings_t)        :: settings
   type(ensemble_t)        :: ensemble
-  type(input_t)           :: input
   type(input_result_t)    :: in_result
+  type(input_t)           :: input
   type(output_t)          :: output
   real(swp), dimension(:), allocatable :: array_val
   integer                 :: i
 
+  allocate(array_val(10))
   if (command_argument_count() /= 1) then
-    print *, "lattice_test_f90: usage:"
-    print *, "lattice_test_f90: <input.yaml>"
+    print *, "enumeration_test_f90: usage:"
+    print *, "enumeration_test_f90: <input.yaml>"
     stop
   end if
 
-  allocate(array_val(10))
   call get_command_argument(1, input_file)
 
   ! Print a banner with Skywalker's version info.
   call print_banner()
 
   ! Load the ensemble. Any error encountered is fatal.
-  print *, "lattice_test: Loading ensemble from ", trim(input_file)
+  print *, "enumeration_test_f90: Loading ensemble from ", trim(input_file)
   load_result = load_ensemble(trim(input_file), "settings")
 
   ! Make sure everything is as it should be.
-  if (load_result%error_code /= 0) then
-    print *, "lattice_test: ", trim(load_result%error_message)
+  if (load_result%error_code /= SW_SUCCESS) then
+    print *, "enumeration_test_f90: ", trim(load_result%error_message)
     stop
   end if
 
   ! check settings
   settings = load_result%settings
+
   assert(settings%has("setting1"))
   assert(trim(settings%get("setting1")) == "hello")
   assert(settings%has("setting2"))
@@ -118,7 +118,7 @@ program lattice_test
 
   ! ensemble information
   ensemble = load_result%ensemble
-  assert(ensemble%size == 245520)
+  assert(ensemble%size == 11)
   do while (ensemble%next(input, output))
     assert(input%has("p1"))
     assert(approx_equal(input%get("p1"), 1.0_swp))
@@ -137,26 +137,6 @@ program lattice_test
     assert(input%get("tock") >= 1e1_swp)
     assert(input%get("tock") <= 1e11_swp)
 
-    assert(input%has("pair"))
-    assert(input%get("pair") >= 1)
-    assert(input%get("pair") <= 2)
-
-    assert(input%has("triple"))
-    assert(input%get("triple") >= 1)
-    assert(input%get("triple") <= 3)
-
-    assert(input%has("quartet"))
-    assert(input%get("quartet") >= 1)
-    assert(input%get("quartet") <= 4)
-
-    assert(input%has("quintet"))
-    assert(input%get("quintet") >= 1)
-    assert(input%get("quintet") <= 5)
-
-    assert(input%has("sextet"))
-    assert(input%get("sextet") >= 1)
-    assert(input%get("sextet") <= 6)
-
     ! Look for a parameter that doesn't exist, checking its result by calling
     ! get_param() instead of get().
     assert(.not. input%has("invalid_param"))
@@ -172,7 +152,7 @@ program lattice_test
   end do
 
   ! Now we write out a Python module containing the output data.
-  call ensemble%write("lattice_test_f90.py")
+  call ensemble%write("enumerated_test_f90.py")
 
   ! Clean up.
   call ensemble%free()

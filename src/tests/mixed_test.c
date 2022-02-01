@@ -33,8 +33,8 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //-------------------------------------------------------------------------
 
-// This program tests Skywalker's C interface with an ensemble defined by an
-// enumeration.
+// This program tests Skywalker's C interface with an ensemble that contains
+// both lattice and enumerated parameters.
 
 #include <skywalker.h>
 
@@ -63,12 +63,8 @@ int main(int argc, char **argv) {
   sw_print_banner();
 
   // Load the ensemble. Any error encountered is fatal.
-  fprintf(stderr, "enumeration_test: Loading ensemble from %s\n", input_file);
+  fprintf(stderr, "mixed_test: Loading ensemble from %s\n", input_file);
   sw_ensemble_result_t load_result = sw_load_ensemble(input_file, "settings");
-  if (load_result.error_code != SW_SUCCESS) {
-    printf("%s\n", load_result.error_message);
-    exit(-1);
-  }
   assert(load_result.settings != NULL);
   assert(load_result.ensemble != NULL);
   assert(load_result.error_code == SW_SUCCESS);
@@ -76,73 +72,79 @@ int main(int argc, char **argv) {
 
   // Make sure everything is as it should be.
 
-  // Ensemble type
-  assert(load_result.type == SW_ENUMERATION);
-
   // Settings
   sw_settings_t *settings = load_result.settings;
   sw_settings_result_t settings_result;
 
-  assert(sw_settings_has(settings, "param1"));
-  settings_result = sw_settings_get(settings, "param1");
+  assert(sw_settings_has(settings, "s1"));
+  settings_result = sw_settings_get(settings, "s1");
   assert(settings_result.error_code == 0);
-  assert(strcmp(settings_result.value, "hello") == 0);
+  assert(strcmp(settings_result.value, "primary") == 0);
   assert(settings_result.error_message == NULL);
 
-  assert(sw_settings_has(settings, "param2"));
-  settings_result = sw_settings_get(settings, "param2");
+  assert(sw_settings_has(settings, "s2"));
+  settings_result = sw_settings_get(settings, "s2");
   assert(settings_result.error_code == 0);
-  assert(strcmp(settings_result.value, "81") == 0);
+  assert(strcmp(settings_result.value, "algebraic") == 0);
   assert(settings_result.error_message == NULL);
 
-  assert(sw_settings_has(settings, "param3"));
-  settings_result = sw_settings_get(settings, "param3");
-  assert(settings_result.error_code == 0);
-  assert(strcmp(settings_result.value, "3.14159265357") == 0);
-  assert(settings_result.error_message == NULL);
-
-  assert(!sw_settings_has(settings, "nonexistent_param"));
+  assert(!sw_settings_has(settings, "nonexistent_setting"));
 
   // Ensemble data
   sw_ensemble_t *ensemble = load_result.ensemble;
-  assert(sw_ensemble_size(ensemble) == 11);
+  assert(sw_ensemble_size(ensemble) == 726);
   sw_input_t *input;
   sw_output_t *output;
   while (sw_ensemble_next(ensemble, &input, &output)) {
     sw_input_result_t in_result;
 
     // Fixed parameters
-    assert(sw_input_has(input, "p1"));
-    in_result = sw_input_get(input, "p1");
+    assert(sw_input_has(input, "f1"));
+    in_result = sw_input_get(input, "f1");
     assert(in_result.error_code == SW_SUCCESS);
     assert(approx_equal(in_result.value, 1.0));
     assert(in_result.error_message == NULL);
 
-    assert(sw_input_has(input, "p2"));
-    in_result = sw_input_get(input, "p2");
+    assert(sw_input_has(input, "f2"));
+    in_result = sw_input_get(input, "f2");
     assert(in_result.error_code == SW_SUCCESS);
     assert(approx_equal(in_result.value, 2.0));
     assert(in_result.error_message == NULL);
 
-    assert(sw_input_has(input, "p3"));
-    in_result = sw_input_get(input, "p3");
+    assert(sw_input_has(input, "f3"));
+    in_result = sw_input_get(input, "f3");
     assert(in_result.error_code == SW_SUCCESS);
     assert(approx_equal(in_result.value, 3.0));
     assert(in_result.error_message == NULL);
 
-    // Ensemble parameters
-    assert(sw_input_has(input, "tick"));
-    in_result = sw_input_get(input, "tick");
+    // Lattice parameters
+    assert(sw_input_has(input, "l1"));
+    in_result = sw_input_get(input, "l1");
     assert(in_result.error_code == SW_SUCCESS);
     assert(in_result.value >= 0.0);
     assert(in_result.value <= 10.0);
     assert(in_result.error_message == NULL);
 
-    assert(sw_input_has(input, "tock"));
-    in_result = sw_input_get(input, "tock");
+    assert(sw_input_has(input, "l2"));
+    in_result = sw_input_get(input, "l2");
     assert(in_result.error_code == SW_SUCCESS);
     assert(in_result.value >= 1e1);
     assert(in_result.value <= 1e11);
+    assert(in_result.error_message == NULL);
+
+    // Enumerated parameters
+    assert(sw_input_has(input, "e1"));
+    in_result = sw_input_get(input, "e1");
+    assert(in_result.error_code == SW_SUCCESS);
+    assert(in_result.value >= 1.0);
+    assert(in_result.value <= 6.0);
+    assert(in_result.error_message == NULL);
+
+    assert(sw_input_has(input, "e2"));
+    in_result = sw_input_get(input, "e2");
+    assert(in_result.error_code == SW_SUCCESS);
+    assert(in_result.value >= 0.05);
+    assert(in_result.value <= 0.3 + SW_EPSILON);
     assert(in_result.error_message == NULL);
 
     // Look for a parameter that doesn't exist.
@@ -156,8 +158,7 @@ int main(int argc, char **argv) {
   }
 
   // Write out a Python module.
-  sw_write_result_t w_result = sw_ensemble_write(ensemble,
-                                                 "enumeration_test.py");
+  sw_write_result_t w_result = sw_ensemble_write(ensemble, "mixed_test.py");
   if (w_result.error_code != SW_SUCCESS) {
     fprintf(stderr, "%s\n", w_result.error_message);
     exit(-1);

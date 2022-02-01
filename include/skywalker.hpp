@@ -67,9 +67,6 @@ void print_banner() {
 // Precision of real numbers
 using Real = sw_real_t;
 
-// Ensemble type (SW_LATTICE or SW_ENUMERATION).
-using EnsembleType = sw_ens_type_t;
-
 // A table of string-valued settings, read from a settings block in a YAML
 // file.
 class Settings final {
@@ -213,9 +210,6 @@ class Ensemble final {
     sw_ensemble_free(ensemble_);
   }
 
-  // Returns the type of the ensemble (SW_LATTICE or SW_ENUMERATION).
-  EnsembleType type() const { return type_; }
-
   // Returns the settings associated with this ensemble.
   const Settings& settings() const { return settings_; }
 
@@ -242,10 +236,9 @@ class Ensemble final {
   }
 
  private:
-  Ensemble(sw_ens_type_t t, sw_ensemble_t *e, sw_settings_t* s):
-    type_(t), ensemble_(e), settings_(Settings(s)) {}
+  Ensemble(sw_ensemble_t *e, sw_settings_t* s):
+    ensemble_(e), settings_(Settings(s)) {}
 
-  sw_ens_type_t type_;
   sw_ensemble_t *ensemble_;
   Settings settings_;
 
@@ -259,7 +252,7 @@ inline Ensemble* load_ensemble(const std::string& yaml_file,
                                const std::string& settings_block = "") {
   auto result = sw_load_ensemble(yaml_file.c_str(), settings_block.c_str());
   if (result.error_code == SW_SUCCESS) {
-    return new Ensemble(result.type, result.ensemble, result.settings);
+    return new Ensemble(result.ensemble, result.settings);
   } else {
     throw Exception(result.error_message);
   }

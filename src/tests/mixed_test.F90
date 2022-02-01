@@ -33,14 +33,15 @@
 ! SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ! -------------------------------------------------------------------------
 
-! This program tests Skywalker's Fortran 90 interface with a user-defined
-! configuration that uses an "enumeration" ensemble.
+! This program tests Skywalker's Fortran 90 interface with an ensemble
+! containing both lattice and enumerated parameters.
 
-module enumeration_test_mod
+module mixed_test_mod
   use iso_c_binding, only: c_float, c_double
   implicit none
 
 contains
+
   subroutine fatal_error(message, line)
     character(len=*), intent(in) :: message
     integer :: line
@@ -60,83 +61,90 @@ contains
       equal = .false.
     end if
   end function
-end module enumeration_test_mod
+end module mixed_test_mod
 
 ! This macro halts the program if the predicate x isn't true.
 #define assert(x) if (.not. (x)) call fatal_error("Assertion failed at line", __LINE__)
 
-program enumeration_test
+program mixed_test
 
-  use enumeration_test_mod
+  use mixed_test_mod
   use skywalker
 
   implicit none
 
-  character(len=255)      :: input_file
+  character(len=255)      :: input_file = "mixed_test.yaml"
   type(ensemble_result_t) :: load_result
   type(settings_t)        :: settings
   type(ensemble_t)        :: ensemble
-  type(input_result_t)    :: in_result
   type(input_t)           :: input
+  type(input_result_t)    :: in_result
   type(output_t)          :: output
   real(swp), dimension(:), allocatable :: array_val
   integer                 :: i
 
-  allocate(array_val(10))
   if (command_argument_count() /= 1) then
-    print *, "enumeration_test_f90: usage:"
-    print *, "enumeration_test_f90: <input.yaml>"
+    print *, "mixed_test_f90: usage:"
+    print *, "mixed_test_f90: <input.yaml>"
     stop
   end if
 
+  allocate(array_val(10))
   call get_command_argument(1, input_file)
 
   ! Print a banner with Skywalker's version info.
   call print_banner()
 
   ! Load the ensemble. Any error encountered is fatal.
-  print *, "enumeration_test_f90: Loading ensemble from ", trim(input_file)
+  print *, "mixed_test: Loading ensemble from ", trim(input_file)
   load_result = load_ensemble(trim(input_file), "settings")
 
   ! Make sure everything is as it should be.
-  if (load_result%error_code /= SW_SUCCESS) then
-    print *, "enumeration_test_f90: ", trim(load_result%error_message)
+  if (load_result%error_code /= 0) then
+    print *, "mixed_test: ", trim(load_result%error_message)
     stop
   end if
-  assert(load_result%type == sw_enumeration)
 
   ! check settings
   settings = load_result%settings
+  assert(settings%has("s1"))
+  assert(trim(settings%get("s1")) == "primary")
+  assert(settings%has("s2"))
+  assert(trim(settings%get("s2")) == "algebraic")
 
-  assert(settings%has("param1"))
-  assert(trim(settings%get("param1")) == "hello")
-  assert(settings%has("param2"))
-  assert(trim(settings%get("param2")) == "81")
-  assert(settings%has("param3"))
-  assert(trim(settings%get("param3")) == "3.14159265357")
-
-  assert(.not. settings%has("nonexistent_param"))
+  assert(.not. settings%has("nonexistent_setting"))
 
   ! ensemble information
   ensemble = load_result%ensemble
-  assert(ensemble%size == 11)
+  assert(ensemble%size == 726)
   do while (ensemble%next(input, output))
-    assert(input%has("p1"))
-    assert(approx_equal(input%get("p1"), 1.0_swp))
+    ! Fixed parameters.
+    assert(input%has("f1"))
+    assert(approx_equal(input%get("f1"), 1.0_swp))
 
-    assert(input%has("p2"))
-    assert(approx_equal(input%get("p2"), 2.0_swp))
+    assert(input%has("f2"))
+    assert(approx_equal(input%get("f2"), 2.0_swp))
 
-    assert(input%has("p3"))
-    assert(approx_equal(input%get("p3"), 3.0_swp))
+    assert(input%has("f3"))
+    assert(approx_equal(input%get("f3"), 3.0_swp))
 
-    assert(input%has("tick"))
-    assert(input%get("tick") >= 0.0_swp)
-    assert(input%get("tick") <= 10.0_swp)
+    ! Lattice parameters.
+    assert(input%has("l1"))
+    assert(input%get("l1") >= 0.0_swp)
+    assert(input%get("l1") <= 10.0_swp)
 
-    assert(input%has("tock"))
-    assert(input%get("tock") >= 1e1_swp)
-    assert(input%get("tock") <= 1e11_swp)
+    assert(input%has("l2"))
+    assert(input%get("l2") >= 1e1_swp)
+    assert(input%get("l2") <= 1e11_swp)
+
+    ! Enumerated parameters.
+    assert(input%has("e1"))
+    assert(input%get("e1") >= 1_swp)
+    assert(input%get("e1") <= 6_swp)
+
+    assert(input%has("e2"))
+    assert(input%get("e2") >= 0.05_swp)
+    assert(input%get("e2") <= 0.3_swp)
 
     ! Look for a parameter that doesn't exist, checking its result by calling
     ! get_param() instead of get().
@@ -153,7 +161,7 @@ program enumeration_test
   end do
 
   ! Now we write out a Python module containing the output data.
-  call ensemble%write("enumeration_test_f90.py")
+  call ensemble%write("mixed_test_f90.py")
 
   ! Clean up.
   call ensemble%free()

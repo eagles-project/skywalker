@@ -88,11 +88,10 @@ with $V \in [5^{-5}, 1^{-3}]$ m${^3}$ and $T$ assuming the values 273 K, 373 K,
 
 === "ideal_gas_isotherms.yaml"
     ```
-    type: lattice
-
     input:
-      V: [5.0e-5, 1.0e-3, 1.0e-6]  # [m^3]
-      T: [273, 373, 473, 573, 673] # [K]
+      lattice:
+        V: [5.0e-5, 1.0e-3, 1.0e-6]  # [m^3]
+        T: [273, 373, 473, 573, 673] # [K]
     ```
 
 Here's our program:
@@ -326,26 +325,26 @@ file that sets these parameters for diatomic nitrogen gas:
 
 === "n2_gas_isotherms.yaml"
     ```
-    type: lattice
-
     input:
-      V: [5.0e-5, 1.0e-3, 1.0e-6]  # [m^3]
-      T: [273, 373, 473, 573, 673] # [K]
-      a: 0.137                     # [Pa m6/mol2]
-      b: 3.87e-5                   # [m3/mol]
+      fixed:
+        a: 0.137                     # [Pa m6/mol2]
+        b: 3.87e-5                   # [m3/mol]
+      lattice:
+        V: [5.0e-5, 1.0e-3, 1.0e-6]  # [m^3]
+        T: [273, 373, 473, 573, 673] # [K]
     ```
 
 And here's one for carbon dioxide:
 
 === "co2_gas_isotherms.yaml"
     ```
-    type: lattice
-
     input:
-      V: [5.0e-5, 1.0e-3, 1.0e-6]  # [m3]
-      T: [273, 373, 473, 573, 673] # [K]
-      a: 0.3658                    # [J m3/mol2]
-      b: 4.29e-5                   # [m3/mol]
+      fixed:
+        a: 0.3658                    # [J m3/mol2]
+        b: 4.29e-5                   # [m3/mol]
+      lattice:
+        V: [5.0e-5, 1.0e-3, 1.0e-6]  # [m3]
+        T: [273, 373, 473, 573, 673] # [K]
     ```
 
 Now we must modify our programs to include these input parameters in the
@@ -434,8 +433,8 @@ energy but not its kinetic energy. The pressure in a Van der Waals gas depends
 only on its kinetic energy (because it assumes that the particles interact only
 weakly), so it remains constant.
 
-In other words, the saturation vapor pressure is a horizontal line over the
-course of the phase change. It looks like this:
+In other words, the saturation vapor pressure is a horizontal line $p(V) = p_s$
+over the course of the phase change. It looks like this:
 
 ![Saturation vapor pressure](images/saturation_vapor_pressure.png)
 
@@ -444,12 +443,10 @@ objective is to find the value of the saturation pressure, or the height of the
 horizontal line in the vicinity of the phase change. One might think that we
 must use the [Clausius-Clapeyron equation](https://en.wikipedia.org/wiki/Clausius–Clapeyron_relation),
 which involves the latent heat of evaporation and the specific volumes of the
-gas and liquid phases. Alternatively, we could use basic thermodynamic
-principles about closed reversible cycles to derive
+gas and liquid phases. However, the shape of the isotherm in question actually
+gives us enough geometric information to use an iterative approach that does a
+decent job of estimating the saturation vapor pressure using
 [Maxwell's equal area rule](https://en.wikipedia.org/wiki/Maxwell_construction).
-However, the shape of the isotherm in question actually gives us enough
-geometric information to use an iterative approach that does a decent job of
-estimating the saturation vapor pressure.
 
 ### Approximating the saturation vapor pressure numerically
 
@@ -495,6 +492,27 @@ the difference in their pressures hits a minimum.
    if i1 = prev_i1 and i2 = prev_i2
      break
 ```
+
+Once we've found a plausible saturation vapor pressure, we can increase or
+decrease it until the areas bounded by the original curve and the flat
+saturation pressure sum to zero. These areas are described by the integral of
+the pressure over the range of volumes in question, so what we're looking for
+is
+
+$$
+  \int_{V_1}^{V_2} (p - p_s) \texttt{d}V = 0,
+$$
+
+or
+
+$$
+  \int_{V_1}^{V_s} (p - p_s) \texttt{d}V + \int_{V_s}^{V_2} (p - p_s) \texttt{d}V = 0,
+$$
+
+where $p_s = p(V_s) $ is the saturation vapor pressure and $V_1$ and $V_2$ are,
+respectively, the minimum and maximum volumes at which $(p(V) = p_s$ in the
+original Van der Waals pressure curves. These integrals can be approximated
+using a simple quadrature rule such as the midpoint rule.
 
 ### Exercises
 

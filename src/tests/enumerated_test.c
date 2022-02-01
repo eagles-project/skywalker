@@ -34,7 +34,7 @@
 //-------------------------------------------------------------------------
 
 // This program tests Skywalker's C interface with an ensemble that contains
-// lattice parameters.
+// enumerated parameters.
 
 #include <skywalker.h>
 
@@ -63,8 +63,12 @@ int main(int argc, char **argv) {
   sw_print_banner();
 
   // Load the ensemble. Any error encountered is fatal.
-  fprintf(stderr, "lattice_test: Loading ensemble from %s\n", input_file);
+  fprintf(stderr, "enumerated_test: Loading ensemble from %s\n", input_file);
   sw_ensemble_result_t load_result = sw_load_ensemble(input_file, "settings");
+  if (load_result.error_code != SW_SUCCESS) {
+    printf("%s\n", load_result.error_message);
+    exit(-1);
+  }
   assert(load_result.settings != NULL);
   assert(load_result.ensemble != NULL);
   assert(load_result.error_code == SW_SUCCESS);
@@ -98,7 +102,7 @@ int main(int argc, char **argv) {
 
   // Ensemble data
   sw_ensemble_t *ensemble = load_result.ensemble;
-  assert(sw_ensemble_size(ensemble) == 245520);
+  assert(sw_ensemble_size(ensemble) == 11);
   sw_input_t *input;
   sw_output_t *output;
   while (sw_ensemble_next(ensemble, &input, &output)) {
@@ -138,41 +142,6 @@ int main(int argc, char **argv) {
     assert(in_result.value <= 1e11);
     assert(in_result.error_message == NULL);
 
-    assert(sw_input_has(input, "pair"));
-    in_result = sw_input_get(input, "pair");
-    assert(in_result.error_code == SW_SUCCESS);
-    assert(in_result.value >= 1.0);
-    assert(in_result.value <= 2.0);
-    assert(in_result.error_message == NULL);
-
-    assert(sw_input_has(input, "triple"));
-    in_result = sw_input_get(input, "triple");
-    assert(in_result.error_code == SW_SUCCESS);
-    assert(in_result.value >= 1.0);
-    assert(in_result.value <= 3.0);
-    assert(in_result.error_message == NULL);
-
-    assert(sw_input_has(input, "quartet"));
-    in_result = sw_input_get(input, "quartet");
-    assert(in_result.error_code == SW_SUCCESS);
-    assert(in_result.value >= 1.0);
-    assert(in_result.value <= 4.0);
-    assert(in_result.error_message == NULL);
-
-    assert(sw_input_has(input, "quintet"));
-    in_result = sw_input_get(input, "quintet");
-    assert(in_result.error_code == SW_SUCCESS);
-    assert(in_result.value >= 1.0);
-    assert(in_result.value <= 5.0);
-    assert(in_result.error_message == NULL);
-
-    assert(sw_input_has(input, "sextet"));
-    in_result = sw_input_get(input, "sextet");
-    assert(in_result.error_code == SW_SUCCESS);
-    assert(in_result.value >= 1.0);
-    assert(in_result.value <= 6.0);
-    assert(in_result.error_message == NULL);
-
     // Look for a parameter that doesn't exist.
     assert(!sw_input_has(input, "invalid_param"));
     in_result = sw_input_get(input, "invalid_param");
@@ -184,7 +153,8 @@ int main(int argc, char **argv) {
   }
 
   // Write out a Python module.
-  sw_write_result_t w_result = sw_ensemble_write(ensemble, "lattice_test.py");
+  sw_write_result_t w_result = sw_ensemble_write(ensemble,
+                                                 "enumerated_test.py");
   if (w_result.error_code != SW_SUCCESS) {
     fprintf(stderr, "%s\n", w_result.error_message);
     exit(-1);

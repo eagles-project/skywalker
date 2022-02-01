@@ -50,7 +50,7 @@ module skywalker
   integer, parameter :: sw_success = 0
   integer, parameter :: sw_yaml_file_not_found = 1
   integer, parameter :: sw_invalid_yaml = 2
-  integer, parameter :: sw_invalid_ensemble_type = 3
+  integer, parameter :: sw_invalid_param_type = 3
   integer, parameter :: sw_invalid_param_value = 4
   integer, parameter :: sw_invalid_settings_block = 5
   integer, parameter :: sw_settings_not_found = 6
@@ -61,10 +61,6 @@ module skywalker
   integer, parameter :: sw_ensemble_too_large = 11
   integer, parameter :: sw_empty_ensemble = 12
   integer, parameter :: sw_write_failure = 13
-
-  ! Ensemble types
-  integer, parameter :: sw_lattice     = 0
-  integer, parameter :: sw_enumeration = 1
 
   ! This type represents an ensemble that has been loaded from a skywalker input
   ! YAML file. It's an opaque type whose innards cannot be manipulated.
@@ -155,8 +151,6 @@ module skywalker
     type(settings_t) :: settings
     ! The ensemble loaded (if no error occurred)
     type(ensemble_t) :: ensemble
-    ! The ensemble's type
-    integer :: type
     ! An error code indicating any problems encountered loading the ensemble
     ! (zero = success, non-zero = failure)
     integer :: error_code
@@ -177,12 +171,12 @@ module skywalker
     end subroutine
 
     subroutine sw_load_ensemble_f90(yaml_file, settings_block, &
-                                    settings, ensemble, type, &
-                                    error_code, error_message) bind(c)
+                                    settings, ensemble, error_code, &
+                                    error_message) bind(c)
       use iso_c_binding, only: c_ptr, c_int
       type(c_ptr), value, intent(in) :: yaml_file, settings_block
       type(c_ptr), intent(out) :: settings, ensemble, error_message
-      integer(c_int), intent(out) :: type, error_code
+      integer(c_int), intent(out) :: error_code
     end subroutine
 
     logical(c_bool) function sw_settings_has(settings, name) bind(c)
@@ -305,7 +299,7 @@ contains
     call sw_load_ensemble_f90(f_to_c_string(yaml_file), &
                               c_settings_block, &
                               e_result%settings%ptr, e_result%ensemble%ptr, &
-                              e_result%type, e_result%error_code, c_err_msg)
+                              e_result%error_code, c_err_msg)
 
     if (e_result%error_code == SW_SUCCESS) then
       e_result%ensemble%size = sw_ensemble_size(e_result%ensemble%ptr)
@@ -612,16 +606,16 @@ contains
     type(c_ptr) :: c_string
 
     interface
-        function sw_new_c_string(f_str_ptr, f_str_len) bind (c) result(c_string)
+        function sw_new_c_string_f90(f_str_ptr, f_str_len) bind (c) result(c_string)
         use, intrinsic :: iso_c_binding
             type(c_ptr), value :: f_str_ptr
             integer(c_int), value :: f_str_len
             type(c_ptr) :: c_string
-        end function sw_new_c_string
+        end function
     end interface
 
     f_ptr => f_string
-    c_string = sw_new_c_string(c_loc(f_ptr), len(f_string))
+    c_string = sw_new_c_string_f90(c_loc(f_ptr), len(f_string))
   end function
 
 end module
