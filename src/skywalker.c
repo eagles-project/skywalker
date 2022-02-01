@@ -615,6 +615,40 @@ static void handle_yaml_event(yaml_event_t *event,
     if (state->parsing_input_array_sequence) {
       state->parsing_input_array_sequence = false;
     } else { // sequence of scalar or array inputs
+      if (!state->parsing_fixed_params) {
+        // Make sure the sequence has more than one value, whatever it is.
+        khash_t(yaml_param_map) *input;
+        khash_t(yaml_array_param_map) *array_input;
+        size_t num_values = 0;
+        if (state->parsing_lattice_params) {
+          input = data->lattice_input;
+          array_input = data->lattice_array_input;
+        } else {
+          input = data->enumerated_input;
+          array_input = data->enumerated_array_input;
+        }
+        khiter_t iter = kh_get(yaml_param_map, input, state->current_param);
+        if (iter != kh_end(input)) { // it's a scalar
+          num_values = kv_size(kh_value(input, iter));
+        } else { // is it an array?
+          iter = kh_get(yaml_array_param_map, array_input, state->current_param);
+          if (iter != kh_end(array_input)) {
+            num_values = kv_size(kh_value(array_input, iter));
+          } else { // the parameter is an empty sequence, maybe
+            data->error_code = SW_EMPTY_ENSEMBLE;
+            data->error_message = new_string(
+              "Lattice or enumerated parameter %s has no values. Generated "
+              "ensemble is empty!", state->current_param);
+          }
+        }
+        if (num_values == 1) {
+          data->error_code = SW_INVALID_PARAM_VALUE;
+          data->error_message = new_string(
+            "Lattice or enumerated parameter %s has only a single value.",
+            state->current_param);
+          return;
+        }
+      }
       state->parsing_input_sequence = false;
       state->current_param = NULL;
     }
