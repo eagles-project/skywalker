@@ -44,7 +44,7 @@ Skywalker program.
 
 ## Data Types
 
-### Ensemble parameter type
+### Real number type
 
 Skywalker supports exactly one value type that stores real-valued ensemble
 parameters. By default this type is a double-precision floating point number,
@@ -73,6 +73,17 @@ CMake variable.
 In Fortran, the `swp` kind is used to store input parameters and output values,
 and is set to either the `c_double` or `c_float` interoperable types defined
 by the Fortran 2003 ISO C bindings.
+
+The C interface also defines the following macros:
+
+* `SW_EPSILON`: the "machine epsilon" value, an upper bound on the relative
+  relative approximation error due to rounding in floating point arithmetic.
+  This maps either to `FLT_EPSILON` or `DBL_EPSILON` as defined in `float.h`,
+  depending on Skywalker's precision.
+* `SW_MIN`: the minimum representable floating point number. Maps to
+  `FLT_MIN` or `DBL_MIN` as defined in `float.h`.
+* `SW_MAX`: the maximum representable floating point number. Maps to
+  `FLT_MAX` or `DBL_MAX` as defined in `float.h`.
 
 ### Interface types
 
