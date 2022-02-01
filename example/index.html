@@ -9,7 +9,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-8.1.2">
+      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-8.0.1">
     
     
       
@@ -17,10 +17,10 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.f7951f6f.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.816931ca.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.e6a45f82.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.9204c3b2.min.css">
         
       
     
@@ -34,9 +34,10 @@
       
     
     
-    <script>__md_scope=new URL("..",location),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>function __md_scope(e,t,_){return new URL(_||(t===localStorage?"..":".."),location).pathname+"."+e}function __md_get(e,t=localStorage,_){return JSON.parse(t.getItem(__md_scope(e,t,_)))}function __md_set(e,t,_=localStorage,o){try{_.setItem(__md_scope(e,_,o),JSON.stringify(t))}catch(e){}}</script>
     
       
+
 
     
     
@@ -616,11 +617,10 @@ with <span class="arithmatex">\(V \in [5^{-5}, 1^{-3}]\)</span> m<span class="ar
 <div class="tabbed-set tabbed-alternate" data-tabs="1:1"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">ideal_gas_isotherms.yaml</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code>type: lattice
-
-input:
-  V: [5.0e-5, 1.0e-3, 1.0e-6]  # [m^3]
-  T: [273, 373, 473, 573, 673] # [K]
+<div class="highlight"><pre><span></span><code>input:
+  lattice:
+    V: [5.0e-5, 1.0e-3, 1.0e-6]  # [m^3]
+    T: [273, 373, 473, 573, 673] # [K]
 </code></pre></div>
 </div>
 </div>
@@ -1002,13 +1002,13 @@ file that sets these parameters for diatomic nitrogen gas:</p>
 <div class="tabbed-set tabbed-alternate" data-tabs="3:1"><input checked="checked" id="__tabbed_3_1" name="__tabbed_3" type="radio" /><div class="tabbed-labels"><label for="__tabbed_3_1">n2_gas_isotherms.yaml</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code>type: lattice
-
-input:
-  V: [5.0e-5, 1.0e-3, 1.0e-6]  # [m^3]
-  T: [273, 373, 473, 573, 673] # [K]
-  a: 0.137                     # [Pa m6/mol2]
-  b: 3.87e-5                   # [m3/mol]
+<div class="highlight"><pre><span></span><code>input:
+  fixed:
+    a: 0.137                     # [Pa m6/mol2]
+    b: 3.87e-5                   # [m3/mol]
+  lattice:
+    V: [5.0e-5, 1.0e-3, 1.0e-6]  # [m^3]
+    T: [273, 373, 473, 573, 673] # [K]
 </code></pre></div>
 </div>
 </div>
@@ -1017,13 +1017,13 @@ input:
 <div class="tabbed-set tabbed-alternate" data-tabs="4:1"><input checked="checked" id="__tabbed_4_1" name="__tabbed_4" type="radio" /><div class="tabbed-labels"><label for="__tabbed_4_1">co2_gas_isotherms.yaml</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code>type: lattice
-
-input:
-  V: [5.0e-5, 1.0e-3, 1.0e-6]  # [m3]
-  T: [273, 373, 473, 573, 673] # [K]
-  a: 0.3658                    # [J m3/mol2]
-  b: 4.29e-5                   # [m3/mol]
+<div class="highlight"><pre><span></span><code>input:
+  fixed:
+    a: 0.3658                    # [J m3/mol2]
+    b: 4.29e-5                   # [m3/mol]
+  lattice:
+    V: [5.0e-5, 1.0e-3, 1.0e-6]  # [m3]
+    T: [273, 373, 473, 573, 673] # [K]
 </code></pre></div>
 </div>
 </div>
@@ -1149,20 +1149,18 @@ understand this is that under a phase change, the system alters its binding
 energy but not its kinetic energy. The pressure in a Van der Waals gas depends
 only on its kinetic energy (because it assumes that the particles interact only
 weakly), so it remains constant.</p>
-<p>In other words, the saturation vapor pressure is a horizontal line over the
-course of the phase change. It looks like this:</p>
+<p>In other words, the saturation vapor pressure is a horizontal line <span class="arithmatex">\(p(V) = p_s\)</span>
+over the course of the phase change. It looks like this:</p>
 <p><img alt="Saturation vapor pressure" src="../images/saturation_vapor_pressure.png" /></p>
 <p>Suppose we wanted to modify our program to make use of these ideas. Our
 objective is to find the value of the saturation pressure, or the height of the
 horizontal line in the vicinity of the phase change. One might think that we
 must use the <a href="https://en.wikipedia.org/wiki/Clausius–Clapeyron_relation">Clausius-Clapeyron equation</a>,
 which involves the latent heat of evaporation and the specific volumes of the
-gas and liquid phases. Alternatively, we could use basic thermodynamic
-principles about closed reversible cycles to derive
-<a href="https://en.wikipedia.org/wiki/Maxwell_construction">Maxwell's equal area rule</a>.
-However, the shape of the isotherm in question actually gives us enough
-geometric information to use an iterative approach that does a decent job of
-estimating the saturation vapor pressure.</p>
+gas and liquid phases. However, the shape of the isotherm in question actually
+gives us enough geometric information to use an iterative approach that does a
+decent job of estimating the saturation vapor pressure using
+<a href="https://en.wikipedia.org/wiki/Maxwell_construction">Maxwell's equal area rule</a>.</p>
 <h3 id="approximating-the-saturation-vapor-pressure-numerically">Approximating the saturation vapor pressure numerically</h3>
 <p>We don't have a curve <span class="arithmatex">\(p(V)\)</span> to work with in our calculation of <span class="arithmatex">\(V_s\)</span>--we only
 have a discrete set of points with volumes <span class="arithmatex">\(\{V_i\}\)</span> and pressures <span class="arithmatex">\(\{p_i\}\)</span>.
@@ -1202,6 +1200,22 @@ the difference in their pressures hits a minimum.</p>
    if i1 = prev_i1 and i2 = prev_i2
      break
 </code></pre></div>
+<p>Once we've found a plausible saturation vapor pressure, we can increase or
+decrease it until the areas bounded by the original curve and the flat
+saturation pressure sum to zero. These areas are described by the integral of
+the pressure over the range of volumes in question, so what we're looking for
+is</p>
+<div class="arithmatex">\[
+  \int_{V_1}^{V_2} (p - p_s) \texttt{d}V = 0,
+\]</div>
+<p>or</p>
+<div class="arithmatex">\[
+  \int_{V_1}^{V_s} (p - p_s) \texttt{d}V + \int_{V_s}^{V_2} (p - p_s) \texttt{d}V = 0,
+\]</div>
+<p>where $p_s = p(V_s) $ is the saturation vapor pressure and <span class="arithmatex">\(V_1\)</span> and <span class="arithmatex">\(V_2\)</span> are,
+respectively, the minimum and maximum volumes at which <span class="arithmatex">\((p(V) = p_s\)</span> in the
+original Van der Waals pressure curves. These integrals can be approximated
+using a simple quadrature rule such as the midpoint rule.</p>
 <h3 id="exercises_1">Exercises</h3>
 <ol>
 <li>Try to implement this iterative scheme to compute the saturation vapor
@@ -1268,10 +1282,10 @@ the difference in their pressures hits a minimum.</p>
     <div class="md-dialog" data-md-component="dialog">
       <div class="md-dialog__inner md-typeset"></div>
     </div>
-    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.indices", "navigation.instant", "navigation.sections", "navigation.top"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.0bbba5b5.min.js"}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.indices", "navigation.instant", "navigation.sections", "navigation.top"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.01824240.min.js"}</script>
     
     
-      <script src="../assets/javascripts/bundle.649a939e.min.js"></script>
+      <script src="../assets/javascripts/bundle.a87c2adc.min.js"></script>
       
         <script src="../javascript/mathjax.js"></script>
       

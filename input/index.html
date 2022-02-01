@@ -9,7 +9,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-8.1.2">
+      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-8.0.1">
     
     
       
@@ -17,10 +17,10 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.f7951f6f.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.816931ca.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.e6a45f82.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.9204c3b2.min.css">
         
       
     
@@ -34,9 +34,10 @@
       
     
     
-    <script>__md_scope=new URL("..",location),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>function __md_scope(e,t,_){return new URL(_||(t===localStorage?"..":".."),location).pathname+"."+e}function __md_get(e,t=localStorage,_){return JSON.parse(t.getItem(__md_scope(e,t,_)))}function __md_set(e,t,_=localStorage,o){try{_.setItem(__md_scope(e,_,o),JSON.stringify(t))}catch(e){}}</script>
     
       
+
 
     
     
@@ -313,13 +314,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#ensemble-type" class="md-nav__link">
-    Ensemble Type
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#settings" class="md-nav__link">
     Settings
   </a>
@@ -344,13 +338,6 @@
           <li class="md-nav__item">
   <a href="#logarithmic-spacing" class="md-nav__link">
     Logarithmic Spacing
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#single-valued-parameters" class="md-nav__link">
-    Single-Valued Parameters
   </a>
   
 </li>
@@ -454,13 +441,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#ensemble-type" class="md-nav__link">
-    Ensemble Type
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#settings" class="md-nav__link">
     Settings
   </a>
@@ -485,13 +465,6 @@
           <li class="md-nav__item">
   <a href="#logarithmic-spacing" class="md-nav__link">
     Logarithmic Spacing
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#single-valued-parameters" class="md-nav__link">
-    Single-Valued Parameters
   </a>
   
 </li>
@@ -555,19 +528,14 @@ annotate YAML files with comments.</p>
 <p>Skywalker looks for the following information in an input file, each of which
 belongs in its own block:</p>
 <ul>
-<li>an <strong>ensemble type</strong> block that defines the method used to construct an
-  ensemble</li>
 <li>an optional <strong>settings</strong> block that conveys information from the user to a
   Skywalker program</li>
-<li>an <strong>input</strong> block that defines the members of the ensemble using the method
-  selected in the <strong>ensemble type</strong> block.</li>
+<li>an <strong>input</strong> block that defines the members of the ensemble.</li>
 </ul>
 <p>Here's an example of a Skywalker input file used to test an aerosol
 parameterization that appears in two different scientific codes:</p>
 <div class="highlight"><pre><span></span><code># Computes the rate of binary nucleation as a function of relative humidity [-]
 # and temperature [K]
-
-type: lattice
 
 driver1: # settings for driver1
   nucleation_method: 2
@@ -579,36 +547,20 @@ driver2: # settings for driver2
   pbl_nuc_wang2008_user_choice: 0
 
 input:
-  relative_humidity: [0.01, 1.00, 0.01]
-  temperature: [230.15, 300.15, 1]
-  c_h2so4: 5e8 # [#/cc]
-  planetary_boundary_layer_height: 1100
-  height: 500
-  xi_nh3: 0
+  fixed:
+    c_h2so4: 5e8 # [#/cc]
+    planetary_boundary_layer_height: 1100
+    height: 500
+    xi_nh3: 0
+  lattice:
+    relative_humidity: [0.01, 1.00, 0.01]
+    temperature: [230.15, 300.15, 1]
 </code></pre></div>
 <p>Below, we describe the structure of each of these blocks, and give examples.
 Skywalker parses the input YAML file for you, so there's no need to worry about
 types, comments, or any of the details of the YAML format.</p>
-<p>These blocks can appear in any order within a YAML file.</p>
-<h2 id="ensemble-type">Ensemble Type</h2>
-<p>Skywalker looks for a block named <code>type</code> to decide how to build an ensemble. Two
-ensemble "types" are supported:</p>
-<ol>
-<li><code>lattice</code>: A <strong>lattice ensemble</strong> is constructed by combining every parameter
-   values with all other parameter values. For example, a lattice of 3
-   parameters each assuming 10 values creates an ensemble of <span class="arithmatex">\(10^3 = 1000\)</span>
-   members. The order in which parameter values are specified is not important
-   for lattice ensembles.</li>
-<li><code>enumeration</code>: An <strong>enumeration ensemble</strong> is constructed by traversing all
-   ensemble parameter values in lockstep. The first ensemble member assumes the
-   first specified value of each parameter, the second member assumes the second
-   value of each, and so on. In an enumeration ensemble, each parameter must
-   have the same number of values (or assume only a single value). For example,
-   in an enumeration ensemble consisting of 1000 members, every parameter must
-   either assume 1000 values or a single value.</li>
-</ol>
-<p>In either case, any parameter that assumes only one value will have that value
-in every member of the ensemble.</p>
+<p>These blocks can appear in any order within a YAML file. A Skywalker program
+ignores all blocks aside from settings and <code>input</code> blocks.</p>
 <h2 id="settings">Settings</h2>
 <p>A Skywalker program may need information about how to configure itself, in
 addition to the information about the ensembles it constructs. If it does, it
@@ -628,12 +580,35 @@ floating point value to configure itself, it must convert the relevant setting
 to the correct type.</p>
 <p>Settings blocks are entirely optional and can be omitted if you don't need them.</p>
 <h2 id="input">Input</h2>
-<p>Skywalker looks for parameter values in an <code>input</code> block. Each parameter has a
-name and either a single value or a list of values.</p>
-<p>Look at the <code>input</code> block in the above example. There are 6 parameters:
-<code>relative_humidity</code>, <code>temperature</code>, <code>c_h2so4</code>,
-<code>planetary_boundary_layer_height</code>, <code>height</code>, and <code>xi_nh3</code>. The first two
-parameters assume more than one value, and the rest assume only a single value.</p>
+<p>Skywalker looks for parameter values in a <code>input</code> block. There are three
+types of parameters that define an ensemble:</p>
+<ol>
+<li><code>fixed</code>: A <strong>fixed parameter</strong> assumes a single value for every member of
+   an ensemble.</li>
+<li><code>lattice</code>: A <strong>lattice parameter</strong> is a parameter that assumes several values
+   over different ensemble members and is combined with all other lattice
+   parameters to form a <em>lattice</em> spanned by the ensemble. When Skywalker
+   constructs an ensemble, it takes the <em>outer product</em> of all values for
+   lattice parameters. In everyday language, this means that there exists an
+   ensemble member for every possible combination of all lattice parameters.
+   For example, a lattice of 3 parameters each assuming 10 values creates an
+   ensemble of <span class="arithmatex">\(10\times10\times10 = 1000\)</span> members. The order in which parameter
+   values are specified is not specified or controllable.</li>
+<li><code>enumerated</code>: An <strong>enumerated parmeter</strong> adopts a specific set of values in
+   tandem with all other enumerated parameters in lockstep, to construct
+   ensemble members that have these values. The first ensemble member assumes
+   the first specified value of each parameter, a second member assumes the
+   second value of each, and so on. All ensemble parameters must have the same
+   number of values. For example, in an ensemble consisting a set of enumerated
+   parameters with 1000 members, every parameter must assume 1000 values.</li>
+</ol>
+<p>Look at the <code>input</code> block in the above example. There are 8 parameters:
+4 fixed parameters and 4 lattice parameters. The fixed parameters assume a
+single value, and the lattice parameters assume several values.</p>
+<p>You can easily construct an ensemble using a combination of lattice and
+enumerated parameters. To figure out the number of members in such an ensemble,
+simply multiply the number of members in the generated lattice by the number of
+enumerated values in any of the ensemble parameters.</p>
 <h3 id="lists-of-parameter-values-and-uniform-spacing">Lists of Parameter Values and Uniform Spacing</h3>
 <p>There are a few ways to specify multiple values for a parameter. The simplest
 way is to list the values exhaustively. For example, if we want to study the
@@ -685,40 +660,53 @@ Simply "take the log of" the entry for your parameter:</p>
 scale.</p>
 <p>You can use this logarithmic option for parameters with explicitly listed values
 as well, but it's most uѕeful when combined with the uniform spacing above.</p>
-<h3 id="single-valued-parameters">Single-Valued Parameters</h3>
-<p>To specify a parameter with a single value, you can use a scalar value for that
-parameter, as is done above with the <code>c_h2so4</code>,
-<code>planetary_boundary_layer_height</code>, <code>height</code>, and <code>xi_nh3</code> parameters. You can
-also use a list that contains only 1 parameter:</p>
-<div class="highlight"><pre><span></span><code>input:
-  ...
-  c_h2so4: [5e8] # this does the same thing as the original example
-  ...
-</code></pre></div>
 <h3 id="array-valued-parameters">Array-Valued Parameters</h3>
 <p>Occasionally, it's useful to use a single parameter name for a collection of
 values. For example, the concentrations in a miscible fluid can be considered
 the components of a single variable, as long as their ordering is well defined.</p>
 <p>Here, Skywalker takes advantage of the flexibility in the YAML format. Suppose
-you have a variable <code>n</code> representing the various concentrations in a fluid, and
-that there are 3 components. Here's how you would specify 4 different
+you have a variable <code>densities</code> representing the various densities in a fluid
+mixture, and that there are 3 components. Here's how you would specify 4 different
 configurations of the fluid's concentrations:</p>
 <div class="highlight"><pre><span></span><code>input:
-  ...
-  n: [[0.1, 0.3, 0.6], [0, 0.4, 0.4], [0.2, 0.8, 0], [0.5, 0.25, 0.25]]
+  fixed:
+    densities: [1e-5, 1e-9, 1e-7]
   ...
 </code></pre></div>
-<p>We have used two sets of braces (a "list of lists") to indicate that the
-parameter <code>n</code> assumes 4 values, each of which is a list of 3 numbers.</p>
+<p>In addition, you can also define lattice parameters that are arrays, such
+as:
+<div class="highlight"><pre><span></span><code>input:
+  lattice:
+    current_gas_mix_ratios: [[0.1, 0.3, 0.6], [0, 0.4, 0.4], [0.2, 0.8, 0], [0.5, 0.25, 0.25]]
+</code></pre></div></p>
+<p>Here, we have used two sets of braces (a "list of lists") to indicate that the
+parameter <code>current_gas_mix_ratios</code> assumes 4 values, each of which is a list of 3 numbers.</p>
 <p>This is a very powerful syntax, but it comes with ѕome caveats:</p>
 <ul>
-<li>You can't use the uniform or logarithmic spacing options with array parameters</li>
+<li>You can't use logarithmic spacing options with array parameters</li>
 <li>Skywalker makes no attempt to verify that all values in a list of array
   parameters have the same length</li>
-<li>Single values for array parameters must be surrounded by two sets of braces
-  (e.g. <code>n: [[0.1, 0.3, 0.5]]</code>). Otherwise, Skywalker interprets the parameter
-  as a list of multiple scalar parameters.</li>
 </ul>
+<p>The three-parameter uniform spacing option is also available to array
+parameters:</p>
+<div class="highlight"><pre><span></span><code>input:
+  ...
+  lattice:
+    wet_geo_mean_diameter: [[0.001, 0.002, 0.003],[0.004, 0.005, 0.009], [0.001, 0.001, 0.002]]
+  ...
+</code></pre></div>
+<p>In the input above, the <code>wet_geo_mean_diameter</code> parameter assumes an array value
+with uniform spacing for each ensemble. The array values start at
+<code>[0.001, 0.002, 0.003]</code> and go to <code>[0.004, 0.005, 0.009]</code>, incrementing each
+individual array entry by <code>[0.001, 0.001, 0.002]</code> for each ensemble. The
+interpretation of the values as a uniform spacing list is the same as above for
+a scalar list:</p>
+<ul>
+<li>The list contains 3 arrays</li>
+<li>Each value in the first list is less than the corresponding value in the second list</li>
+<li>Each value in the third list is less than the corresponding value in the second list</li>
+</ul>
+<p>All other lists are interpreted as lists containing 3 lists.</p>
 <p>Use array-valued parameters with caution.</p>
 
               
@@ -790,10 +778,10 @@ parameter <code>n</code> assumes 4 values, each of which is a list of 3 numbers.
     <div class="md-dialog" data-md-component="dialog">
       <div class="md-dialog__inner md-typeset"></div>
     </div>
-    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.indices", "navigation.instant", "navigation.sections", "navigation.top"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.0bbba5b5.min.js"}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.indices", "navigation.instant", "navigation.sections", "navigation.top"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.01824240.min.js"}</script>
     
     
-      <script src="../assets/javascripts/bundle.649a939e.min.js"></script>
+      <script src="../assets/javascripts/bundle.a87c2adc.min.js"></script>
       
         <script src="../javascript/mathjax.js"></script>
       

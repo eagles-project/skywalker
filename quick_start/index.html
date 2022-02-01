@@ -9,7 +9,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-8.1.2">
+      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-8.0.1">
     
     
       
@@ -17,10 +17,10 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.f7951f6f.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.816931ca.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.e6a45f82.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.9204c3b2.min.css">
         
       
     
@@ -34,9 +34,10 @@
       
     
     
-    <script>__md_scope=new URL("..",location),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>function __md_scope(e,t,_){return new URL(_||(t===localStorage?"..":".."),location).pathname+"."+e}function __md_get(e,t=localStorage,_){return JSON.parse(t.getItem(__md_scope(e,t,_)))}function __md_set(e,t,_=localStorage,o){try{_.setItem(__md_scope(e,_,o),JSON.stringify(t))}catch(e){}}</script>
     
       
+
 
     
     
@@ -490,19 +491,17 @@ sets up the calculation of <span class="arithmatex">\(f\)</span> on these <span 
 <table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span>
 <span class="normal">2</span>
 <span class="normal">3</span>
-<span class="normal">4</span>
-<span class="normal">5</span></pre></div></td><td class="code"><div class="highlight"><pre><span></span><code>type: lattice
-
-input:
-  x: [-6.2831853, 6.2831853, 0.0628]
-  y: [-6.2831853, 6.2831853, 0.0628]
+<span class="normal">4</span></pre></div></td><td class="code"><div class="highlight"><pre><span></span><code>input:
+  lattice:
+    x: [-6.2831853, 6.2831853, 0.0628]
+    y: [-6.2831853, 6.2831853, 0.0628]
 </code></pre></div>
 </td></tr></table>
 </div>
 </div>
 </div>
-<p>Line 1 indicates that all values of <span class="arithmatex">\(x\)</span> are combined with all values of <span class="arithmatex">\(y\)</span>.
-Lines 4 and 5 define 100 uniformly-spaced values between <span class="arithmatex">\(−2\pi\)</span> and <span class="arithmatex">\(2\pi\)</span> for
+<p>Line 2 indicates that all values of <span class="arithmatex">\(x\)</span> are combined with all values of <span class="arithmatex">\(y\)</span>.
+Lines 3 and 4 define 100 uniformly-spaced values between <span class="arithmatex">\(−2\pi\)</span> and <span class="arithmatex">\(2\pi\)</span> for
 <span class="arithmatex">\(x\)</span> and <span class="arithmatex">\(y\)</span>. You can find detailed explanations of all these things in the
 <a href="../input/">Input Format (YAML)</a> section.</p>
 <p>This YAML input file reflects the design of our experiment. Now we just need a
@@ -808,7 +807,7 @@ now, let's just try to build it and run it.</p>
 <h2 id="step-3-build-the-program">Step 3: Build the Program</h2>
 <p>Everyone has their own setup for building programs, so let's keep it simple:
 we'll compile the program and link it against the appropriate Skywalker library
-in one step:</p>
+(or libraries) in one step:</p>
 <div class="tabbed-set tabbed-alternate" data-tabs="3:3"><input checked="checked" id="__tabbed_3_1" name="__tabbed_3" type="radio" /><input id="__tabbed_3_2" name="__tabbed_3" type="radio" /><input id="__tabbed_3_3" name="__tabbed_3" type="radio" /><div class="tabbed-labels"><label for="__tabbed_3_1">C</label><label for="__tabbed_3_2">C++</label><label for="__tabbed_3_3">Fortran</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
@@ -820,7 +819,7 @@ in one step:</p>
 </code></pre></div>
 </div>
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code>gfortran surface.F90 -I/path/to/include -L/path/to/lib -lskywalker_f90_double -o surface
+<div class="highlight"><pre><span></span><code>gfortran surface.F90 -I/path/to/include -L/path/to/lib -lskywalker_f90_double -lskywalker_double -o surface
 </code></pre></div>
 </div>
 </div>
@@ -845,8 +844,8 @@ in one step:</p>
 <li>
 <p>The <code>-l</code> parameter indicates the library to link your program against. C and
   C++ programs must be linked against <code>libskywalker_double.a</code>, while Fortran
-  programs must use <code>libskywalker_f90_double.a</code>. If you've configured Skywalker
-  to use single precision floating point numbers with
+  programs must additionally use <code>libskywalker_f90_double.a</code>. If you've
+  configured Skywalker to use single precision floating point numbers with
   <code>-DSKYWALKER_PRECISION=single</code>, replace <code>double</code> with <code>single</code>.</p>
 </li>
 </ul>
@@ -969,10 +968,10 @@ also take a look at <a href="../example/">a more involved example</a> if that's 
     <div class="md-dialog" data-md-component="dialog">
       <div class="md-dialog__inner md-typeset"></div>
     </div>
-    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.indices", "navigation.instant", "navigation.sections", "navigation.top"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.0bbba5b5.min.js"}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.indices", "navigation.instant", "navigation.sections", "navigation.top"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.01824240.min.js"}</script>
     
     
-      <script src="../assets/javascripts/bundle.649a939e.min.js"></script>
+      <script src="../assets/javascripts/bundle.a87c2adc.min.js"></script>
       
         <script src="../javascript/mathjax.js"></script>
       

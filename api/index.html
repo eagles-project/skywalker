@@ -9,7 +9,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-8.1.2">
+      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-8.0.1">
     
     
       
@@ -17,10 +17,10 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.f7951f6f.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.816931ca.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.e6a45f82.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.9204c3b2.min.css">
         
       
     
@@ -34,9 +34,10 @@
       
     
     
-    <script>__md_scope=new URL("..",location),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>function __md_scope(e,t,_){return new URL(_||(t===localStorage?"..":".."),location).pathname+"."+e}function __md_get(e,t=localStorage,_){return JSON.parse(t.getItem(__md_scope(e,t,_)))}function __md_set(e,t,_=localStorage,o){try{_.setItem(__md_scope(e,_,o),JSON.stringify(t))}catch(e){}}</script>
     
       
+
 
     
     
@@ -344,8 +345,8 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#ensemble-parameter-type" class="md-nav__link">
-    Ensemble parameter type
+  <a href="#real-number-type" class="md-nav__link">
+    Real number type
   </a>
   
 </li>
@@ -483,13 +484,6 @@
           <li class="md-nav__item">
   <a href="#getting-the-ensembles-size" class="md-nav__link">
     Getting the ensemble's size
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#getting-the-method-used-to-construct-the-ensemble" class="md-nav__link">
-    Getting the method used to construct the ensemble
   </a>
   
 </li>
@@ -557,8 +551,8 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#ensemble-parameter-type" class="md-nav__link">
-    Ensemble parameter type
+  <a href="#real-number-type" class="md-nav__link">
+    Real number type
   </a>
   
 </li>
@@ -700,13 +694,6 @@
   
 </li>
         
-          <li class="md-nav__item">
-  <a href="#getting-the-method-used-to-construct-the-ensemble" class="md-nav__link">
-    Getting the method used to construct the ensemble
-  </a>
-  
-</li>
-        
       </ul>
     </nav>
   
@@ -764,7 +751,7 @@ namespace.</p>
 <p>Here we describe the types and functions you can use to assemble your own
 Skywalker program.</p>
 <h2 id="data-types">Data Types</h2>
-<h3 id="ensemble-parameter-type">Ensemble parameter type</h3>
+<h3 id="real-number-type">Real number type</h3>
 <p>Skywalker supports exactly one value type that stores real-valued ensemble
 parameters. By default this type is a double-precision floating point number,
 but it can be configured for single precision with the <code>SKYWALKER_PRECISION</code>
@@ -789,6 +776,17 @@ CMake variable.</p>
 <p>In Fortran, the <code>swp</code> kind is used to store input parameters and output values,
 and is set to either the <code>c_double</code> or <code>c_float</code> interoperable types defined
 by the Fortran 2003 ISO C bindings.</p>
+<p>The C interface also defines the following macros:</p>
+<ul>
+<li><code>SW_EPSILON</code>: the "machine epsilon" value, an upper bound on the relative
+  relative approximation error due to rounding in floating point arithmetic.
+  This maps either to <code>FLT_EPSILON</code> or <code>DBL_EPSILON</code> as defined in <code>float.h</code>,
+  depending on Skywalker's precision.</li>
+<li><code>SW_MIN</code>: the minimum representable floating point number. Maps to
+  <code>FLT_MIN</code> or <code>DBL_MIN</code> as defined in <code>float.h</code>.</li>
+<li><code>SW_MAX</code>: the maximum representable floating point number. Maps to
+  <code>FLT_MAX</code> or <code>DBL_MAX</code> as defined in <code>float.h</code>.</li>
+</ul>
 <h3 id="interface-types">Interface types</h3>
 <p>Each of the essential concepts in the library has an associated type.</p>
 <ul>
@@ -803,11 +801,8 @@ by the Fortran 2003 ISO C bindings.</p>
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">Ensemble</span><span class="w"> </span><span class="k">final</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
 <span class="w"> </span><span class="k">public</span><span class="o">:</span><span class="w"></span>
-<span class="w">  </span><span class="c1">// Returns the type of the ensemble (SW_LATTICE or SW_ENUMERATION).</span>
-<span class="w">  </span><span class="n">EnsembleType</span><span class="w"> </span><span class="n">type</span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="p">;</span><span class="w"></span>
-
 <span class="w">  </span><span class="c1">// Returns the settings associated with this ensemble.</span>
-<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="n">Settings</span><span class="o">&amp;</span><span class="w"> </span><span class="nf">settings</span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="n">Settings</span><span class="o">&amp;</span><span class="w"> </span><span class="n">settings</span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="p">;</span><span class="w"></span>
 
 <span class="w">  </span><span class="c1">// Iterates over all ensemble members, applying the given function f to</span>
 <span class="w">  </span><span class="c1">// each input/output pair.</span>
@@ -1050,8 +1045,6 @@ settings, as well as error handling information.</p>
 <span class="w">  </span><span class="n">sw_settings_t</span><span class="w"> </span><span class="o">*</span><span class="n">settings</span><span class="p">;</span><span class="w"></span>
 <span class="w">  </span><span class="c1">// The ensemble loaded (or NULL on failure)</span>
 <span class="w">  </span><span class="n">sw_ensemble_t</span><span class="w"> </span><span class="o">*</span><span class="n">ensemble</span><span class="p">;</span><span class="w"></span>
-<span class="w">  </span><span class="c1">// The ensemble&#39;s type</span>
-<span class="w">  </span><span class="n">sw_ens_type_t</span><span class="w"> </span><span class="n">type</span><span class="p">;</span><span class="w"></span>
 <span class="w">  </span><span class="c1">// An error code indicating any problems encountered loading the ensemble</span>
 <span class="w">  </span><span class="c1">// (zero = success, non-zero = failure)</span>
 <span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">error_code</span><span class="p">;</span><span class="w"></span>
@@ -1704,54 +1697,6 @@ derived type.</p>
 </div>
 </div>
 </div>
-<h3 id="getting-the-method-used-to-construct-the-ensemble">Getting the method used to construct the ensemble</h3>
-<p>Skywalker offers two methods for constructing an ensemble:</p>
-<ol>
-<li>
-<p>The <strong>lattice</strong> method constructs an ensemble using the "outer product" of
-   all parameters listed in the input YAML file. Parameter "lattices" can be
-   constructed for up to seven parameters.</p>
-</li>
-<li>
-<p>The <strong>enumeration</strong> method constructs an ensemble by walking all input
-   parameters defined in the YAML file in lockstep. This method requires that
-   all parameter value lists are the same length or single values.</p>
-</li>
-</ol>
-<p>It is possible to imagine circumstances under which a Skywalker program is
-designed specifically for ensembles built using one or the other of these
-methods. If you need to know how the ensemble was constructed for your
-program, Skywalker can give you that information.</p>
-<p>The C and Fortran interfaces expose two (integer) values to indicate whether a
-given ensemble was built using the "lattice" or "enumeration" methods:</p>
-<ul>
-<li><code>SW_LATTICE</code> (0)</li>
-<li><code>SW_ENUMERATION</code> (1)</li>
-</ul>
-<div class="tabbed-set tabbed-alternate" data-tabs="31:3"><input checked="checked" id="__tabbed_31_1" name="__tabbed_31" type="radio" /><input id="__tabbed_31_2" name="__tabbed_31" type="radio" /><input id="__tabbed_31_3" name="__tabbed_31" type="radio" /><div class="tabbed-labels"><label for="__tabbed_31_1">C</label><label for="__tabbed_31_2">C++</label><label for="__tabbed_31_3">Fortran</label></div>
-<div class="tabbed-content">
-<div class="tabbed-block">
-<p>You can compare these values with the <code>type</code> field of the
-<code>sw_ensemble_result_t</code> variable returned by <code>load_ensemble</code>.</p>
-</div>
-<div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><span class="c1">// Ensemble type (SW_LATTICE or SW_ENUMERATION).</span>
-<span class="k">using</span><span class="w"> </span><span class="n">EnsembleType</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sw_ens_type_t</span><span class="p">;</span><span class="w"></span>
-<span class="p">...</span><span class="w"></span>
-<span class="k">class</span> <span class="nc">Ensemble</span><span class="w"> </span><span class="k">final</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">  </span><span class="p">...</span><span class="w"></span>
-<span class="w">  </span><span class="c1">// Returns the type of the ensemble (SW_LATTICE or SW_ENUMERATION).</span>
-<span class="w">  </span><span class="n">EnsembleType</span><span class="w"> </span><span class="n">type</span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="p">;</span><span class="w"></span>
-<span class="w">  </span><span class="p">...</span><span class="w"></span>
-<span class="p">};</span><span class="w"></span>
-</code></pre></div>
-</div>
-<div class="tabbed-block">
-<p>You can compare these values with the <code>type</code> field of the
-<code>ensemble_result_t</code> variable returned by <code>load_ensemble</code>.</p>
-</div>
-</div>
-</div>
 
               
             </article>
@@ -1822,10 +1767,10 @@ given ensemble was built using the "lattice" or "enumeration" methods:</p>
     <div class="md-dialog" data-md-component="dialog">
       <div class="md-dialog__inner md-typeset"></div>
     </div>
-    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.indices", "navigation.instant", "navigation.sections", "navigation.top"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.0bbba5b5.min.js"}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.indices", "navigation.instant", "navigation.sections", "navigation.top"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.01824240.min.js"}</script>
     
     
-      <script src="../assets/javascripts/bundle.649a939e.min.js"></script>
+      <script src="../assets/javascripts/bundle.a87c2adc.min.js"></script>
       
         <script src="../javascript/mathjax.js"></script>
       
