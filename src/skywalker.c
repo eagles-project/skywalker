@@ -288,6 +288,7 @@ struct sw_ensemble_t {
   sw_input_t *inputs;
   sw_output_t *outputs;
   sw_settings_t *settings; // for writing and freeing
+  char *names; // a blob that contains all settings/input name strings
 };
 
 //------------------------------------------------------------------------
@@ -333,10 +334,9 @@ typedef kvec_t(real_vec_t) real_vec_vec_t;
 // numbers.
 KHASH_MAP_INIT_STR(yaml_array_param_map, real_vec_vec_t)
 
-// A hash table whose keys are C strings and whose values are pointers to
-// storage for the strings. Used to guarantee parameter/setting name uniqueness
-// and also to implement a string pool.
-KHASH_MAP_INIT_STR(yaml_name_map, const char*);
+// A hash table representing a set of C strings. Used to guarantee that input
+// parameter/setting names are unique.
+KHASH_SET_INIT_STR(yaml_name_set);
 
 // This type stores data parsed from YAML.
 typedef struct yaml_data_t {
@@ -344,8 +344,8 @@ typedef struct yaml_data_t {
   khash_t(yaml_param_map) *fixed_input, *lattice_input, *enumerated_input;
   khash_t(yaml_array_param_map) *fixed_array_input, *lattice_array_input,
                                 *enumerated_array_input;
-  khash_t(yaml_name_map) *setting_names;
-  khash_t(yaml_name_map) *param_names;
+  khash_t(yaml_name_set) *setting_names;
+  khash_t(yaml_name_set) *param_names;
   size_t num_enumerated_inputs;
   int error_code;
   const char *error_message;
@@ -393,8 +393,8 @@ static void free_yaml_data(yaml_data_t data) {
   kh_destroy(yaml_array_param_map, data.lattice_array_input);
   kh_destroy(yaml_array_param_map, data.enumerated_array_input);
 
-  kh_destroy(yaml_name_map, data.setting_names);
-  kh_destroy(yaml_name_map, data.param_names);
+  kh_destroy(yaml_name_set, data.setting_names);
+  kh_destroy(yaml_name_set, data.param_names);
 
   if (data.settings) sw_settings_free(data.settings);
 }
@@ -465,7 +465,7 @@ static void handle_yaml_event(yaml_event_t *event,
     } else if (state->parsing_settings) {
       if (!state->current_setting) {
         // Have we seen this setting name before?
-        khiter_t iter = kh_get(yaml_name_map, data->setting_names, value);
+        khiter_t iter = kh_get(yaml_name_set, data->setting_names, value);
         if (iter != kh_end(data->setting_names)) { // yes
           data->error_code = SW_INVALID_SETTINGS_BLOCK;
           data->error_message = new_string(
@@ -473,14 +473,13 @@ static void handle_yaml_event(yaml_event_t *event,
           return;
         }
 
-        // Set the current setting name and add it to our list of tracked
+        // Set the current setting name and add it to our set of tracked
         // names.
         state->current_setting = dup_yaml_string(value);
         int ret;
-        iter = kh_put(yaml_name_map, data->setting_names,
+        iter = kh_put(yaml_name_set, data->setting_names,
                       state->current_setting, &ret);
         assert(ret == 1);
-        kh_value(data->setting_names, iter) = state->current_setting;
       } else {
         sw_settings_set(data->settings, state->current_setting, value);
         state->current_setting = NULL;
@@ -506,7 +505,7 @@ static void handle_yaml_event(yaml_event_t *event,
       } else { // handle input name/value
         if (!state->current_param) { // parse the input parameter name
           // Have we seen this parameter name before?
-          khiter_t iter = kh_get(yaml_name_map, data->param_names, value);
+          khiter_t iter = kh_get(yaml_name_set, data->param_names, value);
           if (iter != kh_end(data->param_names)) { // yes
             data->error_code = SW_INVALID_PARAM_NAME;
             data->error_message = new_string(
@@ -522,14 +521,13 @@ static void handle_yaml_event(yaml_event_t *event,
             return;
           }
 
-          // Set the current parameter name and add it to our list of tracked
+          // Set the current parameter name and add it to our set of tracked
           // names.
           state->current_param = dup_yaml_string(value);
           int ret;
-          iter = kh_put(yaml_name_map, data->param_names,
+          iter = kh_put(yaml_name_set, data->param_names,
                         state->current_param, &ret);
           assert(ret == 1);
-          kh_value(data->param_names, iter) = state->current_param;
         } else { // we have an input name; parse its value
           // Try to interpret the value as a real number.
           char *endp;
@@ -893,8 +891,8 @@ static yaml_data_t parse_yaml(FILE* file, const char* settings_block) {
   data.fixed_array_input = kh_init(yaml_array_param_map);
   data.lattice_array_input = kh_init(yaml_array_param_map);
   data.enumerated_array_input = kh_init(yaml_array_param_map);
-  data.setting_names = kh_init(yaml_name_map);
-  data.param_names = kh_init(yaml_name_map);
+  data.setting_names = kh_init(yaml_name_set);
+  data.param_names = kh_init(yaml_name_set);
 
   yaml_parser_t parser;
   yaml_parser_initialize(&parser);
@@ -1058,6 +1056,7 @@ typedef struct sw_build_result_t {
 // Generates an array of inputs for an ensemble.
 static sw_build_result_t build_ensemble(yaml_data_t yaml_data) {
   sw_build_result_t result = {.num_inputs = 1, .error_code = SW_SUCCESS};
+
   // Count up the number of inputs and parameters.
 
   // Fixed parameters
@@ -1102,31 +1101,33 @@ static sw_build_result_t build_ensemble(yaml_data_t yaml_data) {
     return result;
   }
 
-  // Build a list of inputs corresponding to all the traversed parameters.
+  // Try to allocate storage for inputs.
   result.inputs = malloc(sizeof(sw_input_t) * result.num_inputs);
   if (!result.inputs) {
     result.error_code = SW_ENSEMBLE_TOO_LARGE;
     result.error_message =
       new_string("The given lattice ensemble (%zd members) is too large to fit "
                  "into memory.\n", result.num_inputs);
-  } else {
-    for (size_t l = 0; l < result.num_inputs; ++l) {
-      result.inputs[l].params = kh_init(param_map);
-      result.inputs[l].array_params = kh_init(array_param_map);
-      assign_fixed_params(yaml_data, &result.inputs[l]);
-      assign_fixed_array_params(yaml_data, &result.inputs[l]);
-      if (num_lattice_params > 0) {
-        size_t lattice_index = l;
-        if (yaml_data.num_enumerated_inputs > 0) {
-          lattice_index = l / yaml_data.num_enumerated_inputs;
-        }
-        assign_lattice_params(yaml_data, lattice_index, num_lattice_params,
-                              &result.inputs[l]);
+    return result;
+  }
+
+  // Build a list of inputs corresponding to all the traversed parameters.
+  for (size_t l = 0; l < result.num_inputs; ++l) {
+    result.inputs[l].params = kh_init(param_map);
+    result.inputs[l].array_params = kh_init(array_param_map);
+    assign_fixed_params(yaml_data, &result.inputs[l]);
+    assign_fixed_array_params(yaml_data, &result.inputs[l]);
+    if (num_lattice_params > 0) {
+      size_t lattice_index = l;
+      if (yaml_data.num_enumerated_inputs > 0) {
+        lattice_index = l / yaml_data.num_enumerated_inputs;
       }
-      if (num_enumerated_params > 0) {
-        size_t enum_index = l % yaml_data.num_enumerated_inputs;
-        assign_enumerated_params(yaml_data, enum_index, &result.inputs[l]);
-      }
+      assign_lattice_params(yaml_data, lattice_index, num_lattice_params,
+                            &result.inputs[l]);
+    }
+    if (num_enumerated_params > 0) {
+      size_t enum_index = l % yaml_data.num_enumerated_inputs;
+      assign_enumerated_params(yaml_data, enum_index, &result.inputs[l]);
     }
   }
 
