@@ -333,12 +333,19 @@ typedef kvec_t(real_vec_t) real_vec_vec_t;
 // numbers.
 KHASH_MAP_INIT_STR(yaml_array_param_map, real_vec_vec_t)
 
+// A hash table whose keys are C strings and whose values are pointers to
+// storage for the strings. Used to guarantee parameter/setting name uniqueness
+// and also to implement a string pool.
+KHASH_MAP_INIT_STR(yaml_name_map, const char*);
+
 // This type stores data parsed from YAML.
 typedef struct yaml_data_t {
   sw_settings_t *settings;
   khash_t(yaml_param_map) *fixed_input, *lattice_input, *enumerated_input;
   khash_t(yaml_array_param_map) *fixed_array_input, *lattice_array_input,
                                 *enumerated_array_input;
+  khash_t(yaml_name_map) *setting_names;
+  khash_t(yaml_name_map) *param_names;
   size_t num_enumerated_inputs;
   int error_code;
   const char *error_message;
@@ -385,6 +392,10 @@ static void free_yaml_data(yaml_data_t data) {
   kh_destroy(yaml_array_param_map, data.fixed_array_input);
   kh_destroy(yaml_array_param_map, data.lattice_array_input);
   kh_destroy(yaml_array_param_map, data.enumerated_array_input);
+
+  kh_destroy(yaml_name_map, data.setting_names);
+  kh_destroy(yaml_name_map, data.param_names);
+
   if (data.settings) sw_settings_free(data.settings);
 }
 
@@ -453,7 +464,23 @@ static void handle_yaml_event(yaml_event_t *event,
       state->parsing_settings = true;
     } else if (state->parsing_settings) {
       if (!state->current_setting) {
+        // Have we seen this setting name before?
+        khiter_t iter = kh_get(yaml_name_map, data->setting_names, value);
+        if (iter != kh_end(data->setting_names)) { // yes
+          data->error_code = SW_INVALID_SETTINGS_BLOCK;
+          data->error_message = new_string(
+            "Setting %s appears more than once!", value);
+          return;
+        }
+
+        // Set the current setting name and add it to our list of tracked
+        // names.
         state->current_setting = dup_yaml_string(value);
+        int ret;
+        iter = kh_put(yaml_name_map, data->setting_names,
+                      state->current_setting, &ret);
+        assert(ret == 1);
+        kh_value(data->setting_names, iter) = state->current_setting;
       } else {
         sw_settings_set(data->settings, state->current_setting, value);
         state->current_setting = NULL;
@@ -478,13 +505,31 @@ static void handle_yaml_event(yaml_event_t *event,
         }
       } else { // handle input name/value
         if (!state->current_param) { // parse the input parameter name
+          // Have we seen this parameter name before?
+          khiter_t iter = kh_get(yaml_name_map, data->param_names, value);
+          if (iter != kh_end(data->param_names)) { // yes
+            data->error_code = SW_INVALID_PARAM_NAME;
+            data->error_message = new_string(
+                "Input parameter %s appears more than once!", value);
+            return;
+          }
+
+          // Is the name valid?
           if (!is_valid_input_name(value, state->parsing_input_array_sequence)) {
             data->error_code = SW_INVALID_PARAM_NAME;
             data->error_message = new_string(
                 "Invalid input parameter name: %s", value);
             return;
           }
+
+          // Set the current parameter name and add it to our list of tracked
+          // names.
           state->current_param = dup_yaml_string(value);
+          int ret;
+          iter = kh_put(yaml_name_map, data->param_names,
+                        state->current_param, &ret);
+          assert(ret == 1);
+          kh_value(data->param_names, iter) = state->current_param;
         } else { // we have an input name; parse its value
           // Try to interpret the value as a real number.
           char *endp;
@@ -510,7 +555,7 @@ static void handle_yaml_event(yaml_event_t *event,
                 array_input = data->enumerated_array_input;
               }
               khiter_t iter = kh_get(yaml_array_param_map, array_input,
-                  state->current_param);
+                                     state->current_param);
               if (iter == kh_end(array_input)) { // name not yet encountered
                 // Create an array of arrays containing one empty array.
                 real_vec_vec_t arrays;
@@ -848,6 +893,8 @@ static yaml_data_t parse_yaml(FILE* file, const char* settings_block) {
   data.fixed_array_input = kh_init(yaml_array_param_map);
   data.lattice_array_input = kh_init(yaml_array_param_map);
   data.enumerated_array_input = kh_init(yaml_array_param_map);
+  data.setting_names = kh_init(yaml_name_map);
+  data.param_names = kh_init(yaml_name_map);
 
   yaml_parser_t parser;
   yaml_parser_initialize(&parser);
