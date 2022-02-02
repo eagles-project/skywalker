@@ -502,50 +502,51 @@ you to consider.</p>
 <li><code>CMAKE_Fortran_COMPILER</code> sets the Fortran compiler that is used to build
   Skywalker's Fortran interface.</li>
 </ul>
-<p>=== Linux/Mac
-    From the top-level <code>skywalker</code> directory, create a "build" directory
-    (e.g. <code>build</code>). This is where you'll configure and build Skywalker. For example,
-    to configure a debuggable build of Skywalker that uses double precision, do the
-    following:</p>
-<div class="highlight"><pre><span></span><code>```
-mkdir build
+<div class="tabbed-set tabbed-alternate" data-tabs="2:2"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><input id="__tabbed_2_2" name="__tabbed_2" type="radio" /><div class="tabbed-labels"><label for="__tabbed_2_1">Linux/Mac</label><label for="__tabbed_2_2">Windows</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<p>From the top-level <code>skywalker</code> directory, create a "build" directory
+(e.g. <code>build</code>). This is where you'll configure and build Skywalker. For example,
+to configure a debuggable build of Skywalker that uses double precision, do the
+following:</p>
+<div class="highlight"><pre><span></span><code>mkdir build
 cd build
 cmake -DCMAKE_INSTALL_PREFIX=/path/to/install \
       -DCMAKE_BUILD_TYPE=Debug \
       -DSKYWALKER_PRECISION=double \
       ..
-```
-
-This creates a set of `Makefile`s in your build directory. Now you&#39;re ready
-to build.
 </code></pre></div>
-<p>=== Windows
-    Visual Studio gets its settings from <code>CMakeSettings.json</code> in the top-level
-    source directory.</p>
+<p>This creates a set of <code>Makefile</code>s in your build directory. Now you're ready
+to build.</p>
+</div>
+<div class="tabbed-block">
+<p>Visual Studio gets its settings from <code>CMakeSettings.json</code> in the top-level
+source directory.</p>
+</div>
+</div>
+</div>
 <h2 id="build-test-and-install-skywalker">Build, Test, and Install Skywalker</h2>
-<p>=== Linux/Mac
-    To build skywalker, make sure you're in your build directory and type</p>
-<div class="highlight"><pre><span></span><code>```
-make -j
-```
-
-If this process succeeds, you can run the tests and examples included with
-Skywalker by typing
-
-```
-make test
-```
-
-You should see several tests run (and hopefully pass!). Now, to install
-Skywalker to the path you specified with `CMAKE_INSTALL_PREFIX`, type
-
-```
-make install
-```
+<div class="tabbed-set tabbed-alternate" data-tabs="3:2"><input checked="checked" id="__tabbed_3_1" name="__tabbed_3" type="radio" /><input id="__tabbed_3_2" name="__tabbed_3" type="radio" /><div class="tabbed-labels"><label for="__tabbed_3_1">Linux/Mac</label><label for="__tabbed_3_2">Windows</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<p>To build skywalker, make sure you're in your build directory and type</p>
+<div class="highlight"><pre><span></span><code>make -j
 </code></pre></div>
-<p>=== Windows
-    You should be able to use the Build and Test workflows in Visual Studio to
-    build, test, and install Skywalker.</p>
+<p>If this process succeeds, you can run the tests and examples included with
+Skywalker by typing</p>
+<div class="highlight"><pre><span></span><code>make test
+</code></pre></div>
+<p>You should see several tests run (and hopefully pass!). Now, to install
+Skywalker to the path you specified with <code>CMAKE_INSTALL_PREFIX</code>, type</p>
+<div class="highlight"><pre><span></span><code>make install
+</code></pre></div>
+</div>
+<div class="tabbed-block">
+<p>You should be able to use the Build and Test workflows in Visual Studio to
+build, test, and install Skywalker.</p>
+</div>
+</div>
+</div>
 <p>The installation process produces the following artifacts, which you can use to
 build your own Skywalker programs:</p>
 <ul>
