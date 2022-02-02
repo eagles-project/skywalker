@@ -434,7 +434,7 @@ static bool is_valid_input_name(const char *name, bool is_array_value) {
         // Is this from a log10(x) expression?
         if (!log10_opened && (name[i] == '(')) {
           const char* log10 = strstr(name, "log10(");
-          if (log10 && ((log10 - name) < i)) // yes, it's a log10 expression
+          if (log10 && ((size_t)(log10 - name) < i)) // yes, it's a log10 expression
             log10_opened = true;
           else // nope
             return false;
@@ -984,7 +984,7 @@ static void assign_fixed_array_params(yaml_data_t yaml_data, sw_input_t *input) 
 static void assign_lattice_params(yaml_data_t yaml_data, size_t l, const size_t m,
                                   sw_input_t *input) {
   assert(m < 8);
-  int N = 0;
+  size_t N = 0;
   real_vec_t values[7];
   const char *name[7]={NULL,NULL,NULL,NULL,NULL,NULL,NULL};
   for (khiter_t iter = kh_begin(yaml_data.lattice_input);
@@ -1010,13 +1010,13 @@ static void assign_lattice_params(yaml_data_t yaml_data, size_t l, const size_t 
     }
   }
   size_t n[7];
-  for  (int i=0; i<m; ++i) {
+  for (size_t i = 0; i < m; ++i) {
     n[i] = (NULL != name[i]) ? kv_size(values[i]) : kv_size(array_values[i]);
   };
   size_t j[7];
   {
     size_t L = l;
-    for  (int i=m-1; 0<i; --i) {
+    for (int i = (int)m-1; i > 0; --i) {
       j[i] = L % n[i];
       L /= n[i];
     }
