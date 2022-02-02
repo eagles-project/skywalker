@@ -49,7 +49,7 @@ you to consider.
 * `CMAKE_Fortran_COMPILER` sets the Fortran compiler that is used to build
   Skywalker's Fortran interface.
 
-=== Linux/Mac
+=== "Linux/Mac"
     From the top-level `skywalker` directory, create a "build" directory
     (e.g. `build`). This is where you'll configure and build Skywalker. For example,
     to configure a debuggable build of Skywalker that uses double precision, do the
@@ -67,13 +67,13 @@ you to consider.
     This creates a set of `Makefile`s in your build directory. Now you're ready
     to build.
 
-=== Windows
+=== "Windows"
     Visual Studio gets its settings from `CMakeSettings.json` in the top-level
     source directory.
 
 ## Build, Test, and Install Skywalker
 
-=== Linux/Mac
+=== "Linux/Mac"
     To build skywalker, make sure you're in your build directory and type
 
     ```
@@ -94,7 +94,7 @@ you to consider.
     make install
     ```
 
-=== Windows
+=== "Windows"
     You should be able to use the Build and Test workflows in Visual Studio to
     build, test, and install Skywalker.
 
