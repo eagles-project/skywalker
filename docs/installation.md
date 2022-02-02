@@ -8,6 +8,11 @@ software. To build it, you need
 + Reliable C and C++ compilers (like GCC and Clang)
 + A decent Fortran compiler (like GFortran or Intel's `ifort`)
 
+You can also build Skywalker on Windows. It has been tested with Visual Studio
+2022 Community Edition with the Intel oneAPI Fortran Classіc (`ifort`) compiler.
+Your mileage may vary if you use different versions of Visual Studio or a
+different Fortran compiler.
+
 ## Clone the Repository
 
 First, go get the [source code](https://github.com/eagles-project/skywalker)
@@ -22,7 +27,8 @@ at GitHub:
     git clone https://github.com/eagles-project/skywalker.git
     ```
 
-This places a `skywalker` folder into your current path.
+This places a `skywalker` folder into your current path. If you're using
+Visual Studio, just use your Git workflow to clone the repository.
 
 ## Configure Skywalker
 
@@ -43,47 +49,57 @@ you to consider.
 * `CMAKE_Fortran_COMPILER` sets the Fortran compiler that is used to build
   Skywalker's Fortran interface.
 
-From the top-level `skywalker` directory, create a "build" directory
-(e.g. `build`). This is where you'll configure and build Skywalker. For example,
-to configure a debuggable build of Skywalker that uses double precision, do the
-following:
+==== Linux/Mac
+    From the top-level `skywalker` directory, create a "build" directory
+    (e.g. `build`). This is where you'll configure and build Skywalker. For example,
+    to configure a debuggable build of Skywalker that uses double precision, do the
+    following:
 
-```
-mkdir build
-cd build
-cmake -DCMAKE_INSTALL_PREFIX=/path/to/install \
-      -DCMAKE_BUILD_TYPE=Debug \
-      -DSKYWALKER_PRECISION=double \
-      ..
-```
+    ```
+    mkdir build
+    cd build
+    cmake -DCMAKE_INSTALL_PREFIX=/path/to/install \
+          -DCMAKE_BUILD_TYPE=Debug \
+          -DSKYWALKER_PRECISION=double \
+          ..
+    ```
 
-This creates a set of `Makefile`s in your build directory. Now you're ready
-to build.
+    This creates a set of `Makefile`s in your build directory. Now you're ready
+    to build.
+
+==== Windows
+    Visual Studio gets its settings from `CMakeSettings.json` in the top-level
+    source directory.
 
 ## Build, Test, and Install Skywalker
 
-To build skywalker, make sure you're in your build directory and type
+==== Linux/Mac
+    To build skywalker, make sure you're in your build directory and type
 
-```
-make -j
-```
+    ```
+    make -j
+    ```
 
-If this process succeeds, you can run the tests and examples included with
-Skywalker by typing
+    If this process succeeds, you can run the tests and examples included with
+    Skywalker by typing
 
-```
-make test
-```
+    ```
+    make test
+    ```
 
-You should see several tests run (and hopefully pass!). Now, to install
-Skywalker to the path you specified with `CMAKE_INSTALL_PREFIX`, type
+    You should see several tests run (and hopefully pass!). Now, to install
+    Skywalker to the path you specified with `CMAKE_INSTALL_PREFIX`, type
 
-```
-make install
-```
+    ```
+    make install
+    ```
 
-This process installs the following artifacts, which you can use to build your
-own Skywalker programs:
+==== Windows
+    You should be able to use the Build and Test workflows in Visual Studio to
+    build, test, and install Skywalker.
+
+The installation process produces the following artifacts, which you can use to
+build your own Skywalker programs:
 
 * `PREFIX/lib/libskywalker_<precision>.a`, a library you can use with a C or C++
   Skywalker program.
@@ -98,6 +114,8 @@ own Skywalker programs:
 * `PREFIX/share/skywalker.cmake`, a CMake file that includes installation
   information for Skywalker, plus a function called `add_skywalker_driver` you
   can use to build your own driver programs.
+
+On Windows, the library files have a `.lib` suffix instead of `.a`.
 
 Here, `PREFIX` stands for the path you passed to `CMAKE_INSTALL_PREFIX`. These
 files are all you need to build Skywalker programs.
