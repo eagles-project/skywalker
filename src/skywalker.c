@@ -333,12 +333,18 @@ typedef kvec_t(real_vec_t) real_vec_vec_t;
 // numbers.
 KHASH_MAP_INIT_STR(yaml_array_param_map, real_vec_vec_t)
 
+// A hash table representing a set of C strings. Used to guarantee that input
+// parameter/setting names are unique.
+KHASH_SET_INIT_STR(yaml_name_set);
+
 // This type stores data parsed from YAML.
 typedef struct yaml_data_t {
   sw_settings_t *settings;
   khash_t(yaml_param_map) *fixed_input, *lattice_input, *enumerated_input;
   khash_t(yaml_array_param_map) *fixed_array_input, *lattice_array_input,
                                 *enumerated_array_input;
+  khash_t(yaml_name_set) *setting_names;
+  khash_t(yaml_name_set) *param_names;
   size_t num_enumerated_inputs;
   int error_code;
   const char *error_message;
@@ -385,6 +391,10 @@ static void free_yaml_data(yaml_data_t data) {
   kh_destroy(yaml_array_param_map, data.fixed_array_input);
   kh_destroy(yaml_array_param_map, data.lattice_array_input);
   kh_destroy(yaml_array_param_map, data.enumerated_array_input);
+
+  kh_destroy(yaml_name_set, data.setting_names);
+  kh_destroy(yaml_name_set, data.param_names);
+
   if (data.settings) sw_settings_free(data.settings);
 }
 
@@ -453,7 +463,22 @@ static void handle_yaml_event(yaml_event_t *event,
       state->parsing_settings = true;
     } else if (state->parsing_settings) {
       if (!state->current_setting) {
+        // Have we seen this setting name before?
+        khiter_t iter = kh_get(yaml_name_set, data->setting_names, value);
+        if (iter != kh_end(data->setting_names)) { // yes
+          data->error_code = SW_INVALID_SETTINGS_BLOCK;
+          data->error_message = new_string(
+            "Setting %s appears more than once!", value);
+          return;
+        }
+
+        // Set the current setting name and add it to our set of tracked
+        // names.
         state->current_setting = dup_yaml_string(value);
+        int ret;
+        iter = kh_put(yaml_name_set, data->setting_names,
+                      state->current_setting, &ret);
+        assert(ret == 1);
       } else {
         sw_settings_set(data->settings, state->current_setting, value);
         state->current_setting = NULL;
@@ -478,13 +503,30 @@ static void handle_yaml_event(yaml_event_t *event,
         }
       } else { // handle input name/value
         if (!state->current_param) { // parse the input parameter name
+          // Have we seen this parameter name before?
+          khiter_t iter = kh_get(yaml_name_set, data->param_names, value);
+          if (iter != kh_end(data->param_names)) { // yes
+            data->error_code = SW_INVALID_PARAM_NAME;
+            data->error_message = new_string(
+                "Input parameter %s appears more than once!", value);
+            return;
+          }
+
+          // Is the name valid?
           if (!is_valid_input_name(value, state->parsing_input_array_sequence)) {
             data->error_code = SW_INVALID_PARAM_NAME;
             data->error_message = new_string(
                 "Invalid input parameter name: %s", value);
             return;
           }
+
+          // Set the current parameter name and add it to our set of tracked
+          // names.
           state->current_param = dup_yaml_string(value);
+          int ret;
+          iter = kh_put(yaml_name_set, data->param_names,
+                        state->current_param, &ret);
+          assert(ret == 1);
         } else { // we have an input name; parse its value
           // Try to interpret the value as a real number.
           char *endp;
@@ -510,7 +552,7 @@ static void handle_yaml_event(yaml_event_t *event,
                 array_input = data->enumerated_array_input;
               }
               khiter_t iter = kh_get(yaml_array_param_map, array_input,
-                  state->current_param);
+                                     state->current_param);
               if (iter == kh_end(array_input)) { // name not yet encountered
                 // Create an array of arrays containing one empty array.
                 real_vec_vec_t arrays;
@@ -615,6 +657,40 @@ static void handle_yaml_event(yaml_event_t *event,
     if (state->parsing_input_array_sequence) {
       state->parsing_input_array_sequence = false;
     } else { // sequence of scalar or array inputs
+      if (!state->parsing_fixed_params) {
+        // Make sure the sequence has more than one value, whatever it is.
+        khash_t(yaml_param_map) *input;
+        khash_t(yaml_array_param_map) *array_input;
+        size_t num_values = 0;
+        if (state->parsing_lattice_params) {
+          input = data->lattice_input;
+          array_input = data->lattice_array_input;
+        } else {
+          input = data->enumerated_input;
+          array_input = data->enumerated_array_input;
+        }
+        khiter_t iter = kh_get(yaml_param_map, input, state->current_param);
+        if (iter != kh_end(input)) { // it's a scalar
+          num_values = kv_size(kh_value(input, iter));
+        } else { // is it an array?
+          iter = kh_get(yaml_array_param_map, array_input, state->current_param);
+          if (iter != kh_end(array_input)) {
+            num_values = kv_size(kh_value(array_input, iter));
+          } else { // the parameter is an empty sequence, maybe
+            data->error_code = SW_EMPTY_ENSEMBLE;
+            data->error_message = new_string(
+              "Lattice or enumerated parameter %s has no values. Generated "
+              "ensemble is empty!", state->current_param);
+          }
+        }
+        if (num_values == 1) {
+          data->error_code = SW_INVALID_PARAM_VALUE;
+          data->error_message = new_string(
+            "Lattice or enumerated parameter %s has only a single value.",
+            state->current_param);
+          return;
+        }
+      }
       state->parsing_input_sequence = false;
       state->current_param = NULL;
     }
@@ -814,6 +890,8 @@ static yaml_data_t parse_yaml(FILE* file, const char* settings_block) {
   data.fixed_array_input = kh_init(yaml_array_param_map);
   data.lattice_array_input = kh_init(yaml_array_param_map);
   data.enumerated_array_input = kh_init(yaml_array_param_map);
+  data.setting_names = kh_init(yaml_name_set);
+  data.param_names = kh_init(yaml_name_set);
 
   yaml_parser_t parser;
   yaml_parser_initialize(&parser);
@@ -977,6 +1055,7 @@ typedef struct sw_build_result_t {
 // Generates an array of inputs for an ensemble.
 static sw_build_result_t build_ensemble(yaml_data_t yaml_data) {
   sw_build_result_t result = {.num_inputs = 1, .error_code = SW_SUCCESS};
+
   // Count up the number of inputs and parameters.
 
   // Fixed parameters
@@ -1021,31 +1100,33 @@ static sw_build_result_t build_ensemble(yaml_data_t yaml_data) {
     return result;
   }
 
-  // Build a list of inputs corresponding to all the traversed parameters.
+  // Try to allocate storage for inputs.
   result.inputs = malloc(sizeof(sw_input_t) * result.num_inputs);
   if (!result.inputs) {
     result.error_code = SW_ENSEMBLE_TOO_LARGE;
     result.error_message =
       new_string("The given lattice ensemble (%zd members) is too large to fit "
                  "into memory.\n", result.num_inputs);
-  } else {
-    for (size_t l = 0; l < result.num_inputs; ++l) {
-      result.inputs[l].params = kh_init(param_map);
-      result.inputs[l].array_params = kh_init(array_param_map);
-      assign_fixed_params(yaml_data, &result.inputs[l]);
-      assign_fixed_array_params(yaml_data, &result.inputs[l]);
-      if (num_lattice_params > 0) {
-        size_t lattice_index = l;
-        if (yaml_data.num_enumerated_inputs > 0) {
-          lattice_index = l / yaml_data.num_enumerated_inputs;
-        }
-        assign_lattice_params(yaml_data, lattice_index, num_lattice_params,
-                              &result.inputs[l]);
+    return result;
+  }
+
+  // Build a list of inputs corresponding to all the traversed parameters.
+  for (size_t l = 0; l < result.num_inputs; ++l) {
+    result.inputs[l].params = kh_init(param_map);
+    result.inputs[l].array_params = kh_init(array_param_map);
+    assign_fixed_params(yaml_data, &result.inputs[l]);
+    assign_fixed_array_params(yaml_data, &result.inputs[l]);
+    if (num_lattice_params > 0) {
+      size_t lattice_index = l;
+      if (yaml_data.num_enumerated_inputs > 0) {
+        lattice_index = l / yaml_data.num_enumerated_inputs;
       }
-      if (num_enumerated_params > 0) {
-        size_t enum_index = l % yaml_data.num_enumerated_inputs;
-        assign_enumerated_params(yaml_data, enum_index, &result.inputs[l]);
-      }
+      assign_lattice_params(yaml_data, lattice_index, num_lattice_params,
+                            &result.inputs[l]);
+    }
+    if (num_enumerated_params > 0) {
+      size_t enum_index = l % yaml_data.num_enumerated_inputs;
+      assign_enumerated_params(yaml_data, enum_index, &result.inputs[l]);
     }
   }
 

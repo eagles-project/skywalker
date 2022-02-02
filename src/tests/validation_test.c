@@ -63,6 +63,17 @@ static void test_invalid_settings_block() {
   assert(load_result.error_message != NULL);
 }
 
+static void test_duplicate_setting() {
+  const char* bad_yaml =
+    "settings:\n  a: 1\n  a: 2\n"
+    "input:\n  fixed:\n    x: 1\n    y: 2\n    z: 3\n";
+  write_test_input(bad_yaml, "duplicate_setting.yaml");
+  sw_ensemble_result_t load_result =
+    sw_load_ensemble("duplicate_setting.yaml", "settings");
+  assert(load_result.error_code == SW_INVALID_SETTINGS_BLOCK);
+  assert(load_result.error_message != NULL);
+}
+
 static void test_missing_settings_block() {
   const char* bad_yaml =
     "no_settings:\n  a: 1\n\n"
@@ -104,6 +115,19 @@ static void test_invalid_param_name() {
   assert(load_result.error_code == SW_SUCCESS);
   assert(load_result.error_message == NULL);
   sw_ensemble_free(load_result.ensemble);
+}
+
+static void test_duplicate_param() {
+  sw_ensemble_result_t load_result;
+
+  // No names with dots.
+  const char* name_with_dot_yaml =
+    "settings:\n  a: 1\n\n"
+    "input:\n  fixed:\n    x: 1\n    x: 2\n    z: 3\n";
+  write_test_input(name_with_dot_yaml, "duplicate_param.yaml");
+  load_result = sw_load_ensemble("duplicate_param.yaml", "settings");
+  assert(load_result.error_code == SW_INVALID_PARAM_NAME);
+  assert(load_result.error_message != NULL);
 }
 
 static void test_too_many_lattice_params() {
@@ -155,8 +179,10 @@ int main(int argc, char **argv) {
   // Now validate!
   test_nonexistent_file();
   test_invalid_settings_block();
+  test_duplicate_setting();
   test_missing_settings_block();
   test_invalid_param_name();
+  test_duplicate_param();
   test_too_many_lattice_params();
   test_invalid_enumeration();
   test_empty_ensemble();

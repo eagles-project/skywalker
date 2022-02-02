@@ -19,20 +19,25 @@ Consider the `input` block from the example input file in the
 [Input Format](input.md) section:
 
 ```
+my_settings:
+  method = quadrature
+
 input:
-  relative_humidity: [0.01, 1.00, 0.01]
-  temperature: [230.15, 300.15, 1]
-  c_h2so4: 5e8 # [#/cc]
-  planetary_boundary_layer_height: 1100
-  height: 500
-  xi_nh3: 0
+  lattice:
+    relative_humidity: [0.01, 1.00, 0.01]
+    temperature: [230.15, 300.15, 1]
+  fixed:
+    c_h2so4: 5e8 # [#/cc]
+    planetary_boundary_layer_height: 1100
+    height: 500
+    xi_nh3: 0
 ```
 
-Recall that this is a `lattice` ensemble, so it constructs an ensemble whose
-members assume all possible combinations of parameter values. There are 100
-values for `relative_humidity`, 71 values for `temperature`, and a single value
-for all other parameters. So there are $100 \times 71 = 7100$ members in the
-resulting lattice ensemble.
+With this input, Skywalker constructs an ensemble whose members assume all
+possible combinations of its `lattice` parameters. There are 100 values for
+`relative_humidity`, 71 values for `temperature`, and a single value for all
+other parameters. So there are $100 \times 71 = 7100$ members in the resulting
+lattice ensemble.
 
 Suppose our program generates output variables `nucleation_rate` and
 `nucleation_threshold`, both of which depend on some or all of the input
@@ -46,6 +51,10 @@ from math import nan as nan
 # Object is just a dynamic container that stores input/output data.
 class Object(object):
     pass
+
+# Settings are stored here.
+settings = Object()
+settings.method = 'quadrature'
 
 # Input is stored here.
 input = Object()
@@ -62,8 +71,8 @@ output.nucleation_threshold = [2.52217e+09, 2.37766e+09, 2.24821e+09, ..., 9.006
 ```
 
 We've used ellipsis to omit unnecessary detail. The `Object` type is just a
-simple trick to allow us to dynamically create fields for the `input` and
-`output` variables.
+simple trick to allow us to dynamically create fields for the `settings`,
+`input`, and `output` variables.
 
 The important thing here is that all input and output lists in this module have
 7100 values, and these values all appear in the same order. The first value in
