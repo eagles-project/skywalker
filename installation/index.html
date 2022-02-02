@@ -502,7 +502,7 @@ you to consider.</p>
 <li><code>CMAKE_Fortran_COMPILER</code> sets the Fortran compiler that is used to build
   Skywalker's Fortran interface.</li>
 </ul>
-<p>==== Linux/Mac
+<p>=== Linux/Mac
     From the top-level <code>skywalker</code> directory, create a "build" directory
     (e.g. <code>build</code>). This is where you'll configure and build Skywalker. For example,
     to configure a debuggable build of Skywalker that uses double precision, do the
@@ -519,11 +519,11 @@ cmake -DCMAKE_INSTALL_PREFIX=/path/to/install \
 This creates a set of `Makefile`s in your build directory. Now you&#39;re ready
 to build.
 </code></pre></div>
-<p>==== Windows
+<p>=== Windows
     Visual Studio gets its settings from <code>CMakeSettings.json</code> in the top-level
     source directory.</p>
 <h2 id="build-test-and-install-skywalker">Build, Test, and Install Skywalker</h2>
-<p>==== Linux/Mac
+<p>=== Linux/Mac
     To build skywalker, make sure you're in your build directory and type</p>
 <div class="highlight"><pre><span></span><code>```
 make -j
@@ -543,7 +543,7 @@ Skywalker to the path you specified with `CMAKE_INSTALL_PREFIX`, type
 make install
 ```
 </code></pre></div>
-<p>==== Windows
+<p>=== Windows
     You should be able to use the Build and Test workflows in Visual Studio to
     build, test, and install Skywalker.</p>
 <p>The installation process produces the following artifacts, which you can use to
