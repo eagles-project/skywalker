@@ -46,7 +46,6 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
-#include <strings.h>
 
 #ifdef __cplusplus
 extern "C" {
