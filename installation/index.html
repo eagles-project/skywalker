@@ -463,6 +463,10 @@ software. To build it, you need</p>
 <li>Reliable C and C++ compilers (like GCC and Clang)</li>
 <li>A decent Fortran compiler (like GFortran or Intel's <code>ifort</code>)</li>
 </ul>
+<p>You can also build Skywalker on Windows. It has been tested with Visual Studio
+2022 Community Edition with the Intel oneAPI Fortran Classіc (<code>ifort</code>) compiler.
+Your mileage may vary if you use different versions of Visual Studio or a
+different Fortran compiler.</p>
 <h2 id="clone-the-repository">Clone the Repository</h2>
 <p>First, go get the <a href="https://github.com/eagles-project/skywalker">source code</a>
 at GitHub:</p>
@@ -478,7 +482,8 @@ at GitHub:</p>
 </div>
 </div>
 </div>
-<p>This places a <code>skywalker</code> folder into your current path.</p>
+<p>This places a <code>skywalker</code> folder into your current path. If you're using
+Visual Studio, just use your Git workflow to clone the repository.</p>
 <h2 id="configure-skywalker">Configure Skywalker</h2>
 <p>Skywalker uses CMake as its build system. CMake accepts a few options that
 specify how Skywalker should be built. Here are the most important options for
@@ -497,33 +502,52 @@ you to consider.</p>
 <li><code>CMAKE_Fortran_COMPILER</code> sets the Fortran compiler that is used to build
   Skywalker's Fortran interface.</li>
 </ul>
-<p>From the top-level <code>skywalker</code> directory, create a "build" directory
-(e.g. <code>build</code>). This is where you'll configure and build Skywalker. For example,
-to configure a debuggable build of Skywalker that uses double precision, do the
-following:</p>
-<div class="highlight"><pre><span></span><code>mkdir build
+<p>==== Linux/Mac
+    From the top-level <code>skywalker</code> directory, create a "build" directory
+    (e.g. <code>build</code>). This is where you'll configure and build Skywalker. For example,
+    to configure a debuggable build of Skywalker that uses double precision, do the
+    following:</p>
+<div class="highlight"><pre><span></span><code>```
+mkdir build
 cd build
 cmake -DCMAKE_INSTALL_PREFIX=/path/to/install \
       -DCMAKE_BUILD_TYPE=Debug \
       -DSKYWALKER_PRECISION=double \
       ..
+```
+
+This creates a set of `Makefile`s in your build directory. Now you&#39;re ready
+to build.
 </code></pre></div>
-<p>This creates a set of <code>Makefile</code>s in your build directory. Now you're ready
-to build.</p>
+<p>==== Windows
+    Visual Studio gets its settings from <code>CMakeSettings.json</code> in the top-level
+    source directory.</p>
 <h2 id="build-test-and-install-skywalker">Build, Test, and Install Skywalker</h2>
-<p>To build skywalker, make sure you're in your build directory and type</p>
-<div class="highlight"><pre><span></span><code>make -j
+<p>==== Linux/Mac
+    To build skywalker, make sure you're in your build directory and type</p>
+<div class="highlight"><pre><span></span><code>```
+make -j
+```
+
+If this process succeeds, you can run the tests and examples included with
+Skywalker by typing
+
+```
+make test
+```
+
+You should see several tests run (and hopefully pass!). Now, to install
+Skywalker to the path you specified with `CMAKE_INSTALL_PREFIX`, type
+
+```
+make install
+```
 </code></pre></div>
-<p>If this process succeeds, you can run the tests and examples included with
-Skywalker by typing</p>
-<div class="highlight"><pre><span></span><code>make test
-</code></pre></div>
-<p>You should see several tests run (and hopefully pass!). Now, to install
-Skywalker to the path you specified with <code>CMAKE_INSTALL_PREFIX</code>, type</p>
-<div class="highlight"><pre><span></span><code>make install
-</code></pre></div>
-<p>This process installs the following artifacts, which you can use to build your
-own Skywalker programs:</p>
+<p>==== Windows
+    You should be able to use the Build and Test workflows in Visual Studio to
+    build, test, and install Skywalker.</p>
+<p>The installation process produces the following artifacts, which you can use to
+build your own Skywalker programs:</p>
 <ul>
 <li><code>PREFIX/lib/libskywalker_&lt;precision&gt;.a</code>, a library you can use with a C or C++
   Skywalker program.</li>
@@ -539,6 +563,7 @@ own Skywalker programs:</p>
   information for Skywalker, plus a function called <code>add_skywalker_driver</code> you
   can use to build your own driver programs.</li>
 </ul>
+<p>On Windows, the library files have a <code>.lib</code> suffix instead of <code>.a</code>.</p>
 <p>Here, <code>PREFIX</code> stands for the path you passed to <code>CMAKE_INSTALL_PREFIX</code>. These
 files are all you need to build Skywalker programs.</p>
 <h2 id="try-it-out">Try It Out!</h2>

@@ -444,19 +444,24 @@ contains two Python variables:</p>
 </ol>
 <p>Consider the <code>input</code> block from the example input file in the
 <a href="../input/">Input Format</a> section:</p>
-<div class="highlight"><pre><span></span><code>input:
-  relative_humidity: [0.01, 1.00, 0.01]
-  temperature: [230.15, 300.15, 1]
-  c_h2so4: 5e8 # [#/cc]
-  planetary_boundary_layer_height: 1100
-  height: 500
-  xi_nh3: 0
+<div class="highlight"><pre><span></span><code>my_settings:
+  method = quadrature
+
+input:
+  lattice:
+    relative_humidity: [0.01, 1.00, 0.01]
+    temperature: [230.15, 300.15, 1]
+  fixed:
+    c_h2so4: 5e8 # [#/cc]
+    planetary_boundary_layer_height: 1100
+    height: 500
+    xi_nh3: 0
 </code></pre></div>
-<p>Recall that this is a <code>lattice</code> ensemble, so it constructs an ensemble whose
-members assume all possible combinations of parameter values. There are 100
-values for <code>relative_humidity</code>, 71 values for <code>temperature</code>, and a single value
-for all other parameters. So there are <span class="arithmatex">\(100 \times 71 = 7100\)</span> members in the
-resulting lattice ensemble.</p>
+<p>With this input, Skywalker constructs an ensemble whose members assume all
+possible combinations of its <code>lattice</code> parameters. There are 100 values for
+<code>relative_humidity</code>, 71 values for <code>temperature</code>, and a single value for all
+other parameters. So there are <span class="arithmatex">\(100 \times 71 = 7100\)</span> members in the resulting
+lattice ensemble.</p>
 <p>Suppose our program generates output variables <code>nucleation_rate</code> and
 <code>nucleation_threshold</code>, both of which depend on some or all of the input
 parameters. Here's how the resulting Python module might look.</p>
@@ -467,6 +472,10 @@ from math import nan as nan
 # Object is just a dynamic container that stores input/output data.
 class Object(object):
     pass
+
+# Settings are stored here.
+settings = Object()
+settings.method = &#39;quadrature&#39;
 
 # Input is stored here.
 input = Object()
@@ -482,8 +491,8 @@ output.nucleation_rate = [1.56031e+06, 4.00182e+06, 6.14731e+06, ..., 2.75652e-0
 output.nucleation_threshold = [2.52217e+09, 2.37766e+09, 2.24821e+09, ..., 9.00622e+08, 8.85519e+08, 8.70748e+08, ]
 </code></pre></div>
 <p>We've used ellipsis to omit unnecessary detail. The <code>Object</code> type is just a
-simple trick to allow us to dynamically create fields for the <code>input</code> and
-<code>output</code> variables.</p>
+simple trick to allow us to dynamically create fields for the <code>settings</code>,
+<code>input</code>, and <code>output</code> variables.</p>
 <p>The important thing here is that all input and output lists in this module have
 7100 values, and these values all appear in the same order. The first value in
 each list belongs to the first member of the ensemble, the second value to the
