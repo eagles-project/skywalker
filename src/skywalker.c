@@ -288,7 +288,6 @@ struct sw_ensemble_t {
   sw_input_t *inputs;
   sw_output_t *outputs;
   sw_settings_t *settings; // for writing and freeing
-  char *names; // a blob that contains all settings/input name strings
 };
 
 //------------------------------------------------------------------------
