@@ -33,7 +33,7 @@ set_target_properties(skywalker_f90 PROPERTIES
 
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/skywalker.mod
         DESTINATION include)
-install(TARGETS skywalker skywalker_f90 DESTINATION lib)
+install(TARGETS skywalker skywalker_f90 DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
 # Install py2ncl, a post-processing script that translates Skywalker output
 # Python modules into NCL data files.

@@ -8,10 +8,10 @@ set(SKYWALKER_SOURCE_DIR "@PROJECT_SOURCE_DIR@")
 if (NOT PROJECT_SOURCE_DIR STREQUAL SKYWALKER_SOURCE_DIR)
   # Library targets
   add_library(skywalker STATIC IMPORTED GLOBAL)
-  set_target_properties(skywalker PROPERTIES IMPORTED_LOCATION "${SKYWALKER_PREFIX}/lib/libskywalker_@SKYWALKER_PRECISION@.a")
+  set_target_properties(skywalker PROPERTIES IMPORTED_LOCATION "${SKYWALKER_PREFIX}/${CMAKE_INSTALL_LIBDIR}/libskywalker_@SKYWALKER_PRECISION@.a")
 
   add_library(skywalker_f90 STATIC IMPORTED GLOBAL)
-  set_target_properties(skywalker_f90 PROPERTIES IMPORTED_LOCATION "${SKYWALKER_PREFIX}/lib/libskywalker_f90_@SKYWALKER_PRECISION@.a")
+  set_target_properties(skywalker_f90 PROPERTIES IMPORTED_LOCATION "${SKYWALKER_PREFIX}/${CMAKE_INSTALL_LIBDIR}/libskywalker_f90_@SKYWALKER_PRECISION@.a")
 endif()
 
 # Use this function to create a simple Skywalker driver program in C or Fortran.
