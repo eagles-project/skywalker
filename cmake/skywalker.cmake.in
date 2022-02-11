@@ -12,11 +12,6 @@ if (NOT PROJECT_SOURCE_DIR STREQUAL SKYWALKER_SOURCE_DIR)
 
   add_library(skywalker_f90 STATIC IMPORTED GLOBAL)
   set_target_properties(skywalker_f90 PROPERTIES IMPORTED_LOCATION "${SKYWALKER_PREFIX}/lib/libskywalker_f90_@SKYWALKER_PRECISION@.a")
-
-  set(SKYWALKER_INCLUDE_DIR ${SKYWALKER_PREFIX}/include)
-  set(SKYWALKER_LIBRARY skywalker)
-  set(SKYWALKER_F90_LIBRARY skywalker_f90)
-  set(SKYWALKER_PY2NCL ${SKYWALKER_PREFIX}/bin/py2ncl)
 endif()
 
 # Use this function to create a simple Skywalker driver program in C or Fortran.
