@@ -31,6 +31,7 @@ add_library(skywalker_f90 skywalker.F90)
 set_target_properties(skywalker_f90 PROPERTIES
                                     OUTPUT_NAME skywalker_f90_${SKYWALKER_PRECISION})
 
+include(GNUInstallDirs)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/skywalker.mod
         DESTINATION include)
 install(TARGETS skywalker skywalker_f90 DESTINATION ${CMAKE_INSTALL_LIBDIR})
