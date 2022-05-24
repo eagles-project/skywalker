@@ -9,7 +9,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-8.0.1">
+      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-8.1.4">
     
     
       
@@ -17,10 +17,10 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.816931ca.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.bb3983ee.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.9204c3b2.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.e6a45f82.min.css">
         
       
     
@@ -34,10 +34,9 @@
       
     
     
-    <script>function __md_scope(e,t,_){return new URL(_||(t===localStorage?"..":".."),location).pathname+"."+e}function __md_get(e,t=localStorage,_){return JSON.parse(t.getItem(__md_scope(e,t,_)))}function __md_set(e,t,_=localStorage,o){try{_.setItem(__md_scope(e,_,o),JSON.stringify(t))}catch(e){}}</script>
+    <script>__md_scope=new URL("..",location),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
-
 
     
     
@@ -633,16 +632,21 @@ including the endpoints, in uniform steps of 1."</p>
 <p>How does Skywalker know this isn't a list containing the temperatures 230.15 K,
 300.15 K, and 1 K? It uses a set of simple rules to determine how to interpret
 these values.</p>
-<p>Lists that satisfy all of these properties are expanded into uniformly spaced
-sets of values:</p>
+<p>A list with values <code>[v1, v2, v3]</code> that satisfies the following properties is
+expanded into a uniformly spaced set of values between <code>v1</code> and <code>v2</code> with
+spacing <code>v3</code>:</p>
 <ul>
-<li>The list contains 3 values</li>
-<li>The first value is less than the second value</li>
-<li>The third value is less than the second value</li>
+<li><code>v1 &lt; v2</code> and <code>v3 &lt; v2</code>, <strong>OR</strong></li>
+<li><code>v1 &lt; v2 &lt; 0</code> and <code>|v3| &lt; |v2 - v1|</code>.</li>
 </ul>
 <p>All other lists are interpreted as lists containing 3 values.</p>
-<p>These rules may seem arbitrary, but in practice, they will never prevent you
-from doing what you need to do.</p>
+<p>These rules handle most cases of interest, but there remain some ambiguous
+sequences that Skywalker does not expand. For example, the list
+<code>[-11, 1, 2]</code> could be interpreted as the uniformly-spaced set of values
+<code>[-11, -9, -7, -5, -3, -1, 1]</code>, but it is also an ascending set of 3 values,
+so Skywalker doesn't expand it. Because this expanѕion feature is intended as a
+convenience, you can always explicitly perform the expanѕion yourself when you
+create an input file.</p>
 <h3 id="logarithmic-spacing">Logarithmic Spacing</h3>
 <p>Sometimes a parameter varies over several orders of magnitude, making it
 inconvenient to specify uniformly-spaced values. For example, chemical reactions
@@ -778,10 +782,10 @@ a scalar list:</p>
     <div class="md-dialog" data-md-component="dialog">
       <div class="md-dialog__inner md-typeset"></div>
     </div>
-    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.indices", "navigation.instant", "navigation.sections", "navigation.top"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.01824240.min.js"}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.indices", "navigation.instant", "navigation.sections", "navigation.top"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.361d90f1.min.js"}</script>
     
     
-      <script src="../assets/javascripts/bundle.a87c2adc.min.js"></script>
+      <script src="../assets/javascripts/bundle.289a2a4b.min.js"></script>
       
         <script src="../javascript/mathjax.js"></script>
       
