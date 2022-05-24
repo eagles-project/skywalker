@@ -712,7 +712,11 @@ static void postprocess_params(khash_t(yaml_param_map) **params,
       sw_real_t val0 = kv_A(values, 0),
                 val1 = kv_A(values, 1),
                 val2 = kv_A(values, 2);
-      if ((val0 < val1) && (val2 < val1)) { // expand!
+      bool is_non_negative_sequence =
+        ((val0 >= 0) && (val0 < val1) && (val2 <= val1));
+      bool is_negative_sequence =
+        ((val0 < 0) && (val1 < 0) && (fabs(val2) < fabs(val1 - val0)));
+      if (is_non_negative_sequence || is_negative_sequence) {
         real_vec_t expanded_values;
         kv_init(expanded_values);
         size_t size = (size_t)(ceil((val1 - val0) / val2) + 1);
