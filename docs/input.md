@@ -166,17 +166,22 @@ How does Skywalker know this isn't a list containing the temperatures 230.15 K,
 300.15 K, and 1 K? It uses a set of simple rules to determine how to interpret
 these values.
 
-Lists that satisfy all of these properties are expanded into uniformly spaced
-sets of values:
+A list with values `[v1, v2, v3]` that satisfies the following properties is
+expanded into a uniformly spaced set of values between `v1` and `v2` with
+spacing `v3`:
 
-* The list contains 3 values
-* The first value is less than the second value
-* The third value is less than the second value
+* `v1 < v2` and `v3 < v2`, **OR**
+* `v1 < v2 < 0` and `|v3| < |v2 - v1|`.
 
 All other lists are interpreted as lists containing 3 values.
 
-These rules may seem arbitrary, but in practice, they will never prevent you
-from doing what you need to do.
+These rules handle most cases of interest, but there remain some ambiguous
+sequences that Skywalker does not expand. For example, the list
+`[-11, 1, 2]` could be interpreted as the uniformly-spaced set of values
+`[-11, -9, -7, -5, -3, -1, 1]`, but it is also an ascending set of 3 values,
+so Skywalker doesn't expand it. Because this expanѕion feature is intended as a
+convenience, you can always explicitly perform the expanѕion yourself when you
+create an input file.
 
 ### Logarithmic Spacing
 
