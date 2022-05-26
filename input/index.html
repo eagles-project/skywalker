@@ -332,6 +332,19 @@
     Lists of Parameter Values and Uniform Spacing
   </a>
   
+    <nav class="md-nav" aria-label="Lists of Parameter Values and Uniform Spacing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#examples" class="md-nav__link">
+    Examples
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
           <li class="md-nav__item">
@@ -458,6 +471,19 @@
   <a href="#lists-of-parameter-values-and-uniform-spacing" class="md-nav__link">
     Lists of Parameter Values and Uniform Spacing
   </a>
+  
+    <nav class="md-nav" aria-label="Lists of Parameter Values and Uniform Spacing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#examples" class="md-nav__link">
+    Examples
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
         
@@ -632,21 +658,33 @@ including the endpoints, in uniform steps of 1."</p>
 <p>How does Skywalker know this isn't a list containing the temperatures 230.15 K,
 300.15 K, and 1 K? It uses a set of simple rules to determine how to interpret
 these values.</p>
-<p>A list with values <code>[v1, v2, v3]</code> that satisfies the following properties is
-expanded into a uniformly spaced set of values between <code>v1</code> and <code>v2</code> with
-spacing <code>v3</code>:</p>
+<p>A list with values <span class="arithmatex">\(\[v_1, v_2, v_3\]\)</span> that satisfies the following properties is
+expanded into a uniformly spaced set of values between <span class="arithmatex">\(v_1\)</span> and <span class="arithmatex">\(v_2\)</span> with
+spacing <span class="arithmatex">\(v_3\)</span>:</p>
 <ul>
-<li><code>v1 &lt; v2</code> and <code>v3 &lt; v2</code>, <strong>OR</strong></li>
-<li><code>v1 &lt; v2 &lt; 0</code> and <code>|v3| &lt; |v2 - v1|</code>.</li>
+<li><span class="arithmatex">\(v_1 &lt; v_2\)</span></li>
+<li><span class="arithmatex">\(0 &lt; v_3 &lt; v_2\)</span> <strong>or</strong> <span class="arithmatex">\(v_2 &lt; 0\)</span> and <span class="arithmatex">\(0 &lt; v_3 &lt; (v_2 - v_1)/2\)</span></li>
 </ul>
 <p>All other lists are interpreted as lists containing 3 values.</p>
-<p>These rules handle most cases of interest, but there remain some ambiguous
-sequences that Skywalker does not expand. For example, the list
-<code>[-11, 1, 2]</code> could be interpreted as the uniformly-spaced set of values
-<code>[-11, -9, -7, -5, -3, -1, 1]</code>, but it is also an ascending set of 3 values,
-so Skywalker doesn't expand it. Because this expanѕion feature is intended as a
-convenience, you can always explicitly perform the expanѕion yourself when you
-create an input file.</p>
+<p>These rules handle most cases of interest, but there remain some sequences that
+suggest expanѕion but that Skywalker does not expand.</p>
+<h4 id="examples">Examples</h4>
+<p>For example, the list <code>[-11, 1, 2]</code> could be interpreted as the uniformly-spaced
+set of values <code>[-11, -9, -7, -5, -3, -1, 1]</code>, but since <span class="arithmatex">\(2 &gt; 1\)</span> and <span class="arithmatex">\(1 &gt; 0\)</span>,
+Skywalker doesn't expand it.</p>
+<p>Some other examples:</p>
+<ul>
+<li>The list <code>[0, 1, 0.1]</code> expands to <code>[0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]</code>.</li>
+<li>The list <code>[-2, 0, 0.2]</code> is not expanded.</li>
+<li>The list <code>[-2, 1, 0.25]</code> expands to <code>[-2, -1.75, -1.5, -1.25, -1, -0.75, -0.5, -0.25, 0, 0.25, 0.5, 0.75, 1]</code>.</li>
+<li>The list <code>[-10, -1, 1]</code> expands to <code>[-10, -9, -8, -7, -6, -5, -4, -3, -2, -1]</code>.</li>
+<li>The list <code>[-11, 1, 1]</code> is not expanded.</li>
+<li>The list <code>[-11, 1, 2]</code> is not expanded.</li>
+<li>The list <code>[-7, 2, 1]</code> expands to <code>[-7, -6, -5, -4, -3, -2, -1, 0, 1, 2]</code>.</li>
+</ul>
+<p><strong>Because this expanѕion feature is intended as a convenience, you can
+always explicitly perform the expanѕion yourself when you create an input
+file.</strong></p>
 <h3 id="logarithmic-spacing">Logarithmic Spacing</h3>
 <p>Sometimes a parameter varies over several orders of magnitude, making it
 inconvenient to specify uniformly-spaced values. For example, chemical reactions
