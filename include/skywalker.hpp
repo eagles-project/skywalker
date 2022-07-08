@@ -188,8 +188,7 @@ class Output final {
   // Sets (real-valued) parameters in an array with the given name. This
   // operation cannot fail under normal circumstances.
   void set(const std::string& name, const std::vector<Real> &values) const {
-    const size_t n = values.size();
-    sw_output_set_array(output_, name.c_str(), values.data(), &n);
+    sw_output_set_array(output_, name.c_str(), values.data(), values.size());
   }
 
  private:

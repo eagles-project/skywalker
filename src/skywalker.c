@@ -269,14 +269,14 @@ void sw_output_set(sw_output_t *output, const char *name, sw_real_t value) {
 }
 
 void sw_output_set_array(sw_output_t *output, const char *name,
-                         const sw_real_t* values, const size_t *size) {
+                         const sw_real_t *values, size_t size) {
   const char* n = dup_string(name);
   int ret;
   khiter_t iter = kh_put(array_param_map, output->array_metrics, n, &ret);
   assert(ret == 1);
   real_vec_t array;
   kv_init(array);
-  for (size_t i=0; i<*size; ++i)
+  for (size_t i=0; i<size; ++i)
     kv_push(sw_real_t, array, values[i]); // append
   kh_value(output->array_metrics, iter) = array;
 }
@@ -1265,7 +1265,7 @@ sw_write_result_t sw_ensemble_write(sw_ensemble_t *ensemble,
       khash_t(param_map) *params_i = ensemble->inputs[i].params;
       khiter_t iter = kh_get(param_map, params_i, name);
       sw_real_t value = kh_val(params_i, iter);
-      fprintf(file, "%g, ", value);
+      fprintf(file, "%f, ", value);
     }
     fprintf(file, "]\n");
   }
@@ -1284,7 +1284,7 @@ sw_write_result_t sw_ensemble_write(sw_ensemble_t *ensemble,
       size_t size = kv_size(arrays);
       fprintf(file, "[");
       for (size_t i=0; i<size; ++i)
-        fprintf(file, "%g, ", kv_A(arrays, i));
+        fprintf(file, "%f, ", kv_A(arrays, i));
       fprintf(file, "],");
     }
     fprintf(file, "]\n");
@@ -1308,7 +1308,7 @@ sw_write_result_t sw_ensemble_write(sw_ensemble_t *ensemble,
         if (isnan(value)) {
           fprintf(file, "nan, ");
         } else {
-          fprintf(file, "%g, ", value);
+          fprintf(file, "%f, ", value);
         }
       }
       fprintf(file, "]\n");
@@ -1330,7 +1330,7 @@ sw_write_result_t sw_ensemble_write(sw_ensemble_t *ensemble,
           if (isnan(kv_A(arrays, i))) {
             fprintf(file, "nan, ");
           } else {
-            fprintf(file, "%g, ", kv_A(arrays, i));
+            fprintf(file, "%f, ", kv_A(arrays, i));
           }
         }
         fprintf(file, "],");
@@ -1411,6 +1411,12 @@ void sw_input_get_array_f90(sw_input_t *input, const char *name,
   *error_code = result.error_code;
   *error_message = result.error_message;
 }
+
+void sw_output_set_array_f90(sw_output_t *output, const char *name,
+                             const sw_real_t *values, size_t *size) {
+  sw_output_set_array(output, name, values, *size);
+}
+
 
 void sw_ensemble_write_f90(sw_ensemble_t *ensemble, const char *module_filename,
                           int *error_code, const char **error_message) {

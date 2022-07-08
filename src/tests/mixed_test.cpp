@@ -126,6 +126,13 @@ int main(int argc, char **argv) {
 
     // Add a "qoi" metric set to 4.
     output.set("qoi", 4.0);
+
+    // Add an array value.
+    std::vector<Real> qoi_array(10);
+    for (int i = 0; i < 10; ++i) {
+      qoi_array[i] = i;
+    }
+    output.set("qoi_array", qoi_array);
   });
 
   // Write out a Python module.

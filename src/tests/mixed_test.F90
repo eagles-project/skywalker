@@ -80,7 +80,7 @@ program mixed_test
   type(input_t)           :: input
   type(input_result_t)    :: in_result
   type(output_t)          :: output
-  real(swp), dimension(:), allocatable :: array_val
+  real(swp)               :: qoi_array(10)
   integer                 :: i
 
   if (command_argument_count() /= 1) then
@@ -89,7 +89,6 @@ program mixed_test
     stop
   end if
 
-  allocate(array_val(10))
   call get_command_argument(1, input_file)
 
   ! Print a banner with Skywalker's version info.
@@ -154,10 +153,12 @@ program mixed_test
 
     ! Add a "qoi" metric set to 4.
     call output%set("qoi", 4.0_swp)
+
+    ! Add an array value.
     do i = 1,10
-      array_val(i) = i
+      qoi_array(i) = i-1
     end do
-    call output%set_array("qoi_array", array_val)
+    call output%set_array("qoi_array", qoi_array)
   end do
 
   ! Now we write out a Python module containing the output data.
@@ -165,5 +166,4 @@ program mixed_test
 
   ! Clean up.
   call ensemble%free()
-  deallocate(array_val)
 end program

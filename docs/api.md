@@ -804,7 +804,7 @@ parameter by calling the appropriate function or subroutine.
     // within the given output instance. This operation cannot fail under normal
     // circumstances.
     void sw_output_set_array(sw_output_t *output, const char *name,
-                             const sw_real_t *values, const size_t *size);
+                             const sw_real_t *values, size_t size);
     ```
 === "C++"
     ``` c++
