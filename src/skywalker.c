@@ -414,7 +414,7 @@ typedef struct parser_state_t {
 // Returns true if the given input parameter name is valid, false otherwise,
 // based on whether the parameter is an array or a scalar.
 static bool is_valid_input_name(const char *name, bool is_array_value) {
-  assert(name != NULL);
+  assert(name);
 
   // A name must begin with an alphabetical character or an underscore.
   if (!isalpha(name[0]) && (name[0] != '_'))
@@ -456,7 +456,7 @@ static void handle_yaml_event(yaml_event_t *event,
     // settings block
     if (!state->parsing_settings && state->settings_block &&
         (state->settings_block[0] != '\0') && // exclude blank strings
-        strcmp(value, state->settings_block) == 0) {
+        !strcmp(value, state->settings_block)) {
       assert(!state->current_setting);
       data->settings = sw_settings_new();
       state->parsing_settings = true;
@@ -484,17 +484,17 @@ static void handle_yaml_event(yaml_event_t *event,
       }
 
     // input block
-    } else if (!state->parsing_input && strcmp(value, "input") == 0) {
+    } else if (!state->parsing_input && !strcmp(value, "input")) {
       state->parsing_input = true;
     } else if (state->parsing_input) {
       if (!state->parsing_fixed_params &&
           !state->parsing_lattice_params &&
           !state->parsing_enumerated_params) {
-        if (strcmp(value, "fixed") == 0) {
+        if (!strcmp(value, "fixed")) {
           state->parsing_fixed_params = true;
-        } else if (strcmp(value, "lattice") == 0) {
+        } else if (!strcmp(value, "lattice")) {
           state->parsing_lattice_params = true;
-        } else if (strcmp(value, "enumerated") == 0) {
+        } else if (!strcmp(value, "enumerated")) {
           state->parsing_enumerated_params = true;
         } else {
           data->error_code = SW_INVALID_PARAM_TYPE;
@@ -1011,7 +1011,7 @@ static void assign_lattice_params(yaml_data_t yaml_data, size_t l, const size_t 
   }
   size_t n[7];
   for (size_t i = 0; i < m; ++i) {
-    n[i] = (NULL != name[i]) ? kv_size(values[i]) : kv_size(array_values[i]);
+    n[i] = (name[i]) ? kv_size(values[i]) : kv_size(array_values[i]);
   };
   size_t j[7];
   {
@@ -1023,7 +1023,7 @@ static void assign_lattice_params(yaml_data_t yaml_data, size_t l, const size_t 
     j[0] = L;
   }
   for  (int i=0; i<m; ++i) {
-    if (NULL != name[i])
+    if (name[i])
       sw_input_set(input, name[i], kv_A(values[i], j[i]));
     else
       sw_input_set_array(input, array_name[i], kv_A(array_values[i], j[i]));
@@ -1143,7 +1143,7 @@ sw_ensemble_result_t sw_load_ensemble(const char* yaml_file,
   sw_ensemble_result_t result = {.error_code = 0};
 
   // Validate inputs.
-  if (settings_block && (strcmp(settings_block, "input") == 0)) {
+  if (settings_block && (!strcmp(settings_block, "input"))) {
     result.error_code = SW_INVALID_SETTINGS_BLOCK;
     result.error_message = new_string("Invalid settings block name: '%s'"
                                       " (cannot be 'input')", settings_block);
@@ -1151,7 +1151,7 @@ sw_ensemble_result_t sw_load_ensemble(const char* yaml_file,
   }
 
   FILE *file = fopen(yaml_file, "r");
-  if (file == NULL) {
+  if (!file) {
     result.error_code = SW_YAML_FILE_NOT_FOUND;
     result.error_message = new_string("The file '%s' could not be opened.",
                                       yaml_file);
