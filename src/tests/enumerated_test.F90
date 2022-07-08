@@ -79,10 +79,8 @@ program enumeration_test
   type(input_result_t)    :: in_result
   type(input_t)           :: input
   type(output_t)          :: output
-  real(swp), dimension(:), allocatable :: array_val
   integer                 :: i
 
-  allocate(array_val(10))
   if (command_argument_count() /= 1) then
     print *, "enumeration_test_f90: usage:"
     print *, "enumeration_test_f90: <input.yaml>"
@@ -145,10 +143,6 @@ program enumeration_test
 
     ! Add a "qoi" metric set to 4.
     call output%set("qoi", 4.0_swp)
-    do i = 1,10
-      array_val(i) = i
-    end do
-    call output%set_array("qoi_array", array_val)
   end do
 
   ! Now we write out a Python module containing the output data.
@@ -156,5 +150,4 @@ program enumeration_test
 
   ! Clean up.
   call ensemble%free()
-  deallocate(array_val)
 end program
