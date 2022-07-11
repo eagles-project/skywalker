@@ -908,6 +908,7 @@ static yaml_data_t parse_yaml(FILE* file, const char* settings_block) {
     if (parser.error != YAML_NO_ERROR) {
       data.error_code = SW_INVALID_YAML;
       data.error_message = dup_string(parser.problem);
+      yaml_event_delete(&event);
       yaml_parser_delete(&parser);
       goto return_data;
     }
@@ -917,8 +918,8 @@ static yaml_data_t parse_yaml(FILE* file, const char* settings_block) {
     // to Skywalker's spec.
     handle_yaml_event(&event, &state, &data);
     if (data.error_code != SW_SUCCESS) {
-      yaml_parser_delete(&parser);
       yaml_event_delete(&event);
+      yaml_parser_delete(&parser);
       goto return_data;
     }
     event_type = event.type;
