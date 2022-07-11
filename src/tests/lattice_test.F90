@@ -80,7 +80,6 @@ program lattice_test
   type(input_t)           :: input
   type(input_result_t)    :: in_result
   type(output_t)          :: output
-  integer                 :: i
 
   if (command_argument_count() /= 1) then
     print *, "lattice_test_f90: usage:"

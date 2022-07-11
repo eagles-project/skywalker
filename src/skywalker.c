@@ -908,6 +908,7 @@ static yaml_data_t parse_yaml(FILE* file, const char* settings_block) {
     if (parser.error != YAML_NO_ERROR) {
       data.error_code = SW_INVALID_YAML;
       data.error_message = dup_string(parser.problem);
+      yaml_event_delete(&event);
       yaml_parser_delete(&parser);
       goto return_data;
     }
@@ -917,6 +918,7 @@ static yaml_data_t parse_yaml(FILE* file, const char* settings_block) {
     // to Skywalker's spec.
     handle_yaml_event(&event, &state, &data);
     if (data.error_code != SW_SUCCESS) {
+      yaml_event_delete(&event);
       yaml_parser_delete(&parser);
       goto return_data;
     }
@@ -1355,6 +1357,9 @@ void sw_ensemble_free(sw_ensemble_t *ensemble) {
       );
       kh_destroy(array_param_map, ensemble->inputs[i].array_params);
       kh_destroy(param_map, ensemble->outputs[i].metrics);
+      kh_foreach_value(ensemble->outputs[i].array_metrics, arrays,
+        kv_destroy(arrays);
+      );
       kh_destroy(array_param_map, ensemble->outputs[i].array_metrics);
     }
     free(ensemble->inputs);
