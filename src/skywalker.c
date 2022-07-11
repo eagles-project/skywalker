@@ -918,6 +918,7 @@ static yaml_data_t parse_yaml(FILE* file, const char* settings_block) {
     handle_yaml_event(&event, &state, &data);
     if (data.error_code != SW_SUCCESS) {
       yaml_parser_delete(&parser);
+      yaml_event_delete(&event);
       goto return_data;
     }
     event_type = event.type;
@@ -1355,6 +1356,9 @@ void sw_ensemble_free(sw_ensemble_t *ensemble) {
       );
       kh_destroy(array_param_map, ensemble->inputs[i].array_params);
       kh_destroy(param_map, ensemble->outputs[i].metrics);
+      kh_foreach_value(ensemble->outputs[i].array_metrics, arrays,
+        kv_destroy(arrays);
+      );
       kh_destroy(array_param_map, ensemble->outputs[i].array_metrics);
     }
     free(ensemble->inputs);

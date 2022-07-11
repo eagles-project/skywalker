@@ -79,7 +79,6 @@ program enumeration_test
   type(input_result_t)    :: in_result
   type(input_t)           :: input
   type(output_t)          :: output
-  integer                 :: i
 
   if (command_argument_count() /= 1) then
     print *, "enumeration_test_f90: usage:"

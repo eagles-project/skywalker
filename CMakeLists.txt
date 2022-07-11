@@ -74,7 +74,7 @@ else()
     if (HAVE_DOUBLE_PRECISION)
       set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wfloat-conversion")
     endif()
-    if (LINUX)
+    if (UNIX AND NOT APPLE)
       set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pthread")
     endif()
   elseif (CMAKE_C_COMPILER_ID MATCHES "Clang")
@@ -130,11 +130,27 @@ message(STATUS "Installation prefix is ${CMAKE_INSTALL_PREFIX}")
 # Third-party libs
 add_subdirectory(ext)
 
+# Support for valgrind (Linux only).
+if (UNIX AND NOT APPLE)
+  find_program(VALGRIND_EXE valgrind)
+  if (NOT VALGRIND_EXE MATCHES "NOTFOUND")
+    set(MEMORYCHECK_COMMAND ${Valgrind_EXE})
+    # Add "--gen-suppressions=all" to MEMORYCHECK_COMMAND_OPTIONS to generate
+    # suppressions for Valgrind's false positives. The suppressions show up
+    # right in the MemoryChecker.*.log files.
+    set(MEMORYCHECK_COMMAND_OPTIONS "--leak-check=full --show-leak-kinds=all --errors-for-leak-kinds=definite,possible --track-origins=yes --error-exitcode=1 --trace-children=yes" CACHE STRING "Options passed to Valgrind." FORCE)
+
+    # make memcheck target
+    message(STATUS "Found valgrind. Enabling `make memcheck` target.")
+    add_custom_target(memcheck ctest -T memcheck USES_TERMINAL)
+  endif()
+endif()
+
 # Unit testing.
 include(CTest)
 enable_testing()
 
-# Generate skywalker.h and skywalker.cmake with the correct settings.
+# Generate skywalker.h with the correct settings.
 configure_file(
   ${PROJECT_SOURCE_DIR}/include/skywalker.h.in
   ${CMAKE_CURRENT_BINARY_DIR}/include/skywalker.h

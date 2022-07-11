@@ -87,6 +87,16 @@ you to consider.
     make test
     ```
 
+    If you're using Linux, you can also run Skywalker's tests through
+    [Valgrind](https://valgrind.org) to check for memory corruptions and leaks
+    with
+
+    ```
+    make memcheck
+    ```
+
+    (but be prepared to wait a while for the tests to finish).
+
     You should see several tests run (and hopefully pass!). Now, to install
     Skywalker to the path you specified with `CMAKE_INSTALL_PREFIX`, type
 
