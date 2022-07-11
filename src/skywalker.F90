@@ -240,7 +240,7 @@ module skywalker
       real(c_real), value, intent(in) :: value
     end subroutine
 
-    subroutine sw_output_set_array(output, name, values, size) bind(c)
+    subroutine sw_output_set_array_f90(output, name, values, size) bind(c)
       use iso_c_binding, only: c_ptr, c_size_t
       type(c_ptr), value, intent(in) :: output
       type(c_ptr), value, intent(in) :: name
@@ -505,7 +505,7 @@ contains
     real(c_real), target, intent(in), dimension(:) :: values
     integer(c_size_t)              :: c_values_len
     c_values_len = size(values)
-    call sw_output_set_array(output%ptr, f_to_c_string(name), &
+    call sw_output_set_array_f90(output%ptr, f_to_c_string(name), &
       c_loc(values), c_values_len)
   end subroutine
 

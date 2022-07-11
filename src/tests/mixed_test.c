@@ -155,6 +155,13 @@ int main(int argc, char **argv) {
 
     // Add a "qoi" metric set to 4.
     sw_output_set(output, "qoi", 4.0);
+
+    // Add an array value.
+    sw_real_t qoi_array[10];
+    for (int i = 0; i < 10; ++i) {
+      qoi_array[i] = i;
+    }
+    sw_output_set_array(output, "qoi_array", qoi_array, 10);
   }
 
   // Write out a Python module.
