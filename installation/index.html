@@ -538,6 +538,12 @@ source directory.</p>
 Skywalker by typing</p>
 <div class="highlight"><pre><span></span><code>make test
 </code></pre></div>
+<p>If you're using Linux, you can also run Skywalker's tests through
+<a href="https://valgrind.org">Valgrind</a> to check for memory corruptions and leaks
+with</p>
+<div class="highlight"><pre><span></span><code>make memcheck
+</code></pre></div>
+<p>(but be prepared to wait a while for the tests to finish).</p>
 <p>You should see several tests run (and hopefully pass!). Now, to install
 Skywalker to the path you specified with <code>CMAKE_INSTALL_PREFIX</code>, type</p>
 <div class="highlight"><pre><span></span><code>make install
