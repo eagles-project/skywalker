@@ -60,7 +60,7 @@ class Exception : public std::exception {
 };
 
 // Prints a banner containing Skywalker's version info to stderr.
-void print_banner() {
+inline void print_banner() {
   sw_print_banner();
 }
 
