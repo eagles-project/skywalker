@@ -1218,6 +1218,7 @@ bool sw_ensemble_next(sw_ensemble_t *ensemble,
 
 sw_write_result_t sw_ensemble_write(sw_ensemble_t *ensemble,
                                     const char *module_filename) {
+  const char *float_format = 4<sizeof(sw_real_t) ? "%.10g, " : "%.6g, ";
   sw_write_result_t result = {.error_code = SW_SUCCESS};
   if (ensemble->size == 0) {
     result.error_code = SW_EMPTY_ENSEMBLE;
@@ -1267,7 +1268,7 @@ sw_write_result_t sw_ensemble_write(sw_ensemble_t *ensemble,
       khash_t(param_map) *params_i = ensemble->inputs[i].params;
       khiter_t iter = kh_get(param_map, params_i, name);
       sw_real_t value = kh_val(params_i, iter);
-      fprintf(file, "%f, ", value);
+      fprintf(file, float_format, value);
     }
     fprintf(file, "]\n");
   }
@@ -1286,7 +1287,7 @@ sw_write_result_t sw_ensemble_write(sw_ensemble_t *ensemble,
       size_t size = kv_size(arrays);
       fprintf(file, "[");
       for (size_t i=0; i<size; ++i)
-        fprintf(file, "%f, ", kv_A(arrays, i));
+        fprintf(file, float_format, kv_A(arrays, i));
       fprintf(file, "],");
     }
     fprintf(file, "]\n");
@@ -1310,7 +1311,7 @@ sw_write_result_t sw_ensemble_write(sw_ensemble_t *ensemble,
         if (isnan(value)) {
           fprintf(file, "nan, ");
         } else {
-          fprintf(file, "%f, ", value);
+          fprintf(file, float_format, value);
         }
       }
       fprintf(file, "]\n");
@@ -1332,7 +1333,7 @@ sw_write_result_t sw_ensemble_write(sw_ensemble_t *ensemble,
           if (isnan(kv_A(arrays, i))) {
             fprintf(file, "nan, ");
           } else {
-            fprintf(file, "%f, ", kv_A(arrays, i));
+            fprintf(file, float_format, kv_A(arrays, i));
           }
         }
         fprintf(file, "],");
