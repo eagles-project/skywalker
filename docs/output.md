@@ -6,11 +6,10 @@ structured in a regular way for easy use by postprocessing scripts. The module
 contains two Python variables:
 
 1. `input`, an object whose fields list all of the input parameters specified in
-   the YAML input file, in the order in which they appear in the ensemble
-   created by Skywalker
+   the YAML input file, in ascending lexicographic order by name
 2. `output`, an object whose fields list all of the output parameters
-   corresponding to the input paramaters, in the same order as the input
-   parameters.
+   corresponding to the input parameters, in ascending lexicographic order by
+   name
 3. `settings` (if settings are present), an object whose fields list all of the
    driver-specific settings used to process the ensemble. All settings fields
    are strings.
