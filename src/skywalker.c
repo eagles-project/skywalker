@@ -1244,19 +1244,27 @@ sw_write_result_t sw_ensemble_write(sw_ensemble_t *ensemble,
   fprintf(file, "class Object(object):\n");
   fprintf(file, "    pass\n\n");
 
-  // Write settings (if present).
+  // Write settings (if present), sorted by name.
   if (ensemble->settings) {
     fprintf(file, "# Settings are stored here.\n");
     fprintf(file, "settings = Object()\n");
     khash_t(string_map) *settings = ensemble->settings->params;
+    size_t num_settings = kh_size(settings);
+    const char **setting_names = malloc(sizeof(const char*) * num_settings);
+    size_t i = 0;
     for (khiter_t iter = kh_begin(settings); iter != kh_end(settings); ++iter) {
-
       if (!kh_exist(settings, iter)) continue;
+      setting_names[i++] = kh_key(settings, iter);
+    }
+    qsort(setting_names, num_settings, sizeof(const char*), string_cmp);
 
-      const char *name = kh_key(settings, iter);
+    for (i = 0; i < num_settings; ++i) {
+      const char *name = setting_names[i];
+      khiter_t iter = kh_get(string_map, settings, name);
       const char* value = kh_val(settings, iter);
       fprintf(file, "settings.%s = '%s'\n", name, value);
     }
+    free(setting_names);
   }
 
   // Write input data, sorted by quantity name.

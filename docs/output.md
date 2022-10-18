@@ -12,7 +12,8 @@ contains two Python variables:
    name
 3. `settings` (if settings are present), an object whose fields list all of the
    driver-specific settings used to process the ensemble. All settings fields
-   are strings.
+   are strings, and the settings are sorted in ascending lexicographic order by
+   name.
 
 Consider the `input` block from the example input file in the
 [Input Format](input.md) section:
