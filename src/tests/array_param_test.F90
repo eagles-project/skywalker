@@ -65,7 +65,7 @@ end module array_param_test_mod
 ! This macro halts the program if the predicate x isn't true.
 #define assert(x) if (.not. (x)) call fatal_error("Assertion failed at line", __LINE__)
 
-program enumeration_test
+program array_param_test
 
   use array_param_test_mod
   use skywalker
@@ -80,8 +80,8 @@ program enumeration_test
   type(output_t)                       :: output
 
   if (command_argument_count() /= 1) then
-    print *, "enumeration_test_f90: usage:"
-    print *, "enumeration_test_f90: <input.yaml>"
+    print *, "array_param_test_f90: usage:"
+    print *, "array_param_test_f90: <input.yaml>"
     stop
   end if
 
@@ -112,6 +112,7 @@ program enumeration_test
     assert(approx_equal(values(2), 1.0_swp+values(1)));
     assert(approx_equal(values(3), 2.0_swp+values(1)));
     assert(approx_equal(values(4), 3.0_swp+values(1)));
+    deallocate(values)
 
     assert(input%has_array("p2"))
     call input%get_array("p2", values)
@@ -119,6 +120,7 @@ program enumeration_test
     assert(approx_equal(values(1), 4.0_swp))
     assert(approx_equal(values(2), 5.0_swp))
     assert(approx_equal(values(3), 6.0_swp))
+    deallocate(values)
 
     assert(input%has("p3"))
     assert(approx_equal(input%get("p3"), 3.0_swp))
