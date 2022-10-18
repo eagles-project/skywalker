@@ -1216,6 +1216,11 @@ bool sw_ensemble_next(sw_ensemble_t *ensemble,
   return true;
 }
 
+// We use this to sort input and output quantity names.
+static int string_cmp(const void *s1, const void *s2) {
+  return strcmp((const char*)s1, (const char*)s2);
+}
+
 sw_write_result_t sw_ensemble_write(sw_ensemble_t *ensemble,
                                     const char *module_filename) {
   const char *float_format = 4<sizeof(sw_real_t) ? "%.10g, " : "%.6g, ";
@@ -1239,70 +1244,100 @@ sw_write_result_t sw_ensemble_write(sw_ensemble_t *ensemble,
   fprintf(file, "class Object(object):\n");
   fprintf(file, "    pass\n\n");
 
-  // Write settings (if present).
+  // Write settings (if present), sorted by name.
   if (ensemble->settings) {
     fprintf(file, "# Settings are stored here.\n");
     fprintf(file, "settings = Object()\n");
     khash_t(string_map) *settings = ensemble->settings->params;
+    size_t num_settings = kh_size(settings);
+    const char **setting_names = malloc(sizeof(const char*) * num_settings);
+    size_t i = 0;
     for (khiter_t iter = kh_begin(settings); iter != kh_end(settings); ++iter) {
-
       if (!kh_exist(settings, iter)) continue;
+      setting_names[i++] = kh_key(settings, iter);
+    }
+    qsort(setting_names, num_settings, sizeof(const char*), string_cmp);
 
-      const char *name = kh_key(settings, iter);
+    for (i = 0; i < num_settings; ++i) {
+      const char *name = setting_names[i];
+      khiter_t iter = kh_get(string_map, settings, name);
       const char* value = kh_val(settings, iter);
       fprintf(file, "settings.%s = '%s'\n", name, value);
     }
+    free(setting_names);
   }
 
-  // Write input data.
-  fprintf(file, "# Input is stored here.\n");
-  fprintf(file, "input = Object()\n");
-  khash_t(param_map) *params_0 = ensemble->inputs[0].params;
-  for (khiter_t iter = kh_begin(params_0); iter != kh_end(params_0); ++iter) {
-
-    if (!kh_exist(params_0, iter)) continue;
-
-    const char *name = kh_key(params_0, iter);
-    fprintf(file, "input.%s = [", name);
-    for (size_t i = 0; i < ensemble->size; ++i) {
-      khash_t(param_map) *params_i = ensemble->inputs[i].params;
-      khiter_t iter = kh_get(param_map, params_i, name);
-      sw_real_t value = kh_val(params_i, iter);
-      fprintf(file, float_format, value);
+  // Write input data, sorted by quantity name.
+  {
+    fprintf(file, "# Input is stored here.\n");
+    fprintf(file, "input = Object()\n");
+    khash_t(param_map) *params_0 = ensemble->inputs[0].params;
+    size_t num_inputs = kh_size(params_0);
+    const char **input_names = malloc(sizeof(const char*) * num_inputs);
+    size_t i = 0;
+    for (khiter_t iter = kh_begin(params_0); iter != kh_end(params_0); ++iter) {
+      if (!kh_exist(params_0, iter)) continue;
+      input_names[i++] = kh_key(params_0, iter);
     }
-    fprintf(file, "]\n");
-  }
+    qsort(input_names, num_inputs, sizeof(const char*), string_cmp);
 
-  khash_t(array_param_map) *array_params_0 = ensemble->inputs[0].array_params;
-  for (khiter_t iter = kh_begin(array_params_0); iter != kh_end(array_params_0); ++iter) {
-
-    if (!kh_exist(array_params_0, iter)) continue;
-
-    const char *name = kh_key(array_params_0, iter);
-    fprintf(file, "input.%s = [", name);
-    for (size_t i = 0; i < ensemble->size; ++i) {
-      khash_t(array_param_map) *array_params_i = ensemble->inputs[i].array_params;
-      khiter_t iter = kh_get(array_param_map, array_params_i, name);
-      real_vec_t arrays = kh_val(array_params_i, iter);
-      size_t size = kv_size(arrays);
-      fprintf(file, "[");
-      for (size_t i=0; i<size; ++i)
-        fprintf(file, float_format, kv_A(arrays, i));
-      fprintf(file, "],");
+    for (i = 0; i < num_inputs; ++i) {
+      const char *name = input_names[i];
+      fprintf(file, "input.%s = [", name);
+      for (size_t i = 0; i < ensemble->size; ++i) {
+        khash_t(param_map) *params_i = ensemble->inputs[i].params;
+        khiter_t iter = kh_get(param_map, params_i, name);
+        sw_real_t value = kh_val(params_i, iter);
+        fprintf(file, float_format, value);
+      }
+      fprintf(file, "]\n");
     }
-    fprintf(file, "]\n");
+    free(input_names);
+
+    khash_t(array_param_map) *array_params_0 = ensemble->inputs[0].array_params;
+    size_t num_array_inputs = kh_size(array_params_0);
+    const char **array_input_names = malloc(sizeof(const char*) * num_array_inputs);
+    i = 0;
+    for (khiter_t iter = kh_begin(array_params_0); iter != kh_end(array_params_0); ++iter) {
+      if (!kh_exist(array_params_0, iter)) continue;
+      array_input_names[i++] = kh_key(array_params_0, iter);
+    }
+    qsort(array_input_names, num_array_inputs, sizeof(const char*), string_cmp);
+
+    for (i = 0; i < num_array_inputs; ++i) {
+      const char *name = array_input_names[i];
+      fprintf(file, "input.%s = [", name);
+      for (size_t i = 0; i < ensemble->size; ++i) {
+        khash_t(array_param_map) *array_params_i = ensemble->inputs[i].array_params;
+        khiter_t iter = kh_get(array_param_map, array_params_i, name);
+        real_vec_t arrays = kh_val(array_params_i, iter);
+        size_t size = kv_size(arrays);
+        fprintf(file, "[");
+        for (size_t i=0; i<size; ++i)
+          fprintf(file, float_format, kv_A(arrays, i));
+        fprintf(file, "],");
+      }
+      fprintf(file, "]\n");
+    }
+    free(array_input_names);
   }
 
-  // Write output data.
+  // Write output data, sorted by quantity name.
   fprintf(file, "\n# Output data is stored here.\n");
   fprintf(file, "output = Object()\n");
   if (ensemble->size > 0) {
     khash_t(param_map) *params_0 = ensemble->outputs[0].metrics;
+    size_t num_outputs = kh_size(params_0);
+    const char **output_names = malloc(sizeof(const char*) * num_outputs);
+    size_t i = 0;
     for (khiter_t iter = kh_begin(params_0); iter != kh_end(params_0); ++iter) {
-
       if (!kh_exist(params_0, iter)) continue;
+      output_names[i++] = kh_key(params_0, iter);
+    }
+    qsort(output_names, num_outputs, sizeof(const char*), string_cmp);
 
-      const char *name = kh_key(params_0, iter);
+    for (i = 0; i < num_outputs; ++i) {
+      const char *name = output_names[i];
       fprintf(file, "output.%s = [", name);
       for (size_t i = 0; i < ensemble->size; ++i) {
         khash_t(param_map) *params_i = ensemble->outputs[i].metrics;
@@ -1316,12 +1351,20 @@ sw_write_result_t sw_ensemble_write(sw_ensemble_t *ensemble,
       }
       fprintf(file, "]\n");
     }
+    free(output_names);
+
     khash_t(array_param_map) *array_params_0 = ensemble->outputs[0].array_metrics;
+    size_t num_array_outputs = kh_size(array_params_0);
+    const char **array_output_names = malloc(sizeof(const char*) * num_array_outputs);
+    i = 0;
     for (khiter_t iter = kh_begin(array_params_0); iter != kh_end(array_params_0); ++iter) {
-
       if (!kh_exist(array_params_0, iter)) continue;
+      array_output_names[i++] = kh_key(array_params_0, iter);
+    }
+    qsort(array_output_names, num_array_outputs, sizeof(const char*), string_cmp);
 
-      const char *name = kh_key(array_params_0, iter);
+    for (i = 0; i < num_array_outputs; ++i) {
+      const char *name = array_output_names[i];
       fprintf(file, "output.%s = [", name);
       for (size_t i = 0; i < ensemble->size; ++i) {
         khash_t(array_param_map) *array_params_i = ensemble->outputs[i].array_metrics;
@@ -1340,6 +1383,7 @@ sw_write_result_t sw_ensemble_write(sw_ensemble_t *ensemble,
       }
       fprintf(file, "]\n");
     }
+    free(array_output_names);
   }
 
   fclose(file);
