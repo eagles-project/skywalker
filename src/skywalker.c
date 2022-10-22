@@ -1218,7 +1218,7 @@ bool sw_ensemble_next(sw_ensemble_t *ensemble,
 
 // We use this to sort input and output quantity names.
 static int string_cmp(const void *s1, const void *s2) {
-  return strcmp((const char*)s1, (const char*)s2);
+  return strcmp(*(const char**)s1, *(const char**)s2);
 }
 
 sw_write_result_t sw_ensemble_write(sw_ensemble_t *ensemble,
