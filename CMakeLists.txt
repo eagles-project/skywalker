@@ -173,5 +173,8 @@ install(FILES ${PROJECT_BINARY_DIR}/share/skywalker.cmake
 # Source directory.
 add_subdirectory(src)
 
+# Tools / utilities.
+add_subdirectory(tools)
+
 # Examples.
 add_subdirectory(examples)
