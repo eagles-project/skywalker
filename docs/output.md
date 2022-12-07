@@ -87,7 +87,7 @@ algorithms or codes.
 
 You can even write a conversion utility that imports the Python module and
 writes it to another format. For an example of this, take a look at the
-[py2ncl](https://github.com/eagles-project/skywalker/blob/main/src/py2ncl)
+[py2ncl](https://github.com/eagles-project/skywalker/blob/main/tools/py2ncl)
 program included with Skywalker. `py2ncl` converts Skywalker output to a text
 file that can be used with legacy [NCL](https://www.ncl.ucar.edu) programs.
 (The latest version of NCL is adopting Python as its language.)
