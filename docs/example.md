@@ -509,8 +509,8 @@ $$
   \int_{V_1}^{V_s} (p - p_s) \texttt{d}V + \int_{V_s}^{V_2} (p - p_s) \texttt{d}V = 0,
 $$
 
-where $p_s = p(V_s) $ is the saturation vapor pressure and $V_1$ and $V_2$ are,
-respectively, the minimum and maximum volumes at which $(p(V) = p_s$ in the
+where $p_s = p(V_s)$ is the saturation vapor pressure and $V_1$ and $V_2$ are,
+respectively, the minimum and maximum volumes at which $p(V) = p_s$ in the
 original Van der Waals pressure curves. These integrals can be approximated
 using a simple quadrature rule such as the midpoint rule.
 

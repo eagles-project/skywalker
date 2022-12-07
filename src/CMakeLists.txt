@@ -36,12 +36,4 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/skywalker.mod
         DESTINATION include)
 install(TARGETS skywalker skywalker_f90 DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
-# Install py2ncl, a post-processing script that translates Skywalker output
-# Python modules into NCL data files.
-install(FILES py2ncl
-        PERMISSIONS OWNER_READ;GROUP_READ;WORLD_READ;
-                    OWNER_WRITE;
-                    OWNER_EXECUTE;GROUP_EXECUTE;WORLD_EXECUTE
-        DESTINATION bin)
-
 add_subdirectory(tests)
