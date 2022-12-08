@@ -86,17 +86,6 @@ Python objects."""
                 s += '  %s\n'%f
         return s
 
-def settings_names(ensemble):
-    """settings_names(ensemble) -> a list containing the names of all settings
-blocks (if any) found in the given ensemble."""
-    return [name for name in dir(ensemble) \
-            if not name.startswith('_') \
-            and name != 'input' \
-            and name != 'output' \
-            and name != 'inf' \
-            and name != 'nan' \
-            and name != 'Object']
-
 class ValidationError(Exception):
     pass
 
@@ -112,19 +101,18 @@ an exception describing the discrepancy."""
         raise ValidationError("Ensemble 0 has no input!")
     if not hasattr(e0, 'output'):
         raise ValidationError("Ensemble 0 has no output!")
-    settings_blocks = settings_names(e0)
     for i in range(1, len(ensembles)):
         ei = ensembles[i]
 
         # validate settings
-        if settings_names(ei) != settings_blocks:
-            raise ValidationError('ensemble %d has different settings blocks than ensemble 0!')
-        for s_block in settings_blocks:
-            settings = getattr(e0, s_block)
-            diff = Diff('ensemble 0 settings (%s)'%s_block, e0.settings,
-                        'ensemble %d settings (%s)'%(i, s_block), ei.settings)
-            if not diff.empty():
-                raise ValidationError(str(diff))
+        if hasattr(e0, 'settings') and not hasattr(ei, 'settings'):
+            raise ValidationError("ensemble 0 has settings but ensemble %d doesn't!"%i)
+        elif hasattr(ei, 'settings') and not hasattr(e0, 'settings'):
+            raise ValidationError("ensemble %d has settings but ensemble 0 doesn't!"%i)
+        diff = Diff('ensemble 0 settings', e0.settings,
+                    'ensemble %d settings'%i, ei.settings)
+        if not diff.empty():
+            raise ValidationError(str(diff))
 
         # validate input
         if not hasattr(ei, 'input'):
@@ -152,10 +140,9 @@ def merge_ensembles(ensembles):
     e0 = ensembles[0]
     from copy import deepcopy
 
-    # all settings are identical for all ensembles, so just copy from e0
-    settings_blocks = settings_names(e0)
-    for s_block in settings_blocks:
-        setattr(merged, s_block, deepcopy(getattr(e0, s_block)))
+    # settings are identical for all ensembles, so just copy from e0
+    if hasattr(e0, 'settings'):
+        merged.settings = deepcopy(e0.settings)
 
     # copy input and output
     merged.input = deepcopy(e0.input)
@@ -179,12 +166,12 @@ def write_yaml(filename, ensemble):
         f.write('# %s\n\n'%' '.join(sys.argv))
 
         # settings
-        settings_blocks = settings_names(ensemble)
-        for s_block in settings_blocks:
-            f.write('%s:\n'%s_block)
-            settings = getattr(ensemble, s_block)
-            settings_fields = [name for name in dir(settings) if not name.startswith('_')]
-            for s in settings_fields:
+        if hasattr(ensemble, 'settings'):
+            f.write('settings:\n')
+            settings = ensemble.settings
+            names = [name for name in dir(ensemble.settings) \
+                     if not name.startswith('_')]
+            for s in names:
                 f.write('  %s: %s\n'%(s, getattr(settings, s)))
             f.write('\n')
 
@@ -205,15 +192,13 @@ def write_py(filename, ensemble):
         f.write('    pass\n\n')
 
         # settings
-        settings_blocks = settings_names(ensemble)
-        if len(settings_blocks) > 0:
+        if hasattr(ensemble, 'settings'):
             f.write('# Settings are stored here.\n')
-        for s_block in settings_blocks:
-            f.write('%s = Object()\n'%s_block)
-            settings = getattr(ensemble, s_block)
-            settings_fields = [name for name in dir(settings) if not name.startswith('_')]
-            for s in settings_fields:
-                f.write('%s.%s = \'%s\'\n'%(s_block, s, getattr(settings, s)))
+            f.write('settings = Object()\n')
+            names = [name for name in dir(ensemble.settings) \
+                      if not name.startswith('_')]
+            for s in names:
+                f.write('settings.%s = \'%s\'\n'%(s, getattr(ensemble.settings, s)))
         f.write('\n')
 
         # input
@@ -251,7 +236,7 @@ if __name__ == "__main__":
         # make sure all the ensembles have identical settings, inputs, outputs
         try:
             validate_ensembles(ensembles)
-        except e:
+        except Exception as e:
             print("%s: %s\n"%(sys.argv[0], e))
 
         # merge them
