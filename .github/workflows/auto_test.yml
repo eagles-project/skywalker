@@ -18,7 +18,7 @@ jobs:
     # A build matrix storing all desired configurations.
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-22.04, macos-latest]
         build-type: [Debug, Release]
         fp-precision: [single, double]
 
@@ -36,7 +36,8 @@ jobs:
     - name: Checking out repository
       uses: actions/checkout@v2
 
-    - name: Configuring Skywalker (${{ matrix.build-type }}, ${{ matrix.fp-precision }} precision)
+    - name: Configuring Skywalker (${{ matrix.build-type }}, ${{ matrix.fp-precision }} precision, Linux)
+      if: contains(matrix.os, 'ubuntu')
       run: |
         mkdir build
         cd build
@@ -45,7 +46,22 @@ jobs:
           -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} \
           -DCMAKE_C_COMPILER=cc \
           -DCMAKE_CXX_COMPILER=c++ \
-          -DCMAKE_Fortran_COMPILER=gfortran-10 \
+          -DCMAKE_Fortran_COMPILER=gfortran \
+          -DSKYWALKER_PRECISION=${{ matrix.fp-precision }} \
+          -G "Unix Makefiles" \
+          ..
+
+    - name: Configuring Skywalker (${{ matrix.build-type }}, ${{ matrix.fp-precision }} precision, Linux)
+      if: contains(matrix.os, 'macos')
+      run: |
+        mkdir build
+        cd build
+        cmake \
+          -DCMAKE_INSTALL_PREFIX=`pwd`/../install \
+          -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} \
+          -DCMAKE_C_COMPILER=cc \
+          -DCMAKE_CXX_COMPILER=c++ \
+          -DENABLE_FORTRAN=OFF \
           -DSKYWALKER_PRECISION=${{ matrix.fp-precision }} \
           -G "Unix Makefiles" \
           ..

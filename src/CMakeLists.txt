@@ -1,3 +1,5 @@
+include(GNUInstallDirs)
+
 include_directories(${PROJECT_BINARY_DIR}/include)
 include_directories(${PROJECT_SOURCE_DIR}/ext/klib)
 
@@ -25,15 +27,16 @@ add_library(skywalker skywalker.c ${LIBYAML_SOURCES})
 set_target_properties(skywalker PROPERTIES
                                 OUTPUT_NAME skywalker_${SKYWALKER_PRECISION}
                                 COMPILE_DEFINITIONS "HAVE_CONFIG_H=1;YAML_DECLARE_STATIC")
+install(TARGETS skywalker DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
-# Here's the Fortran library.
-add_library(skywalker_f90 skywalker.F90)
-set_target_properties(skywalker_f90 PROPERTIES
+if (ENABLE_FORTRAN)
+  # Here's the Fortran library.
+  add_library(skywalker_f90 skywalker.F90)
+  set_target_properties(skywalker_f90 PROPERTIES
                                     OUTPUT_NAME skywalker_f90_${SKYWALKER_PRECISION})
-
-include(GNUInstallDirs)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/skywalker.mod
-        DESTINATION include)
-install(TARGETS skywalker skywalker_f90 DESTINATION ${CMAKE_INSTALL_LIBDIR})
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/skywalker.mod
+          DESTINATION include)
+  install(TARGETS skywalker_f90 DESTINATION ${CMAKE_INSTALL_LIBDIR})
+endif()
 
 add_subdirectory(tests)

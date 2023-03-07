@@ -14,8 +14,10 @@ foreach(test lattice_test enumerated_test mixed_test array_param_test)
   add_test(${test} ${test} ${test}.yaml)
   add_skywalker_driver(${test}_cpp ${test}.cpp)
   add_test(${test}_cpp ${test}_cpp ${test}.yaml)
-  add_skywalker_driver(${test}_f90 ${test}.F90)
-  add_test(${test}_f90 ${test}_f90 ${test}.yaml)
+  if (ENABLE_FORTRAN)
+    add_skywalker_driver(${test}_f90 ${test}.F90)
+    add_test(${test}_f90 ${test}_f90 ${test}.yaml)
+  endif()
 endforeach()
 
 # Validation tests (currently C only).

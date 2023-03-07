@@ -46,6 +46,8 @@ you to consider.
 * `CMAKE_C_COMPILER` sets the C compiler that is used to build Skywalker.
   Usually, the default compiler is fine, but if you want to use an MPI-capable
   compiler or a specific vendor compiler, you can specify it with this option.
+* `ENABLE_FORTRAN`, when set to `ON` (its default value), builds Fortran support
+  for Skywalker. You can set this to `OFF` if you don't need Fortran.
 * `CMAKE_Fortran_COMPILER` sets the Fortran compiler that is used to build
   Skywalker's Fortran interface.
 
@@ -113,17 +115,19 @@ build your own Skywalker programs:
 
 * `PREFIX/lib/libskywalker_<precision>.a`, a library you can use with a C or C++
   Skywalker program.
-* `PREFIX/lib/libskywalker_f90_<precision>.a`, a library you can use with a
-  Fortran Skywalker program.
 * `PREFIX/include/skywalker.h`, a C header file that provides Skywalker's C
   interface.
 * `PREFIX/include/skywalker.hpp`, a C++ header file that provides Skywalker's
   C++ interface.
-* `PREFIX/include/skywalker.mod`, a Fortran 90 module header file that provides
-  Skywalker's Fortran interface.
 * `PREFIX/share/skywalker.cmake`, a CMake file that includes installation
   information for Skywalker, plus a function called `add_skywalker_driver` you
   can use to build your own driver programs.
+
+When `ENABLE_FORTRAN` is set to `ON`, you get additional Fortran artifacts:
+* `PREFIX/lib/libskywalker_f90_<precision>.a`, a library you can use with a
+  Fortran Skywalker program.
+* `PREFIX/include/skywalker.mod`, a Fortran 90 module header file that provides
+  Skywalker's Fortran interface.
 
 On Windows, the library files have a `.lib` suffix instead of `.a`.
 
