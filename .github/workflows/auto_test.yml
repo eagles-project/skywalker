@@ -18,7 +18,7 @@ jobs:
     # A build matrix storing all desired configurations.
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-22.04, macos-latest]
         build-type: [Debug, Release]
         fp-precision: [single, double]
 
@@ -45,7 +45,7 @@ jobs:
           -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} \
           -DCMAKE_C_COMPILER=cc \
           -DCMAKE_CXX_COMPILER=c++ \
-          -DCMAKE_Fortran_COMPILER=gfortran-10 \
+          -DCMAKE_Fortran_COMPILER=gfortran \
           -DSKYWALKER_PRECISION=${{ matrix.fp-precision }} \
           -G "Unix Makefiles" \
           ..
