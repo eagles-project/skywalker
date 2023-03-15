@@ -803,7 +803,7 @@ static void postprocess_array_params(khash_t(yaml_array_param_map) *params) {
         if (val2 > 0) {
           if ((val0 < val1) && (val2 < val1)) {
             size_t s = (size_t)(ceil((val1 - val0) / val2) + 1);
-            if (s < size || -1 == size) size = s;
+            if (s < size || 0 == size) size = s;
           } else {
             size = 0;
           }
