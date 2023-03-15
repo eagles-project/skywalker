@@ -794,7 +794,7 @@ static void postprocess_array_params(khash_t(yaml_array_param_map) *params) {
       size_t len = kv_size(array_val0);
       if (len != kv_size(array_val1)) len = 0;
       if (len != kv_size(array_val2)) len = 0;
-      size_t size = -1;
+      size_t size = INT_MAX;
       for (size_t l = 0; l < len; ++l) {
         // find minimum distance from low to high.
         sw_real_t val0 = kv_A(array_val0, l),
@@ -803,13 +803,13 @@ static void postprocess_array_params(khash_t(yaml_array_param_map) *params) {
         if (val2 > 0) {
           if ((val0 < val1) && (val2 < val1)) {
             size_t s = (size_t)(ceil((val1 - val0) / val2) + 1);
-            if (s < size || -1 == size) size = s;
+            if (s < size || INT_MAX == size) size = s;
           } else {
             size = 0;
           }
         }
       }
-      if (size > 0) {
+      if (size > 0 && size != INT_MAX) {
         real_vec_vec_t expanded_array_values;
         kv_init(expanded_array_values);
         for (size_t i = 0; i < size; ++i) {
