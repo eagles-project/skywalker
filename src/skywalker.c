@@ -794,7 +794,7 @@ static void postprocess_array_params(khash_t(yaml_array_param_map) *params) {
       size_t len = kv_size(array_val0);
       if (len != kv_size(array_val1)) len = 0;
       if (len != kv_size(array_val2)) len = 0;
-      size_t size = -1;
+      size_t size = 0;
       for (size_t l = 0; l < len; ++l) {
         // find minimum distance from low to high.
         sw_real_t val0 = kv_A(array_val0, l),
