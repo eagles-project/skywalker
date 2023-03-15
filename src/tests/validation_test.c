@@ -168,6 +168,27 @@ static void test_empty_ensemble() {
   assert(load_result.error_message != NULL);
 }
 
+static void test_negative_values_issue_33() {
+  const char* bad_yaml = "\
+settings:  \n\
+  a: 1  \n\
+input:  \n\
+  enumerated:  \n\
+    Ns: [[0.0009478315467], [0.0008633937165], [0.01542388755]]  \n\
+    Temperature: [[-32.69480152], [-31.94781043], [-35.75495987]]  \n\
+    dt: [0.0, 0.0, 0.0]  \n\
+    w_vlc: [[0.2], [0.2], [0.2]]  \n\
+";
+  write_test_input(bad_yaml, "negative_values.yaml");
+  sw_ensemble_result_t load_result =
+    sw_load_ensemble("negative_values.yaml", "settings");
+  if (load_result.error_message)
+    printf("%s\n",load_result.error_message);
+  assert(load_result.error_code == SW_SUCCESS);
+  sw_ensemble_t *ensemble = load_result.ensemble;
+  assert(sw_ensemble_size(ensemble) == 3);
+}
+
 int main(int argc, char **argv) {
 
   // We ignore command line arguments in favor of programmatically generating
@@ -186,4 +207,5 @@ int main(int argc, char **argv) {
   test_too_many_lattice_params();
   test_invalid_enumeration();
   test_empty_ensemble();
+  test_negative_values_issue_33();
 }
