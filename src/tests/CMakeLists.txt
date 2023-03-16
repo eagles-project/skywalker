@@ -20,6 +20,13 @@ foreach(test lattice_test enumerated_test mixed_test array_param_test)
   endif()
 endforeach()
 
+# Additional regression tests
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/nonexpandable_array_param_test.yaml
+  ${CMAKE_CURRENT_BINARY_DIR}/nonexpandable_array_param_test.yaml
+  COPYONLY)
+add_test(nonexpandable_array_param_test array_param_test nonexpandable_array_param_test.yaml)
+
 # Validation tests (currently C only).
 add_skywalker_driver(validation_test validation_test.c)
 add_test(validation_test validation_test)

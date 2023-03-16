@@ -1,9 +1,7 @@
 # This input file tests Skywalker's support for array parameters.
 
 settings:
-  setting1: hello
-  setting2: 81
-  setting3: 3.14159265357
+  which: fixed_and_enumerated
 
 input:
   fixed:

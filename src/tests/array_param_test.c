@@ -52,26 +52,7 @@ static bool approx_equal(sw_real_t x, sw_real_t y) {
   return (fabs(x - y) < 1e-14);
 }
 
-int main(int argc, char **argv) {
-
-  if (argc == 1) {
-    usage((const char*)argv[0]);
-  }
-  const char* input_file = argv[1];
-
-  // Print a banner with Skywalker's version info.
-  sw_print_banner();
-
-  // Load the ensemble. Any error encountered is fatal.
-  fprintf(stderr, "array_param_test: Loading ensemble from %s\n", input_file);
-  sw_ensemble_result_t load_result = sw_load_ensemble(input_file, "settings");
-  if (load_result.error_code != SW_SUCCESS) {
-    fprintf(stderr, "%s\n", load_result.error_message);
-    exit(-1);
-  }
-
-  // Ensemble data
-  sw_ensemble_t *ensemble = load_result.ensemble;
+static void test_fixed_and_enumerated(sw_ensemble_t *ensemble) {
   assert(sw_ensemble_size(ensemble) == 11);
   sw_input_t *input;
   sw_output_t *output;
@@ -107,6 +88,83 @@ int main(int argc, char **argv) {
 
     // Add a "qoi" metric set to 4.
     sw_output_set(output, "qoi", 4.0);
+  }
+}
+
+static void test_nonexpandable_array(sw_ensemble_t *ensemble) {
+  assert(sw_ensemble_size(ensemble) == 3);
+  sw_input_t *input;
+  sw_output_t *output;
+  int i = 0;
+  while (sw_ensemble_next(ensemble, &input, &output)) {
+    sw_input_result_t in_result;
+    sw_input_array_result_t in_array_result;
+
+    assert(sw_input_has_array(input, "Ns"));
+    in_array_result = sw_input_get_array(input, "Ns");
+    assert(in_array_result.error_code == SW_SUCCESS);
+    assert(in_array_result.size == 1);
+    static sw_real_t Ns[3] = {0.0009478315467, 0.0008633937165, 0.01542388755};
+    assert(approx_equal(in_array_result.values[0], Ns[i]));
+    assert(in_array_result.error_message == NULL);
+
+    assert(sw_input_has_array(input, "Temperature"));
+    in_array_result = sw_input_get_array(input, "Temperature");
+    assert(in_array_result.error_code == SW_SUCCESS);
+    assert(in_array_result.size == 1);
+    static sw_real_t Temperatures[3] = {-32.69480152, -31.94781043, -35.75495987};
+    assert(approx_equal(in_array_result.values[0], Temperatures[i]));
+    assert(in_array_result.error_message == NULL);
+
+    static sw_real_t dts[3] = {0.0, 0.0, 0.0};
+    assert(sw_input_has(input, "dt"));
+    in_result = sw_input_get(input, "dt");
+    assert(in_result.error_code == SW_SUCCESS);
+    assert(approx_equal(in_result.value, dts[i]));
+    assert(in_result.error_message == NULL);
+
+    assert(sw_input_has_array(input, "w_vlc"));
+    in_array_result = sw_input_get_array(input, "w_vlc");
+    assert(in_array_result.error_code == SW_SUCCESS);
+    assert(in_array_result.size == 1);
+    static sw_real_t w_vlcs[3] = {0.2, 0.2, 0.2};
+    assert(approx_equal(in_array_result.values[0], w_vlcs[i]));
+    assert(in_array_result.error_message == NULL);
+
+    // Add a "qoi" metric set to 4.
+    sw_output_set(output, "qoi", 4.0);
+
+    ++i;
+  }
+}
+
+int main(int argc, char **argv) {
+
+  if (argc == 1) {
+    usage((const char*)argv[0]);
+  }
+  const char* input_file = argv[1];
+
+  // Print a banner with Skywalker's version info.
+  sw_print_banner();
+
+  // Load the ensemble. Any error encountered is fatal.
+  fprintf(stderr, "array_param_test: Loading ensemble from %s\n", input_file);
+  sw_ensemble_result_t load_result = sw_load_ensemble(input_file, "settings");
+  if (load_result.error_code != SW_SUCCESS) {
+    fprintf(stderr, "%s\n", load_result.error_message);
+    exit(-1);
+  }
+  sw_ensemble_t *ensemble = load_result.ensemble;
+
+  // Which tests are we supposed to run?
+  sw_settings_t *settings = load_result.settings;
+  assert(sw_settings_has(settings, "which"));
+  sw_settings_result_t settings_result = sw_settings_get(settings, "which");
+  if (!strcmp(settings_result.value, "fixed_and_enumerated")) {
+    test_fixed_and_enumerated(ensemble);
+  } else if (!strcmp(settings_result.value, "nonexpandable_array")) {
+    test_nonexpandable_array(ensemble);
   }
 
   // Write out a Python module.

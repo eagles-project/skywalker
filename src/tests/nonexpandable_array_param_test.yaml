@@ -1,0 +1,12 @@
+# This input file tests that a given 3-item array parameter ISN'T expanded.
+
+settings:
+  which: nonexpandable_array
+
+input:
+  enumerated:
+    Ns: [[0.0009478315467], [0.0008633937165], [0.01542388755]]
+    Temperature: [[-32.69480152], [-31.94781043], [-35.75495987]] # <- this guy
+    dt: [0.0, 0.0, 0.0]
+    w_vlc: [[0.2], [0.2], [0.2]]
+
