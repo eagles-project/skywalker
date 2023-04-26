@@ -201,13 +201,13 @@ settings:          \n\
 ";
   write_test_input(bad_yaml, "improper_input_indentation.yaml");
 
-  // test with settings specified (should produce an empty ensemble)
+  // test with settings specified (should fail to find input block)
   sw_ensemble_result_t load_result =
     sw_load_ensemble("improper_input_indentation.yaml", "settings");
   assert(load_result.error_code == SW_INPUT_NOT_FOUND);
   assert(load_result.error_message != NULL);
 
-  // test without settings specified (should also produce an empty ensemble)
+  // test without settings specified (should also fail to find input block)
   load_result =
     sw_load_ensemble("improper_input_indentation.yaml", "");
   assert(load_result.error_code == SW_INPUT_NOT_FOUND);
