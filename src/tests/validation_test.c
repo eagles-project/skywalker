@@ -189,6 +189,31 @@ input:  \n\
   assert(sw_ensemble_size(ensemble) == 3);
 }
 
+static void test_improper_input_indentation() {
+  const char* bad_yaml = "\
+settings:          \n\
+  a: 1             \n\
+  input:           \n\
+    enumerated:    \n\
+      x1: [1, 2, 3]\n\
+      x2: [4, 5, 6]\n\
+      x3: [7, 8, 9]\n\
+";
+  write_test_input(bad_yaml, "improper_input_indentation.yaml");
+
+  // test with settings specified (should produce an empty ensemble)
+  sw_ensemble_result_t load_result =
+    sw_load_ensemble("improper_input_indentation.yaml", "settings");
+  assert(load_result.error_code == SW_INPUT_NOT_FOUND);
+  assert(load_result.error_message != NULL);
+
+  // test without settings specified (should also produce an empty ensemble)
+  load_result =
+    sw_load_ensemble("improper_input_indentation.yaml", "");
+  assert(load_result.error_code == SW_INPUT_NOT_FOUND);
+  assert(load_result.error_message != NULL);
+}
+
 int main(int argc, char **argv) {
 
   // We ignore command line arguments in favor of programmatically generating
@@ -208,4 +233,5 @@ int main(int argc, char **argv) {
   test_invalid_enumeration();
   test_empty_ensemble();
   test_negative_values_issue_33();
+  test_improper_input_indentation();
 }

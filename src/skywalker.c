@@ -402,12 +402,17 @@ typedef struct parser_state_t {
   const char *settings_block;
   bool parsing_settings;
   const char *current_setting;
+
+  bool parsing_unrecognized;
+
   bool parsing_input;
   bool parsing_fixed_params;
   bool parsing_lattice_params;
   bool parsing_enumerated_params;
   bool parsing_input_sequence;
   bool parsing_input_array_sequence;
+
+  bool found_input;
   const char *current_param;
 } parser_state_t;
 
@@ -484,8 +489,10 @@ static void handle_yaml_event(yaml_event_t *event,
       }
 
     // input block
-    } else if (!state->parsing_input && !strcmp(value, "input")) {
+    } else if (!state->parsing_unrecognized && !state->parsing_settings &&
+               !state->parsing_input && !strcmp(value, "input")) {
       state->parsing_input = true;
+      state->found_input = true;
     } else if (state->parsing_input) {
       if (!state->parsing_fixed_params &&
           !state->parsing_lattice_params &&
@@ -603,7 +610,9 @@ static void handle_yaml_event(yaml_event_t *event,
           }
         } // handle input value
       } // handle input name/value
-    } // parsing input
+    } else if (!state->parsing_unrecognized) { // unrecognized block
+      state->parsing_unrecognized = true;
+    }
 
   // validation for mappings
   } else if (event->type == YAML_MAPPING_START_EVENT) {
@@ -613,12 +622,18 @@ static void handle_yaml_event(yaml_event_t *event,
         "Mapping encountered in input parameter %s", state->current_param);
     }
   } else if (event->type == YAML_MAPPING_END_EVENT) {
-    state->parsing_fixed_params = false;
-    state->parsing_lattice_params = false;
-    state->parsing_enumerated_params = false;
-    state->parsing_settings = false;
+    if (state->parsing_fixed_params) state->parsing_fixed_params = false;
+    else if (state->parsing_lattice_params) state->parsing_lattice_params = false;
+    else if (state->parsing_enumerated_params) state->parsing_enumerated_params = false;
+    else if (state->parsing_settings) state->parsing_settings = false;
+    else if (state->parsing_input) state->parsing_input = false;
+    else if (state->parsing_unrecognized) state->parsing_unrecognized = false;
   } else if (event->type == YAML_SEQUENCE_START_EVENT) {
-    if (state->parsing_input_array_sequence) {
+    if (!state->parsing_input) {
+      data->error_code = SW_INPUT_NOT_FOUND;
+      data->error_message = new_string("The input block was not found.");
+    }
+    else if (state->parsing_input_array_sequence) {
       data->error_code = SW_INVALID_PARAM_VALUE;
       data->error_message = new_string(
         "Cannot parse a sequence of array sequences for input parameter %s",
@@ -932,6 +947,13 @@ static yaml_data_t parse_yaml(FILE* file, const char* settings_block) {
     data.error_code = SW_SETTINGS_NOT_FOUND;
     data.error_message = new_string("The settings block '%s' was not found.",
                                     settings_block);
+    goto return_data;
+  }
+
+  // Did we find an input block?
+  if (!state.found_input) {
+    data.error_code = SW_INPUT_NOT_FOUND;
+    data.error_message = new_string("The input block was not found.");
     goto return_data;
   }
 
