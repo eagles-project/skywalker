@@ -402,12 +402,17 @@ typedef struct parser_state_t {
   const char *settings_block;
   bool parsing_settings;
   const char *current_setting;
+
+  bool parsing_unrecognized;
+
   bool parsing_input;
   bool parsing_fixed_params;
   bool parsing_lattice_params;
   bool parsing_enumerated_params;
   bool parsing_input_sequence;
   bool parsing_input_array_sequence;
+
+  bool found_input;
   const char *current_param;
 } parser_state_t;
 
@@ -467,7 +472,7 @@ static void handle_yaml_event(yaml_event_t *event,
         if (iter != kh_end(data->setting_names)) { // yes
           data->error_code = SW_INVALID_SETTINGS_BLOCK;
           data->error_message = new_string(
-            "Setting %s appears more than once!", value);
+              "Setting %s appears more than once!", value);
           return;
         }
 
@@ -476,16 +481,18 @@ static void handle_yaml_event(yaml_event_t *event,
         state->current_setting = dup_yaml_string(value);
         int ret;
         iter = kh_put(yaml_name_set, data->setting_names,
-                      state->current_setting, &ret);
+            state->current_setting, &ret);
         assert(ret == 1);
       } else {
         sw_settings_set(data->settings, state->current_setting, value);
         state->current_setting = NULL;
       }
 
-    // input block
-    } else if (!state->parsing_input && !strcmp(value, "input")) {
+      // input block
+    } else if (!state->parsing_unrecognized && !state->parsing_settings &&
+        !state->parsing_input && !strcmp(value, "input")) {
       state->parsing_input = true;
+      state->found_input = true;
     } else if (state->parsing_input) {
       if (!state->parsing_fixed_params &&
           !state->parsing_lattice_params &&
@@ -502,7 +509,7 @@ static void handle_yaml_event(yaml_event_t *event,
         }
       } else { // handle input name/value
         if (!state->current_param) { // parse the input parameter name
-          // Have we seen this parameter name before?
+                                     // Have we seen this parameter name before?
           khiter_t iter = kh_get(yaml_name_set, data->param_names, value);
           if (iter != kh_end(data->param_names)) { // yes
             data->error_code = SW_INVALID_PARAM_NAME;
@@ -524,7 +531,7 @@ static void handle_yaml_event(yaml_event_t *event,
           state->current_param = dup_yaml_string(value);
           int ret;
           iter = kh_put(yaml_name_set, data->param_names,
-                        state->current_param, &ret);
+              state->current_param, &ret);
           assert(ret == 1);
         } else { // we have an input name; parse its value
           // Try to interpret the value as a real number.
@@ -539,7 +546,7 @@ static void handle_yaml_event(yaml_event_t *event,
           } else { // valid real value
             // If we're parsing array input, append this value to it.
             if ((state->parsing_input_sequence &&
-                 state->parsing_fixed_params) ||
+                  state->parsing_fixed_params) ||
                 (state->parsing_input_array_sequence)) {
               khash_t(yaml_array_param_map) *array_input;
               if (state->parsing_fixed_params) {
@@ -551,7 +558,7 @@ static void handle_yaml_event(yaml_event_t *event,
                 array_input = data->enumerated_array_input;
               }
               khiter_t iter = kh_get(yaml_array_param_map, array_input,
-                                     state->current_param);
+                  state->current_param);
               if (iter == kh_end(array_input)) { // name not yet encountered
                 // Create an array of arrays containing one empty array.
                 real_vec_vec_t arrays;
@@ -603,95 +610,101 @@ static void handle_yaml_event(yaml_event_t *event,
           }
         } // handle input value
       } // handle input name/value
-    } // parsing input
+    } else if (!state->parsing_unrecognized) { // unrecognized block
+      state->parsing_unrecognized = true;
+    }
 
   // validation for mappings
   } else if (event->type == YAML_MAPPING_START_EVENT) {
     if (state->current_param) { // we're already parsing an input value
       data->error_code = SW_INVALID_PARAM_VALUE;
       data->error_message = new_string(
-        "Mapping encountered in input parameter %s", state->current_param);
+          "Mapping encountered in input parameter %s", state->current_param);
     }
   } else if (event->type == YAML_MAPPING_END_EVENT) {
-    state->parsing_fixed_params = false;
-    state->parsing_lattice_params = false;
-    state->parsing_enumerated_params = false;
-    state->parsing_settings = false;
-  } else if (event->type == YAML_SEQUENCE_START_EVENT) {
-    if (state->parsing_input_array_sequence) {
-      data->error_code = SW_INVALID_PARAM_VALUE;
-      data->error_message = new_string(
-        "Cannot parse a sequence of array sequences for input parameter %s",
-        state->current_param);
-    } else if (state->parsing_input_sequence) {
-      if (state->parsing_fixed_params) {
+    if (state->parsing_fixed_params) state->parsing_fixed_params = false;
+    else if (state->parsing_lattice_params) state->parsing_lattice_params = false;
+    else if (state->parsing_enumerated_params) state->parsing_enumerated_params = false;
+    else if (state->parsing_settings) state->parsing_settings = false;
+    else if (state->parsing_input) state->parsing_input = false;
+    else if (state->parsing_unrecognized) state->parsing_unrecognized = false;
+  } else if (state->parsing_input) { // sequences are only parsed in input block
+    if (event->type == YAML_SEQUENCE_START_EVENT) {
+      if (state->parsing_input_array_sequence) {
         data->error_code = SW_INVALID_PARAM_VALUE;
         data->error_message = new_string(
-          "Cannot parse a sequence of arrays for fixed input parameter %s",
-          state->current_param);
-        return;
-      }
-      state->parsing_input_array_sequence = true;
-      khash_t(yaml_array_param_map) *array_input;
-      if (state->parsing_lattice_params) {
-        array_input = data->lattice_array_input;
-      } else {
-        assert(state->parsing_enumerated_params);
-        array_input = data->enumerated_array_input;
-      }
-      khiter_t iter = kh_get(yaml_array_param_map, array_input,
-                             state->current_param);
-      if (iter != kh_end(array_input)) { // name already encountered
-        // Add new array to the array of arrays.
-        real_vec_vec_t arrays = kh_value(array_input, iter);
-        real_vec_t array;
-        kv_init(array);
-        kv_push(real_vec_t, arrays, array);
-        kh_value(array_input, iter) = arrays;
-      }
-    } else if (state->parsing_input) {
-      state->parsing_input_sequence = true;
-    }
-  } else if (event->type == YAML_SEQUENCE_END_EVENT) {
-    if (state->parsing_input_array_sequence) {
-      state->parsing_input_array_sequence = false;
-    } else { // sequence of scalar or array inputs
-      if (!state->parsing_fixed_params) {
-        // Make sure the sequence has more than one value, whatever it is.
-        khash_t(yaml_param_map) *input;
-        khash_t(yaml_array_param_map) *array_input;
-        size_t num_values = 0;
-        if (state->parsing_lattice_params) {
-          input = data->lattice_input;
-          array_input = data->lattice_array_input;
-        } else {
-          input = data->enumerated_input;
-          array_input = data->enumerated_array_input;
-        }
-        khiter_t iter = kh_get(yaml_param_map, input, state->current_param);
-        if (iter != kh_end(input)) { // it's a scalar
-          num_values = kv_size(kh_value(input, iter));
-        } else { // is it an array?
-          iter = kh_get(yaml_array_param_map, array_input, state->current_param);
-          if (iter != kh_end(array_input)) {
-            num_values = kv_size(kh_value(array_input, iter));
-          } else { // the parameter is an empty sequence, maybe
-            data->error_code = SW_EMPTY_ENSEMBLE;
-            data->error_message = new_string(
-              "Lattice or enumerated parameter %s has no values. Generated "
-              "ensemble is empty!", state->current_param);
-          }
-        }
-        if (num_values == 1) {
+            "Cannot parse a sequence of array sequences for input parameter %s",
+            state->current_param);
+      } else if (state->parsing_input_sequence) {
+        if (state->parsing_fixed_params) {
           data->error_code = SW_INVALID_PARAM_VALUE;
           data->error_message = new_string(
-            "Lattice or enumerated parameter %s has only a single value.",
-            state->current_param);
+              "Cannot parse a sequence of arrays for fixed input parameter %s",
+              state->current_param);
           return;
         }
+        state->parsing_input_array_sequence = true;
+        khash_t(yaml_array_param_map) *array_input;
+        if (state->parsing_lattice_params) {
+          array_input = data->lattice_array_input;
+        } else {
+          assert(state->parsing_enumerated_params);
+          array_input = data->enumerated_array_input;
+        }
+        khiter_t iter = kh_get(yaml_array_param_map, array_input,
+            state->current_param);
+        if (iter != kh_end(array_input)) { // name already encountered
+          // Add new array to the array of arrays.
+          real_vec_vec_t arrays = kh_value(array_input, iter);
+          real_vec_t array;
+          kv_init(array);
+          kv_push(real_vec_t, arrays, array);
+          kh_value(array_input, iter) = arrays;
+        }
+      } else if (state->parsing_input) {
+        state->parsing_input_sequence = true;
       }
-      state->parsing_input_sequence = false;
-      state->current_param = NULL;
+    } else if (event->type == YAML_SEQUENCE_END_EVENT) {
+      if (state->parsing_input_array_sequence) {
+        state->parsing_input_array_sequence = false;
+      } else { // sequence of scalar or array inputs
+        if (!state->parsing_fixed_params) {
+          // Make sure the sequence has more than one value, whatever it is.
+          khash_t(yaml_param_map) *input;
+          khash_t(yaml_array_param_map) *array_input;
+          size_t num_values = 0;
+          if (state->parsing_lattice_params) {
+            input = data->lattice_input;
+            array_input = data->lattice_array_input;
+          } else {
+            input = data->enumerated_input;
+            array_input = data->enumerated_array_input;
+          }
+          khiter_t iter = kh_get(yaml_param_map, input, state->current_param);
+          if (iter != kh_end(input)) { // it's a scalar
+            num_values = kv_size(kh_value(input, iter));
+          } else { // is it an array?
+            iter = kh_get(yaml_array_param_map, array_input, state->current_param);
+            if (iter != kh_end(array_input)) {
+              num_values = kv_size(kh_value(array_input, iter));
+            } else { // the parameter is an empty sequence, maybe
+              data->error_code = SW_EMPTY_ENSEMBLE;
+              data->error_message = new_string(
+                  "Lattice or enumerated parameter %s has no values. Generated "
+                  "ensemble is empty!", state->current_param);
+            }
+          }
+          if (num_values == 1) {
+            data->error_code = SW_INVALID_PARAM_VALUE;
+            data->error_message = new_string(
+                "Lattice or enumerated parameter %s has only a single value.",
+                state->current_param);
+            return;
+          }
+        }
+        state->parsing_input_sequence = false;
+        state->current_param = NULL;
+      }
     }
   }
 }
@@ -932,6 +945,13 @@ static yaml_data_t parse_yaml(FILE* file, const char* settings_block) {
     data.error_code = SW_SETTINGS_NOT_FOUND;
     data.error_message = new_string("The settings block '%s' was not found.",
                                     settings_block);
+    goto return_data;
+  }
+
+  // Did we find an input block?
+  if (!state.found_input) {
+    data.error_code = SW_INPUT_NOT_FOUND;
+    data.error_message = new_string("The input block was not found.");
     goto return_data;
   }
 
