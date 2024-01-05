@@ -1,4 +1,5 @@
 cmake_minimum_required (VERSION 3.12.0)
+include(CMakePackageConfigHelpers)
 
 option(ENABLE_FORTRAN "Enable Skywalker Fortran library" ON)
 
@@ -176,6 +177,16 @@ configure_file(
   ${PROJECT_BINARY_DIR}/share/skywalker.cmake
   @ONLY
 )
+
+configure_package_config_file(
+  ${PROJECT_SOURCE_DIR}/cmake/skywalkerConfig.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/skywalkerConfig.cmake
+  INSTALL_DESTINATION "${PROJECT_BINARY_DIR}/share/cmake/skywalker"
+)
+
+INSTALL(FILES "${PROJECT_BINARY_DIR}/skywalkerConfig.cmake"
+  DESTINATION "share/cmake/skywalker"
+)
+
 install(FILES ${PROJECT_BINARY_DIR}/share/skywalker.cmake
         DESTINATION share)
 
