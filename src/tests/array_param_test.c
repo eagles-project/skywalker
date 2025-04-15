@@ -40,8 +40,7 @@
 
 #include <assert.h>
 #include <string.h>
-#include <tgmath.h>
-
+#include <math.h>
 void usage(const char *prog_name) {
   fprintf(stderr, "%s: usage:\n", prog_name);
   fprintf(stderr, "%s <input.yaml>\n", prog_name);
