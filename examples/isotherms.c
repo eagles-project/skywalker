@@ -36,7 +36,6 @@
 #include <skywalker.h>
 
 #include <string.h>
-#include <tgmath.h>
 
 void usage() {
   fprintf(stderr, "isotherms_c: calculates the pressure of a Van der Waals gas "
