@@ -2,13 +2,13 @@ cmake_minimum_required (VERSION 3.12.0)
 
 option(ENABLE_FORTRAN "Enable Skywalker Fortran library" ON)
 
+project (skywalker)
+
 enable_language(C)
 enable_language(CXX)
 if (ENABLE_FORTRAN)
   enable_language(Fortran)
 endif()
-
-project (skywalker)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 11)
