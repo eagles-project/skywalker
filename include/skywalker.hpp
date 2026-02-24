@@ -141,6 +141,14 @@ class Input final {
     }
   }
 
+  // Iterates over all input scalars, storing each name and value in the variables provided.
+  bool next_scalar(std::string &name, Real &scalar) const {
+    const char *n;
+    bool result = sw_input_next_scalar(input_, &n, &scalar);
+    name = n;
+    return result;
+  }
+
   // Returns true if an input array parameter with the given name exists within
   // the given input instance, false otherwise.
   bool has_array(const std::string& name) const {
@@ -156,6 +164,17 @@ class Input final {
     } else {
       throw Exception(result.error_message);
     }
+  }
+
+  // Iterates over all input arrays, storing each name and value in the variables provided.
+  bool next_array(std::string &name, std::vector<Real> &array) const {
+    const char *n;
+    sw_input_array_result_t value;
+    bool result = sw_input_next_array(input_, &n, &value);
+    name = n;
+    array.resize(value.size);
+    std::copy(value.values, value.values + value.size, array.begin());
+    return result;
   }
 
  private:
@@ -185,12 +204,30 @@ class Output final {
     sw_output_set(output_, name.c_str(), value);
   }
 
+  // Iterates over all output scalars, storing each value in the variable provided.
+  bool next_scalar(std::string& name, Real &scalar) const {
+    const char *n;
+    bool result = sw_output_next_scalar(output_, &n, &scalar);
+    name = n;
+    return result;
+  }
+
   // Sets (real-valued) parameters in an array with the given name. This
   // operation cannot fail under normal circumstances.
   void set(const std::string& name, const std::vector<Real> &values) const {
     sw_output_set_array(output_, name.c_str(), values.data(), values.size());
   }
 
+  // Iterates over all output arrays, storing each name and value in the variables provided.
+  bool next_array(std::string &name, std::vector<Real> &array) const {
+    const char *n;
+    sw_output_array_result_t value;
+    bool result = sw_output_next_array(output_, &n, &value);
+    name = n;
+    array.resize(value.size);
+    std::copy(value.values, value.values + value.size, array.begin());
+    return result;
+  }
  private:
   explicit Output(sw_output_t *o): output_(o) {}
   sw_output_t *output_;

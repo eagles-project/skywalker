@@ -189,6 +189,7 @@ sw_settings_result_t sw_settings_get(sw_settings_t *settings,
 struct sw_input_t {
   khash_t(param_map) *params;
   khash_t(array_param_map) *array_params;
+  khiter_t scalar_position, array_position;
 };
 
 static void sw_input_set(sw_input_t *input, const char *name, sw_real_t value) {
@@ -234,6 +235,10 @@ sw_input_result_t sw_input_get(sw_input_t *input, const char *name) {
   return result;
 }
 
+bool sw_input_next_scalar(sw_input_t *input, const char **name, sw_real_t *scalar) {
+  // TODO: 
+}
+
 bool sw_input_has_array(sw_input_t *input, const char *name) {
   khiter_t iter = kh_get(array_param_map, input->array_params, name);
   return (iter != kh_end(input->array_params));
@@ -255,9 +260,14 @@ sw_input_array_result_t sw_input_get_array(sw_input_t *input, const char *name) 
   return result;
 }
 
+bool sw_input_next_array(sw_input_t *input, const char **name, sw_input_array_result_t *array) {
+  // TODO: 
+}
+
 struct sw_output_t {
   khash_t(param_map) *metrics;
   khash_t(array_param_map) *array_metrics;
+  khiter_t scalar_position, array_position;
 };
 
 void sw_output_set(sw_output_t *output, const char *name, sw_real_t value) {
@@ -266,6 +276,10 @@ void sw_output_set(sw_output_t *output, const char *name, sw_real_t value) {
   khiter_t iter = kh_put(param_map, output->metrics, n, &ret);
   assert(ret == 1);
   kh_value(output->metrics, iter) = value;
+}
+
+bool sw_output_next_scalar(sw_output_t *output, const char **name, sw_real_t *scalar) {
+  // TODO: 
 }
 
 void sw_output_set_array(sw_output_t *output, const char *name,
@@ -279,6 +293,10 @@ void sw_output_set_array(sw_output_t *output, const char *name,
   for (size_t i=0; i<size; ++i)
     kv_push(sw_real_t, array, values[i]); // append
   kh_value(output->array_metrics, iter) = array;
+}
+
+bool sw_output_next_array(sw_output_t *output, const char **name, sw_input_array_result_t *array) {
+  // TODO:
 }
 
 // ensemble type
