@@ -145,7 +145,7 @@ class Input final {
   bool next_scalar(std::string &name, Real &scalar) const {
     const char *n;
     bool result = sw_input_next_scalar(input_, &n, &scalar);
-    name = n;
+    if (result) name = n;
     return result;
   }
 
@@ -169,11 +169,14 @@ class Input final {
   // Iterates over all input arrays, storing each name and value in the variables provided.
   bool next_array(std::string &name, std::vector<Real> &array) const {
     const char *n;
-    sw_input_array_result_t value;
-    bool result = sw_input_next_array(input_, &n, &value);
-    name = n;
-    array.resize(value.size);
-    std::copy(value.values, value.values + value.size, array.begin());
+    Real *values;
+    size_t size;
+    bool result = sw_input_next_array(input_, &n, &values, &size);
+    if (result) {
+      name = n;
+      array.resize(size);
+      std::copy(values, values + size, array.begin());
+    }
     return result;
   }
 
@@ -208,7 +211,7 @@ class Output final {
   bool next_scalar(std::string& name, Real &scalar) const {
     const char *n;
     bool result = sw_output_next_scalar(output_, &n, &scalar);
-    name = n;
+    if (result) name = n;
     return result;
   }
 
@@ -221,13 +224,17 @@ class Output final {
   // Iterates over all output arrays, storing each name and value in the variables provided.
   bool next_array(std::string &name, std::vector<Real> &array) const {
     const char *n;
-    sw_output_array_result_t value;
-    bool result = sw_output_next_array(output_, &n, &value);
-    name = n;
-    array.resize(value.size);
-    std::copy(value.values, value.values + value.size, array.begin());
+    Real *values;
+    size_t size;
+    bool result = sw_output_next_array(output_, &n, &values, &size);
+    if (result) {
+      name = n;
+      array.resize(size);
+      std::copy(values, values + size, array.begin());
+    }
     return result;
   }
+
  private:
   explicit Output(sw_output_t *o): output_(o) {}
   sw_output_t *output_;

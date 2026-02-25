@@ -20,6 +20,18 @@ foreach(test lattice_test enumerated_test mixed_test array_param_test)
   endif()
 endforeach()
 
+# Ensemble traversal tests (currently C and C++ only
+foreach(test ensemble_traversal_test)
+  configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/${test}.yaml
+    ${CMAKE_CURRENT_BINARY_DIR}/${test}.yaml
+    COPYONLY)
+  add_skywalker_driver(${test} ${test}.c)
+  add_test(${test} ${test} ${test}.yaml)
+  add_skywalker_driver(${test}_cpp ${test}.cpp)
+  add_test(${test}_cpp ${test}_cpp ${test}.yaml)
+endforeach()
+
 # Validation tests (currently C only).
 add_skywalker_driver(validation_test validation_test.c)
 add_test(validation_test validation_test)

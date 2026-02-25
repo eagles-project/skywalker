@@ -133,6 +133,9 @@ if (ENABLE_FORTRAN)
   endif()
 endif()
 
+# emit compile_commands.json for use with clangd
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 # Report the installation prefix.
 message(STATUS "Installation prefix is ${CMAKE_INSTALL_PREFIX}")
 

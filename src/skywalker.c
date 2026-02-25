@@ -189,7 +189,7 @@ sw_settings_result_t sw_settings_get(sw_settings_t *settings,
 struct sw_input_t {
   khash_t(param_map) *params;
   khash_t(array_param_map) *array_params;
-  khiter_t scalar_position, array_position;
+  khiter_t scalar_iter, array_iter;
 };
 
 static void sw_input_set(sw_input_t *input, const char *name, sw_real_t value) {
@@ -198,6 +198,7 @@ static void sw_input_set(sw_input_t *input, const char *name, sw_real_t value) {
   khiter_t iter = kh_put(param_map, input->params, n, &ret);
   assert(ret == 1);
   kh_value(input->params, iter) = value;
+  input->scalar_iter = kh_begin(input->params);
 }
 
 static void sw_input_set_array(sw_input_t *input, const char *name,
@@ -215,6 +216,7 @@ static void sw_input_set_array(sw_input_t *input, const char *name,
   khiter_t iter = kh_put(array_param_map, input->array_params, n, &ret);
   assert(ret == 1);
   kh_value(input->array_params, iter) = my_values;
+  input->array_iter = kh_begin(input->array_params);
 }
 
 bool sw_input_has(sw_input_t *input, const char *name) {
@@ -236,7 +238,18 @@ sw_input_result_t sw_input_get(sw_input_t *input, const char *name) {
 }
 
 bool sw_input_next_scalar(sw_input_t *input, const char **name, sw_real_t *scalar) {
-  // TODO: 
+  while (input->scalar_iter != kh_end(input->params)) {
+    if (kh_exist(input->params, input->scalar_iter)) {
+      *name = kh_key(input->params, input->scalar_iter);
+      *scalar = kh_val(input->params, input->scalar_iter++);
+      return true;
+    }
+    ++input->scalar_iter;
+  }
+  input->scalar_iter = kh_begin(input->params);
+  *name = NULL;
+  *scalar = 0.0;
+  return false;
 }
 
 bool sw_input_has_array(sw_input_t *input, const char *name) {
@@ -260,14 +273,28 @@ sw_input_array_result_t sw_input_get_array(sw_input_t *input, const char *name) 
   return result;
 }
 
-bool sw_input_next_array(sw_input_t *input, const char **name, sw_input_array_result_t *array) {
-  // TODO: 
+bool sw_input_next_array(sw_input_t *input, const char **name, sw_real_t **values, size_t *size) {
+  while (input->array_iter != kh_end(input->array_params)) {
+    if (kh_exist(input->array_params, input->array_iter)) {
+      *name = kh_key(input->array_params, input->array_iter);
+      real_vec_t array = kh_val(input->array_params, input->array_iter++);
+      *values = array.a;
+      *size = kv_size(array);
+      return true;
+    }
+    ++input->array_iter;
+  }
+  input->array_iter = kh_begin(input->array_params);
+  *name = NULL;
+  *values = NULL;
+  *size = 0;
+  return false;
 }
 
 struct sw_output_t {
   khash_t(param_map) *metrics;
   khash_t(array_param_map) *array_metrics;
-  khiter_t scalar_position, array_position;
+  khiter_t scalar_iter, array_iter;
 };
 
 void sw_output_set(sw_output_t *output, const char *name, sw_real_t value) {
@@ -276,10 +303,22 @@ void sw_output_set(sw_output_t *output, const char *name, sw_real_t value) {
   khiter_t iter = kh_put(param_map, output->metrics, n, &ret);
   assert(ret == 1);
   kh_value(output->metrics, iter) = value;
+  output->scalar_iter = kh_begin(output->metrics);
 }
 
 bool sw_output_next_scalar(sw_output_t *output, const char **name, sw_real_t *scalar) {
-  // TODO: 
+  while (output->scalar_iter != kh_end(output->metrics)) {
+    if (kh_exist(output->metrics, output->scalar_iter)) {
+      *name = kh_key(output->metrics, output->scalar_iter);
+      *scalar = kh_val(output->metrics, output->scalar_iter++);
+      return true;
+    }
+    ++output->scalar_iter;
+  }
+  output->scalar_iter = kh_begin(output->metrics);
+  *name = NULL;
+  *scalar = 0.0;
+  return false;
 }
 
 void sw_output_set_array(sw_output_t *output, const char *name,
@@ -293,10 +332,25 @@ void sw_output_set_array(sw_output_t *output, const char *name,
   for (size_t i=0; i<size; ++i)
     kv_push(sw_real_t, array, values[i]); // append
   kh_value(output->array_metrics, iter) = array;
+  output->array_iter = kh_begin(output->array_metrics);
 }
 
-bool sw_output_next_array(sw_output_t *output, const char **name, sw_input_array_result_t *array) {
-  // TODO:
+bool sw_output_next_array(sw_output_t *output, const char **name, sw_real_t **values, size_t *size) {
+  while (output->array_iter != kh_end(output->array_metrics)) {
+    if (kh_exist(output->array_metrics, output->array_iter)) {
+      *name = kh_key(output->array_metrics, output->array_iter);
+      real_vec_t array = kh_val(output->array_metrics, output->array_iter++);
+      *values = array.a;
+      *size = kv_size(array);
+      return true;
+    }
+    ++output->array_iter;
+  }
+  output->array_iter = kh_begin(output->array_metrics);
+  *name = NULL;
+  *values = NULL;
+  *size = 0;
+  return false;
 }
 
 // ensemble type

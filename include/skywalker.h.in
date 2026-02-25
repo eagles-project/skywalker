@@ -182,7 +182,7 @@ sw_input_array_result_t sw_input_get_array(sw_input_t *input, const char *name);
 // Iterates over the array names and values in the given input. This function
 // returns true once for each array in the input and false once the input's
 // arrays have been traversed. Use it as a predicate in a while loop.
-bool sw_input_next_array(sw_input_t *input, const char **name, sw_input_array_result_t *array);
+bool sw_input_next_array(sw_input_t *input, const char **name, sw_real_t **values, size_t *size);
 
 // This function sets a quantity with the given name and value within the given
 // output instance. This operation cannot fail under normal circumstances.
@@ -202,7 +202,7 @@ void sw_output_set_array(sw_output_t *output, const char *name,
 // Iterates over the array names and values in the given output. This function
 // returns true once for each array in the output and false once the output's
 // arrays have been traversed. Use it as a predicate in a while loop.
-bool sw_output_next_array(sw_output_t *output, const char **name, sw_input_array_result_t *array);
+bool sw_output_next_array(sw_output_t *output, const char **name, sw_real_t **values, size_t *size);
 
 // This type stores the result of an attempt to write ensemble data to a
 // Python module.

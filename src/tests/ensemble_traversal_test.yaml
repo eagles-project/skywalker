@@ -1,0 +1,10 @@
+# This input file tests Skywalker's support for traversing ensemble inputs and outputs.
+
+settings:
+  ignore: me
+
+input:
+  enumerated:
+    scalars: [1, 2, 3, 4] 
+    arrays: [[1, 2, 3, 4], [11,12,13,14], [1,1,1,1], [0, 3, 9, 7]]
+
