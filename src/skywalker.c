@@ -238,7 +238,7 @@ sw_input_result_t sw_input_get(sw_input_t *input, const char *name) {
 }
 
 bool sw_input_next_scalar(sw_input_t *input, const char **name, sw_real_t *scalar) {
-  while (input->scalar_iter != kh_end(input->params)) {
+  while (input->scalar_iter < kh_end(input->params)) {
     if (kh_exist(input->params, input->scalar_iter)) {
       *name = kh_key(input->params, input->scalar_iter);
       *scalar = kh_val(input->params, input->scalar_iter++);
@@ -274,7 +274,7 @@ sw_input_array_result_t sw_input_get_array(sw_input_t *input, const char *name) 
 }
 
 bool sw_input_next_array(sw_input_t *input, const char **name, sw_real_t **values, size_t *size) {
-  while (input->array_iter != kh_end(input->array_params)) {
+  while (input->array_iter < kh_end(input->array_params)) {
     if (kh_exist(input->array_params, input->array_iter)) {
       *name = kh_key(input->array_params, input->array_iter);
       real_vec_t array = kh_val(input->array_params, input->array_iter++);
@@ -307,7 +307,7 @@ void sw_output_set(sw_output_t *output, const char *name, sw_real_t value) {
 }
 
 bool sw_output_next_scalar(sw_output_t *output, const char **name, sw_real_t *scalar) {
-  while (output->scalar_iter != kh_end(output->metrics)) {
+  while (output->scalar_iter < kh_end(output->metrics)) {
     if (kh_exist(output->metrics, output->scalar_iter)) {
       *name = kh_key(output->metrics, output->scalar_iter);
       *scalar = kh_val(output->metrics, output->scalar_iter++);
@@ -336,7 +336,7 @@ void sw_output_set_array(sw_output_t *output, const char *name,
 }
 
 bool sw_output_next_array(sw_output_t *output, const char **name, sw_real_t **values, size_t *size) {
-  while (output->array_iter != kh_end(output->array_metrics)) {
+  while (output->array_iter < kh_end(output->array_metrics)) {
     if (kh_exist(output->array_metrics, output->array_iter)) {
       *name = kh_key(output->array_metrics, output->array_iter);
       real_vec_t array = kh_val(output->array_metrics, output->array_iter++);
