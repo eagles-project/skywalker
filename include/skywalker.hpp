@@ -141,6 +141,14 @@ class Input final {
     }
   }
 
+  // Iterates over all input scalars, storing each name and value in the variables provided.
+  bool next_scalar(std::string &name, Real &scalar) const {
+    const char *n;
+    bool result = sw_input_next_scalar(input_, &n, &scalar);
+    if (result) name = n;
+    return result;
+  }
+
   // Returns true if an input array parameter with the given name exists within
   // the given input instance, false otherwise.
   bool has_array(const std::string& name) const {
@@ -156,6 +164,20 @@ class Input final {
     } else {
       throw Exception(result.error_message);
     }
+  }
+
+  // Iterates over all input arrays, storing each name and value in the variables provided.
+  bool next_array(std::string &name, std::vector<Real> &array) const {
+    const char *n;
+    Real *values;
+    size_t size;
+    bool result = sw_input_next_array(input_, &n, &values, &size);
+    if (result) {
+      name = n;
+      array.resize(size);
+      std::copy(values, values + size, array.begin());
+    }
+    return result;
   }
 
  private:
@@ -185,10 +207,32 @@ class Output final {
     sw_output_set(output_, name.c_str(), value);
   }
 
+  // Iterates over all output scalars, storing each value in the variable provided.
+  bool next_scalar(std::string& name, Real &scalar) const {
+    const char *n;
+    bool result = sw_output_next_scalar(output_, &n, &scalar);
+    if (result) name = n;
+    return result;
+  }
+
   // Sets (real-valued) parameters in an array with the given name. This
   // operation cannot fail under normal circumstances.
   void set(const std::string& name, const std::vector<Real> &values) const {
     sw_output_set_array(output_, name.c_str(), values.data(), values.size());
+  }
+
+  // Iterates over all output arrays, storing each name and value in the variables provided.
+  bool next_array(std::string &name, std::vector<Real> &array) const {
+    const char *n;
+    Real *values;
+    size_t size;
+    bool result = sw_output_next_array(output_, &n, &values, &size);
+    if (result) {
+      name = n;
+      array.resize(size);
+      std::copy(values, values + size, array.begin());
+    }
+    return result;
   }
 
  private:

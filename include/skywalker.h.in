@@ -158,6 +158,11 @@ bool sw_input_has(sw_input_t *input, const char* name);
 // Retrieves the (scalar) input parameter with the given name.
 sw_input_result_t sw_input_get(sw_input_t *input, const char *name);
 
+// Iterates over the scalar names and values in the given input. This function
+// returns true once for each scalar in the input and false once the input's
+// scalars have been traversed. Use it as a predicate in a while loop.
+bool sw_input_next_scalar(sw_input_t *input, const char **name, sw_real_t *scalar);
+
 // Returns true if an input array parameter with the given name exists within
 // the given input instance, false otherwise.
 bool sw_input_has_array(sw_input_t *input, const char* name);
@@ -174,15 +179,30 @@ typedef struct sw_input_array_result_t {
 // Retrieves the (array-valued) input parameter with the given name.
 sw_input_array_result_t sw_input_get_array(sw_input_t *input, const char *name);
 
+// Iterates over the array names and values in the given input. This function
+// returns true once for each array in the input and false once the input's
+// arrays have been traversed. Use it as a predicate in a while loop.
+bool sw_input_next_array(sw_input_t *input, const char **name, sw_real_t **values, size_t *size);
+
 // This function sets a quantity with the given name and value within the given
 // output instance. This operation cannot fail under normal circumstances.
 void sw_output_set(sw_output_t *output, const char *name, sw_real_t value);
+
+// Iterates over the scalar names and values in the given output. This function
+// returns true once for each scalar in the output and false once the output's
+// scalars have been traversed. Use it as a predicate in a while loop.
+bool sw_output_next_scalar(sw_output_t *output, const char **name, sw_real_t *scalar);
 
 // This function sets an array of quantities with the given name and values
 // within the given output instance. This operation cannot fail under normal
 // circumstances.
 void sw_output_set_array(sw_output_t *output, const char *name,
                          const sw_real_t *values, size_t size);
+
+// Iterates over the array names and values in the given output. This function
+// returns true once for each array in the output and false once the output's
+// arrays have been traversed. Use it as a predicate in a while loop.
+bool sw_output_next_array(sw_output_t *output, const char **name, sw_real_t **values, size_t *size);
 
 // This type stores the result of an attempt to write ensemble data to a
 // Python module.
