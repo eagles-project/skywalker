@@ -143,7 +143,7 @@ message(STATUS "Installation prefix is ${CMAKE_INSTALL_PREFIX}")
 add_subdirectory(ext)
 
 # Support for valgrind (Linux only).
-if (UNIX AND NOT APPLE)
+if (UNIX AND NOT APPLE AND NOT TARGET memcheck)
   find_program(VALGRIND_EXE valgrind)
   if (NOT VALGRIND_EXE MATCHES "NOTFOUND")
     set(MEMORYCHECK_COMMAND ${Valgrind_EXE})
