@@ -579,7 +579,7 @@ contains
     use, intrinsic :: iso_c_binding
     implicit none
     type(c_ptr), value, intent(in) :: c_string
-    character(len=:), pointer      :: f_ptr
+    character(len=255), pointer    :: f_ptr
     integer(c_size_t)              :: c_string_len
     character(len=255)             :: f_string
 
