@@ -36,7 +36,7 @@
 ! -------------------------------------------------------------------------
 
 ! This module contains data structures that allow Fortran modules to access
-! skywalker's ensemble input and output data.
+! skywalker ensemble input and output data.
 module skywalker
 
   use iso_c_binding
@@ -63,7 +63,7 @@ module skywalker
   integer, parameter :: sw_write_failure = 13
 
   ! This type represents an ensemble that has been loaded from a skywalker input
-  ! YAML file. It's an opaque type whose innards cannot be manipulated.
+  ! YAML file. It is an opaque type whose innards cannot be manipulated.
   type :: ensemble_t
     type(c_ptr)       :: ptr
     integer(c_size_t) :: size  ! number of members
@@ -158,7 +158,7 @@ module skywalker
     character(len=255) :: error_message
   end type ensemble_result_t
 
-  ! This type stores the result of an attempt to write an ensemble's data to
+  ! This type stores the result of an attempt to write an ensemble data to
   ! a Python module.
   type :: write_result_t
     integer(c_int)     :: error_code    ! error code indicating success or failure
@@ -272,7 +272,7 @@ module skywalker
 
 contains
 
-  ! Prints a banner containing Skywalker's version info to stderr.
+  ! Prints a banner containing Skywalker version info to stderr.
   subroutine print_banner()
     call sw_print_banner()
   end subroutine
