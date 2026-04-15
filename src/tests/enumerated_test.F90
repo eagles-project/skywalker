@@ -33,7 +33,7 @@
 ! SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ! -------------------------------------------------------------------------
 
-! This program tests Skywalker's Fortran 90 interface with a user-defined
+! This program tests the Skywalker Fortran 90 interface with a user-defined
 ! configuration that uses an "enumeration" ensemble.
 
 module enumeration_test_mod
@@ -62,7 +62,7 @@ contains
   end function
 end module enumeration_test_mod
 
-! This macro halts the program if the predicate x isn't true.
+! This macro halts the program if the predicate x is false.
 #define assert(x) if (.not. (x)) call fatal_error("Assertion failed at line", __LINE__)
 
 program enumeration_test
@@ -88,7 +88,7 @@ program enumeration_test
 
   call get_command_argument(1, input_file)
 
-  ! Print a banner with Skywalker's version info.
+  ! Print a banner with Skywalker version info.
   call print_banner()
 
   ! Load the ensemble. Any error encountered is fatal.
@@ -134,7 +134,7 @@ program enumeration_test
     assert(input%get("tock") >= 1e1_swp)
     assert(input%get("tock") <= 1e11_swp)
 
-    ! Look for a parameter that doesn't exist, checking its result by calling
+    ! Look for a parameter that does not exist, checking its result by calling
     ! get_param() instead of get().
     assert(.not. input%has("invalid_param"))
     in_result = input%get_param("invalid_param")

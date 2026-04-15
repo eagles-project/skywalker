@@ -33,7 +33,7 @@
 ! SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ! -------------------------------------------------------------------------
 
-! This program tests Skywalker's Fortran 90 interface and its support for
+! This program tests the Skywalker Fortran 90 interface and its support for
 ! array parameters.
 
 module array_param_test_mod
@@ -62,7 +62,7 @@ contains
   end function
 end module array_param_test_mod
 
-! This macro halts the program if the predicate x isn't true.
+! This macro halts the program if the predicate x is false.
 #define assert(x) if (.not. (x)) call fatal_error("Assertion failed at line", __LINE__)
 
 program array_param_test
@@ -87,7 +87,7 @@ program array_param_test
 
   call get_command_argument(1, input_file)
 
-  ! Print a banner with Skywalker's version info.
+  ! Print a banner with Skywalker version info.
   call print_banner()
 
   ! Load the ensemble. Any error encountered is fatal.

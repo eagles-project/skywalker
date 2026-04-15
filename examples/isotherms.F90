@@ -112,7 +112,7 @@ program isotherms
     V = input%get("V") ! gas (molar) volume [m3]
     T = input%get("T") ! gas temperature [K]
 
-    ! Fetch Van der Waals parameters if they're present.
+    ! Fetch Van der Waals parameters if present.
     a = 0.0_swp
     b = 0.0_swp
     if (input%has("a")) a = input%get("a")
@@ -121,7 +121,7 @@ program isotherms
     ! Compute p(V, T).
     p = R * T / (V - b) - a/(V**2)
 
-    ! Stash the computed pressure in the member's output.
+    ! Stash the computed pressure in member output.
     call output%set("p", p);
   end do
 
